@@ -1,0 +1,47 @@
+.landing-header {
+    background-color: rgb(64, 75, 86);
+    display: flex;
+    align-items: center;
+}
+
+.landing-header div {
+    flex-grow: 1;
+}
+
+.header-title {
+    display: flex;
+    justify-content: left;
+    padding: 20px;
+}
+
+.header-buttons {
+    display: flex;
+    justify-content: right;
+    padding: 10px;
+}
+
+.header-signup {
+    font-size: 25px;
+    background-color: rgb(217, 184, 0);
+    border: none;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.header-signin {
+    font-size: 25px;
+    background-color: rgb(255, 255, 255);
+    border: none;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.landing-header h1 {
+    padding: 0;
+    margin: 0;
+    color: white;
+}

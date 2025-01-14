@@ -8,9 +8,15 @@
     flex-grow: 1;
 }
 
+.landing-header a {
+    color: lightslategray;
+    font-size: 20px;
+}
+
 .header-title {
     display: flex;
     justify-content: left;
+    align-items: center;
     padding: 20px;
 }
 
@@ -66,6 +72,7 @@
     margin: 40px;
     justify-content: center;
     border-radius: 17px;
+    margin-bottom: 60px;
 }
 
 .inner-text {
@@ -78,8 +85,7 @@
     display: flex;
     flex-grow: 1;
     height: 50vh;
-    margin-bottom: 100px;
-    margin-top: 60px;
+    margin-bottom: 60px;
 }
 
 .collab-image {
@@ -104,6 +110,14 @@
 .collab-text h3 {
     width: 70%;
     align-self: center;
+}
+
+.external-image {
+    background-image: url("../resources/ETL-Tools.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 50%;
 }
 
 hr {

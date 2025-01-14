@@ -8,6 +8,10 @@ function Landing() {
             <header className = "landing-header">
                 <div className = "header-title">
                     <h1>DBMeister</h1>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href = "https://github.com/JadynF/DBMeister">Github</a>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href = "https://dbmeister.readthedocs.io/en/latest/">Docs</a>
                 </div>
                 <div className = "header-buttons">
                     <button className = "header-signup">Sign Up!</button>
@@ -23,8 +27,15 @@ function Landing() {
                     </div>
                 </div>
                 <div className = "body-full">
+                    <div className = "collab-text">
+                        <h1>External Mapping</h1>
+                        <h3>DBMeister gives developers the ability to not only design their internal data flow, but also any external sources accessing their data. Giving everyone the complete picture on the project and minimizing confusion. </h3>
+                    </div>
+                    <div className = "external-image">
+                    </div>
+                </div>
+                <div className = "body-full">
                     <div className = "collab-image">
-                        k
                     </div>
                     <div className = "collab-text">
                         <h1>Increased Collaboration</h1>

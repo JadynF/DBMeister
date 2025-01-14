@@ -9,18 +9,18 @@ app.use(express.json());
 
 // SQL DATABASE CONNECTION
 // Create a MySQL connection pool
-//const pool = mysql.createPool({
-//    host:,
-//    user:,
-//    password:,
-//    database:,
-//    port:
-//});
+const pool = mysql.createPool({
+    host: 
+    user: 
+    password: 
+    database: 
+    port: 
+});
 
 //Sends promised SQL queries
-async function sendQuery(query, list=[]) {
+async function sendQuery(query, variables=[]) {
     try {
-        const queryResponse = await pool.query(query, list);
+        const queryResponse = await pool.query(query, variables);
         return queryResponse;
     }
     catch (error) {

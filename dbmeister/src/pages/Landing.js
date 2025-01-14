@@ -5,12 +5,9 @@ import {useNavigate} from "react-router-dom";
 function Landing() {
     const navigate = useNavigate();
 
-    const navigateLogin = () => {
-        navigate("/Login");
-    }
-    const navigateCreateAccount = () => {
-        navigate("/CreateAccount");
-    }
+    const navigateLogin = () => navigate("/Login");
+    const navigateCreateAccount = () => navigate("/CreateAccount");
+
 
     return (
         <div className = "page">

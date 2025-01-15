@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require('cors');
 const mysql = require('mysql2/promise');
-//const path = require('path');
+const path = require('path');
 //const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
@@ -14,11 +14,11 @@ app.use(express.json());
 // SQL DATABASE CONNECTION
 // Create a MySQL connection pool
 const pool = mysql.createPool({
-  host: 'db-mysql-nyc3-22336-do-user-18048731-0.f.db.ondigitalocean.com',
-  user: 'doadmin',
-  password: 'AVNS_6To2mXLB6PyPqjZgeV6',
-  database: 'defaultdb',
-  port: 25060
+  host: 
+  user: 
+  password: 
+  database: 
+  port: 
 });
 
 (async () => {
@@ -114,6 +114,12 @@ app.post('/Register', async (req, res) => {
     return res.status(500).send(JSON.stringify({response: 'Error registering user.'}));
   }
 });
+
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
 
 app.listen(8000, () => {
   console.log(`Server listening on 8000`);

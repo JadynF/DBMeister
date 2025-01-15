@@ -1,0 +1,75 @@
+/* Main container for the login screen */
+.login-container {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    width: 100vw; /* Full viewport width */
+  }
+  
+  /* Left half for React Flow canvas */
+  .left-half {
+    flex: 1; /* Takes up 50% of the screen */
+    background-color: #f0f0f0; /* Optional: light background for contrast */
+  }
+  
+  /* Right half for Login Box */
+  .right-half {
+    flex: 1; /* Takes up 50% of the screen */
+    display: flex;
+    justify-content: center;  /*Center content horizontally */
+    align-items: center;  /*Center content vertically */
+    background-color: #fff; /* Optional: white background for contrast */
+    padding: 5px;
+    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
+  }
+  
+  /* Login box styling */
+  .login-box {
+    width: 100%;
+    max-width: 450px; /* Restrict the maximum width */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .login-box h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .login-box form {
+    display: flex;
+    flex-direction: row;
+    max-width: 400px;
+  }
+  
+  .login-box label {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  
+  .login-box input {
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 50px;
+    width: 100%;
+    max-width: 445px;
+    align-items: center;
+  }
+  
+  .login-box button {
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #4169E1;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .login-box button:hover {
+    background-color: #FFD700;
+  }
+  

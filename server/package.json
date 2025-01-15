@@ -1,8 +1,15 @@
 {
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "mysql2": "^3.12.0",
+    "nodemailer": "^6.9.16",
+    "nodemon": "^3.1.9",
     "path": "^0.12.7"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server.js"
   }
 }

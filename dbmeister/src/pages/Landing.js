@@ -3,6 +3,12 @@ import "./Landing.css";
 import Collaboration from "../resources/Collaboration.jpg";
 
 function Landing() {
+    const navigate = useNavigate();
+
+    const navigateLogin = () => navigate("/Login");
+    const navigateCreateAccount = () => navigate("/CreateAccount");
+
+
     return (
         <div className = "page">
             <header className = "landing-header">
@@ -14,8 +20,8 @@ function Landing() {
                     <a href = "https://dbmeister.readthedocs.io/en/latest/">Docs</a>
                 </div>
                 <div className = "header-buttons">
-                    <button className = "header-signup">Sign Up!</button>
-                    <button className = "header-signin">Sign In</button>
+                    <button className = "header-signup" onClick={navigateCreateAccount}>Sign Up!</button>
+                    <button className = "header-signin" onClick={navigateLogin}>Sign In</button>
                 </div>
             </header>
             <div className = "landing-body">

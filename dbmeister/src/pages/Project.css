@@ -1,0 +1,65 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body, html {
+    height: 100%;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Page Container */
+  .page-container {
+    display: flex;
+    height: 100%;
+  }
+  
+  /* Taskbar */
+  .taskbar {
+    background-color: #4169E1;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-size: 18px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+  
+  /* Main Content Area */
+  .main-content {
+    display: flex;
+    margin-top: 40px; /* To account for taskbar height */
+    height: calc(100vh - 40px); /* Full height minus taskbar height */
+  }
+  
+  /* Left and Right Sidebars */
+  .sidebar {
+    background-color: #f4f4f46b;
+    width: 30%;
+    padding: 20px;
+  }
+  
+  /* Canvas Container (React Flow) */
+  .canvas {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    max-width: 100%;
+  }
+  
+  /* React Flow Canvas */
+  .react-flow__renderer {
+    width: 80%;  /* Set the React Flow canvas width */
+    height: 80%; /* Set the React Flow canvas height */
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  

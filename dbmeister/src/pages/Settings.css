@@ -1,0 +1,27 @@
+.settings-page {
+    font-family: Arial, sans-srif;
+    padding: 20px;
+}
+
+.button {
+    padding: 10px 15px;
+    margin: 10px 0;
+    border: none;
+    cursor: pointer;
+}
+
+.logout-button {
+    background-color: #4169E1;
+    color: #FFD700;
+}
+
+.account-button,
+.customization-button {
+    background-color: #4169E1;
+    color: #FFD700;
+}
+
+.dark-mode {
+    background-color: #4169E1;
+    color: #FFD700;
+}

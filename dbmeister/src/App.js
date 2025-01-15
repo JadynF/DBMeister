@@ -6,6 +6,7 @@ import Login from "./pages/Login.js";
 import CreateAccount from "./pages/CreateAccount.js";
 import Dashboard from "./pages/Dashboard.js";
 import Project from "./pages/Project.js";
+import Settings from "./pages/Settings.js";
 import NotFound from "./pages/NotFound.js";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/CreateAccount" element = {<CreateAccount/>} />
           <Route path="/Dashboard" element = {<Dashboard/>} />
           <Route path="/Project" element = {<Project/>} />
+          <Route path="/Settings" element = {<Settings/>} />
           {/* Catch all other non-specified routes as 'Not Found' */}
           <Route path="*" element = {<NotFound/>} />
         </Routes>

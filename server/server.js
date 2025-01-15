@@ -14,11 +14,13 @@ app.use(express.json());
 // SQL DATABASE CONNECTION
 // Create a MySQL connection pool
 const pool = mysql.createPool({
-  host: 'db-mysql-nyc3-22336-do-user-18048731-0.f.db.ondigitalocean.com',
-  user: 'doadmin',
-  password: 'AVNS_6To2mXLB6PyPqjZgeV6',
-  database: 'defaultdb',
-  port: 25060
+  /*
+  host:
+  user:
+  password:
+  admin:
+  port:
+  */
 });
 
 (async () => {

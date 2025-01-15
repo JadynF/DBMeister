@@ -1,6 +1,10 @@
 # DBMeister Installation and Usage Documentation
 
+---
+
 # Installation
+
+---
 
 <blockquote>
 1. Clone the GitHub repo located at https://github.com/JadynF/DBMeister
@@ -11,6 +15,8 @@
 </blockquote>
 
 # Usage
+
+---
 
 <blockquote>
 
@@ -34,6 +40,8 @@
 3. The server will host the static resources in the /server/build directory
 4. Access the website on your web browser at localhost:8000
 
+</blockquote>
+
 ### Updating Static Files to Run Statically
 
 <blockquote>
@@ -42,8 +50,6 @@
 2. Run `npm run build`, and wait for a new folder in the /dbmeister/build directory to appear
 3. Take the new build files and copy into the /server directory
 4. The static files are now ready to be hosted
-
-</blockquote>
 
 </blockquote>
 

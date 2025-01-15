@@ -1,12 +1,14 @@
 import React from "react";
 import "./Landing.css";
 import Collaboration from "../resources/Collaboration.jpg";
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 
 function Landing() {
     const navigate = useNavigate();
 
     const navigateLogin = () => navigate("/Login");
     const navigateCreateAccount = () => navigate("/CreateAccount");
+    const navigateProject = () => navigate("/Project");
 
 
     return (
@@ -29,7 +31,7 @@ function Landing() {
                     <div className = "inner-text">
                         <h1>Create Free Online Schema Diagrams!</h1>
                         <p>Speed up production and boost understanding in your project by creating a detailed schema. DBMeister allows you to show not only internal data flow, but external as well. The ultimate tool to minimize confusion in your database project.</p>
-                        <button className = "header-signup">Create Diagram!</button>
+                        <button className = "header-signup" onClick = {navigateProject}>Create Diagram!</button>
                     </div>
                 </div>
                 <div className = "body-full">

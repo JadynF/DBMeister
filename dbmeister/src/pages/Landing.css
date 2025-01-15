@@ -101,6 +101,8 @@
     color: rgb(74, 54, 163);
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .collab-text h1 {

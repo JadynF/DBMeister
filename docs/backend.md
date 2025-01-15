@@ -1,6 +1,10 @@
 # DBMeister Back-End Webserver Documentation
 
+---
+
 # Functions
+
+---
 
 <blockquote>
 
@@ -20,6 +24,8 @@ Will return the full database response. Will return false if an error occurs.
 </blockquote>
 
 # Endpoints
+
+---
 
 <blockquote>
 

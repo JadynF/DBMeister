@@ -1,5 +1,8 @@
 import { createConnection } from '@/lib/db';
 import { comparePasswords } from '@/lib/bcrypt'
+import jwt from 'jsonwebtoken';
+
+const jwtKey = process.env.JWT_SECRET;
 
 export async function POST(req: Request) { //seems we want type 'Request' if we need to take values from the body
     
@@ -36,7 +39,9 @@ export async function POST(req: Request) { //seems we want type 'Request' if we 
                 status: 401
             });
         } else {
-            return new Response(JSON.stringify({response: "accepted"}), {
+            const jwtToken = jwt.sign({ userData: userRow[0] }, jwtKey, { expiresIn: '1h' });
+            console.log("Sent token: " + jwtToken);
+            return new Response(JSON.stringify({response: "accepted", token: jwtToken}), {
                 headers: { "Content-Type": "application/json" },
                 status: 200
             });

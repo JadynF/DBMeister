@@ -37,6 +37,7 @@ const LoginForm = () => {
         const data = await res.json();
         
         if(data.response === "accepted") {
+            localStorage.setItem('token', data.token)
             setDialog("Sending you to the dash...");
             await new Promise((resolve) => setTimeout(resolve, 2000)); // 2-second delay for cool factor
             router.push("/dashboard");

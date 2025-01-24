@@ -1,13 +1,13 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 
-export default function Dashboard() {
-    // would be better to find a way to use '@/lib/clientGetToken.ts' to get the token so the page can be rendered server side
+export default function GetToken() {
     const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
         setToken(localStorage.getItem('token'));
     }, []);
 
-    return <h1>{token}</h1>
+    return token;
 }

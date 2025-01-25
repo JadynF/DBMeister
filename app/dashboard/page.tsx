@@ -1,13 +1,13 @@
-'use client';
-import { useEffect, useState } from 'react';
+import SSRAuthorize from '@/components/SSRAuthorization';
 
-export default function Dashboard() {
-    // would be better to find a way to use '@/lib/clientGetToken.ts' to get the token so the page can be rendered server side
-    const [token, setToken] = useState<string | null>(null);
+export default async function Dashboard() {
 
-    useEffect(() => {
-        setToken(localStorage.getItem('token'));
-    }, []);
+    const response = await SSRAuthorize(); // get authorization
 
-    return <h1>{token}</h1>
+    return (
+        <div>
+            Dashboard
+            You are { response.userData.firstName } { response.userData.lastName }
+        </div>
+    );
 }

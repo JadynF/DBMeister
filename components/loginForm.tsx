@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
+
 const LoginForm = () => {
     //Variables for user input
     const [uNameInput, setUName] = useState("");
@@ -37,7 +38,7 @@ const LoginForm = () => {
         const data = await res.json();
         
         if(data.response === "accepted") {
-            localStorage.setItem('token', data.token)
+            document.cookie = `token=${data.token}`;
             setDialog("Sending you to the dash...");
             await new Promise((resolve) => setTimeout(resolve, 2000)); // 2-second delay for cool factor
             router.push("/dashboard");

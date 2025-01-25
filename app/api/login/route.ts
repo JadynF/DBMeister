@@ -39,8 +39,8 @@ export async function POST(req: Request) { //seems we want type 'Request' if we 
                 status: 401
             });
         } else {
-            const jwtToken = jwt.sign({ userData: userRow[0] }, jwtKey, { expiresIn: '1h' });
-            console.log("Sent token: " + jwtToken);
+            const jwtToken = jwt.sign({ userData: userRow[0] }, jwtKey, { expiresIn: '3h' }); // create jwt and send to client
+            console.log("Sending token: " + jwtToken);
             return new Response(JSON.stringify({response: "accepted", token: jwtToken}), {
                 headers: { "Content-Type": "application/json" },
                 status: 200

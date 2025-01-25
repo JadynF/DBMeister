@@ -1,21 +1,16 @@
 'use client';
-import CSRAuthorize from '@/components/CSRAuthorization';
+import authorization from '@/lib/authorization';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'
 
 export default function Dashboard() {
 
     const [username, setUsername] = useState<string>(null);
 
-    const router = useRouter();
-
     useEffect(() => {
         const checkAuth = async () => {
-            const authResponse = await CSRAuthorize(); // get authorization status
+            const authResponse = await authorization(); // get authorization status
 
-            if (!authResponse.authorized)
-                router.push('/login'); // return to login if not authorized
-            else {
+            if (authResponse) {
                 setUsername(authResponse.userData.username);
             }
         };

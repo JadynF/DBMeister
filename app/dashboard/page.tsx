@@ -1,8 +1,8 @@
-import SSRAuthorize from '@/components/SSRAuthorization';
+import authorization from '@/lib/authorization';
 
 export default async function Dashboard() {
 
-    const response = await SSRAuthorize(); // get authorization
+    const response = await authorization();
 
     return (
         <div>

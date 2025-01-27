@@ -1,0 +1,127 @@
+.landing-header {
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    align-items: center;
+}
+
+.landing-header div {
+    flex-grow: 1;
+}
+
+.landing-header a {
+    color: lightslategray;
+    font-size: 20px;
+}
+
+.header-title {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 20px;
+}
+
+.header-buttons {
+    display: flex;
+    justify-content: right;
+    padding: 10px;
+}
+
+.header-signup {
+    font-size: 25px;
+    background-color: #aecbef;
+    color: black;
+    border: none;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.header-signin {
+    font-size: 25px;
+    background-color: rgb(0, 0, 0);
+    color: white;
+    border-radius: 10px;
+    border-color: lightgray;
+    margin: 10px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.landing-header h1 {
+    padding: 0;
+    margin: 0;
+    font-size: 40px;
+}
+
+.landing-body {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+}
+
+.body-centered-main {
+    align-self: center;
+    display: flex;
+    width: 60%;
+    background-image: url("../resources/LandingBackground1.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 40px;
+    justify-content: center;
+    border-radius: 17px;
+    margin-bottom: 60px;
+}
+
+.inner-text {
+    color: white;
+    padding: 50px;
+    width: 40%;
+    text-align: center;
+}
+
+.body-full {
+    display: flex;
+    flex-grow: 1;
+    height: 50vh;
+    margin-bottom: 60px;
+}
+
+.collab-image {
+    background-image: url("../resources/Collaboration.jpg");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 50%;
+}
+
+.collab-text {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.collab-text h1 {
+    margin-top: 50px;
+}
+
+.collab-text h3 {
+    width: 70%;
+    align-self: center;
+}
+
+.external-image {
+    background-image: url("../resources/ETL-Tools.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 50%;
+}
+
+hr {
+    border: none;
+}

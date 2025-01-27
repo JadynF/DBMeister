@@ -1,0 +1,164 @@
+'use client';
+import { useState, useCallback } from "react";
+import {
+    ReactFlow,
+    addEdge,
+    applyNodeChanges,
+    applyEdgeChanges,
+    Controls,
+    Background,
+    type Node,
+    type Edge,
+    type FitViewOptions,
+    type OnConnect,
+    type OnNodesChange,
+    type OnEdgesChange,
+    type OnNodeDrag,
+    type NodeTypes,
+    type EdgeTypes,
+    type DefaultEdgeOptions,
+  } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import ComponentsPane from "@/components/(projectEditor)/componentsPane";
+
+//Reactflow functionalities
+const fitViewOptions: FitViewOptions = { padding: 0.2 };
+const defaultEdgeOptions: DefaultEdgeOptions = { animated: true };
+const onNodeDrag: OnNodeDrag = (_, node) => {
+    console.log('drag event', node.data);
+};
+
+//New Node information types from Components Pane
+type NodeData = { label: string; color: string; };
+type Position = { x: number; y: number; };
+
+
+//Default Nodes and Edges for testing
+const loginNodes: Node[] = [
+    { id: "1", position: { x: 250, y: -50 }, data: { label: "Welcome" }, style: {background: "#FFD700"}},
+    { id: "2", position: { x: 100, y: 100 }, data: { label: "To" }, style: {background: "#4169E1", color: "#ffffff"} },
+    { id: "3", position: { x: 400, y: 250 }, data: { label: "DBMeister!" }, style: {background: "#FFD700"} },
+];
+const loginEdges: Edge[] = [
+    { id: "e1-2", source: "1", target: "2", animated: true },
+    { id: "e2-3", source: "2", target: "3" },
+];
+
+export default function Project() {
+    const [nodes, setNodes] = useState<Node[]>(loginNodes);
+    const [edges, setEdges] = useState<Edge[]>(loginEdges);
+    const [selectedElement, setSelectedElement] = useState<Node | Edge>();
+
+    const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+    const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+    const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
+
+    const createNode = (nodeData: NodeData, position: Position) => {
+        console.log("Got the clicked node in parent page!");
+        // Handle the logic when the node is created
+        const newNode: Node = {
+            id: `${nodes.length + 1}`,
+            position: position,
+            data: {label: nodeData.label},
+            style: {background: nodeData.color}
+        };
+        setNodes((nds) => nds.concat(newNode));
+    }
+
+    //Delete the selected node
+    const deleteNode = (nodeId: string) => {
+        setNodes((nds) => nds.filter((node) => node.id !== nodeId)); // Remove the node
+        setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)); // Remove edges connected to the node
+    }
+
+    const onNodeClick = (event: React.MouseEvent, node: Node) => {
+        setSelectedElement(node);
+    }
+    const onEdgesClick = (event: React.MouseEvent, edge: Edge) => {
+        setSelectedElement(edge);
+    }
+
+    //Handler function from Properties pane for pressing the 'Delete' button for a selected element here
+
+        
+
+    return (
+        <div>
+            <header style={taskbarStyle}>
+                Taskbar
+            </header>
+            <div style={mainStyle}>
+                <div style={sidepaneStyle}>
+                    <ComponentsPane createNode={createNode} />
+                </div>
+                <div style={{height: '100%', width: '100%' }}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        fitView
+                    >
+                        <Controls />
+                        <Background color="#aaa" gap={16} />
+                    </ReactFlow>
+                </div>
+                <div style={sidepaneStyle}>
+                    Properties
+                </div>
+            </div>
+        </div>
+    )
+}
+
+//Styles
+const containerStyle: React.CSSProperties = {
+    display: 'flex',
+    height: '100%'
+}
+
+const taskbarStyle: React.CSSProperties = {
+    backgroundColor: '#4169E1',
+    color: 'white',
+    padding: '10px',
+    textAlign: 'center',
+    fontSize: '18px',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 0
+}
+
+const mainStyle: React.CSSProperties = {
+    display: 'flex',
+    marginTop: '40px',
+    height: 'calc(100vh - 40px)'
+}
+
+/* Left and Right Sidebars */
+const sidepaneStyle: React.CSSProperties = {
+    backgroundColor: '#f4f4f46b',
+    width: '30%',
+    padding: '20px'
+}
+
+/* Canvas Container (React Flow) */
+const canvasStyle: React.CSSProperties = {
+    display: 'flex',
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    maxWidth: '100%'
+}
+
+/* React Flow Canvas */
+const reactflowRendererStyle: React.CSSProperties = {
+    width: '80%',
+    height: '80%',
+    border: '2px solid #ddd',
+    borderRadius: '8px',
+    backgroundColor: '#f9f9f9'
+}

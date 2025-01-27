@@ -1,6 +1,4 @@
 import Image from "next/image";
-import { Greet } from "../components/(examples)/greet";
-import { Counter } from "../components/(examples)/counter";
 
 export default function Home() {
   return (

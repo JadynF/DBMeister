@@ -1,0 +1,10 @@
+{
+    "json.schemas": [
+
+
+    ],
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "editor.renderValidationDecorations": "on",
+    "editor.renderErrorDecorations": "on",
+    "editor.renderWarningDecorations": "on"
+}

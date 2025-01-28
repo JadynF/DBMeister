@@ -17,6 +17,36 @@ export default async function Dashboard() {
 
   return (
     <div className="flex h-screen">
+<<<<<<< HEAD
+=======
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-800 text-white p-4">
+        <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
+        <ul className="space-y-4">
+          <li>
+            <Link href="/dashboard" className="hover:text-gray-300">
+              Dashboard
+            </Link>
+          </li>
+          <li>
+            <Link href="/diagrams" className="hover:text-gray-300">
+              Diagrams
+            </Link>
+          </li>
+          <li>
+            <Link href="/groups" className="hover:text-gray-300">
+              Groups
+            </Link>
+          </li>
+          <li>
+            <Link href="/forums" className="hover:text-gray-300">
+              Forums
+            </Link>
+          </li>
+        </ul>
+      </div>
+
+>>>>>>> 0566761 (Added the News Feed on Dashboard)
       {/* Main Content */}
       <div className="flex-1 p-6 bg-gray-100">
         {/* News Feed */}
@@ -26,7 +56,11 @@ export default async function Dashboard() {
 
         <div className="p-4 bg-white shadow rounded-lg">
           <h2 className="text-xl font-bold">
+<<<<<<< HEAD
             Greetings {response.userData.firstName} {response.userData.lastName}
+=======
+            You are {response.userData.firstName} {response.userData.lastName}
+>>>>>>> 0566761 (Added the News Feed on Dashboard)
           </h2>
           <p className="mt-2">Explore the links on the left to manage your dashboard.</p>
         </div>

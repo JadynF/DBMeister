@@ -14,8 +14,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useState } from "react"
+import { useRouter } from 'next/navigation';
 
 export default function CreateDiagramDialog({ ownerId } : string) {
+  const router = useRouter();
+
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
   const [open, setOpen] = useState(false);
 
   const [diagramName, setDiagramName] = useState("");
@@ -36,13 +41,13 @@ export default function CreateDiagramDialog({ ownerId } : string) {
   const createDiagram = async () => {
     console.log("Sending request to make diagram in database");
 
-    const payload = {
+    let payload = {
       name: diagramName,
       owner: ownerId,
       description: diagramDesc
     };
 
-    const res = await fetch('http://localhost:3000/api/makeDiagram', {
+    let res = await fetch(baseURL + '/api/makeDiagram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -53,11 +58,15 @@ export default function CreateDiagramDialog({ ownerId } : string) {
     console.log(data.response);
     if (data.response == "Creation Successful") {
       setOpen(false);
+      setBtnDisabled(true);
+      setDiagramName("");
+      setDiagramDesc("");
       toast("Diagram has been created!", {
         action: {
           label: "Close"
         }
       });
+      router.refresh();
     }
     else {
       console.log("Creation Error");
@@ -72,7 +81,7 @@ export default function CreateDiagramDialog({ ownerId } : string) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Create Diagram</Button>
+        <Button className="py-8 px-8 text-lg">Create Diagram</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>

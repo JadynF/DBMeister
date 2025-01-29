@@ -19,8 +19,8 @@ export default async function authorization() : Promise<{ authorized: boolean, u
         jwt.verify(token, jwtKey, (err: any, decoded: JwtPayload) => {
             if (err) { // if token fails to authorize
                 console.log("JWT Error: " + err);
-                resolve ({ authorized: false, userData: null });
                 redirect('/login');
+                resolve ({ authorized: false, userData: null }); // this needs to be here for CSR components, if before redirect SSR components wont redirect
             }
             let userData = decoded.userData; // filter out sensitive data
             let filteredUserData = { username: userData.username,  firstName: userData.firstName, lastName: userData.lastName, email: userData.email, id: userData.id, isVerified: userData.isVerified }

@@ -1,4 +1,5 @@
 import { createConnection } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(req: Request) {
     const body = await req.json();

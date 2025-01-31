@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Navigation } from "../components/(examples)/navigation";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,6 +32,7 @@ export default function RootLayout({
           <Navigation />
         </header>*/}
         {children}
+        <Toaster />
         {/*
         <footer className="bg-slate-900 text-white p-4 text-center">
           Like What You See?

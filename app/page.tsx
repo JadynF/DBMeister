@@ -14,7 +14,7 @@ export default function Home() {
                   <a href = "https://dbmeister.readthedocs.io/en/latest/">Docs</a>
               </div>
               <div className = "header-buttons">
-                  <Link href="/signup">
+                  <Link href="/register">
                     <button className = "header-signup">Sign Up!</button>
                   </Link>
                   <Link href="/login">
@@ -27,7 +27,7 @@ export default function Home() {
                   <div className = "inner-text">
                       <h1 className = "font-bold text-3xl">Create Free Online Schema Diagrams!</h1>
                       <p>Speed up production and boost understanding in your project by creating a detailed schema. DBMeister allows you to show not only internal data flow, but external as well. The ultimate tool to minimize confusion in your database project.</p>
-                      <Link href="/Project">
+                      <Link href="/projectEditor">
                         <button className = "header-signup">Create Diagram!</button>
                       </Link>
                   </div>

@@ -29,3 +29,5 @@ Any development team working with data, that needs to have a way to effectively 
 ## [/lib Documentation](lib.md)
 
 ## [Webpage Documentation](pages.md)
+
+## [Components Documentation](components.md)

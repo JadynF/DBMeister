@@ -1,6 +1,6 @@
 import authorization from '@/lib/authorization';
-import CreateDiagramDialog from '@/components/(dashDiagram)/diagramDialog';
-import CreateDiagramCard from '@/components/(dashDiagram)/diagramCard'
+import CreateDiagramDialog from '@/components/(dash)/(dashDiagram)/diagramDialog';
+import CreateDiagramCard from '@/components/(dash)/(dashDiagram)/diagramCard'
 
 export default async function Dashboard() {
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -22,8 +22,8 @@ export default async function Dashboard() {
 
     return (
         <div> 
-            <div className="flex items-center justify-center">
-                <h1 className="m-4 text-2xl font-bold">Diagram Page</h1>
+            <div className="flex items-center justify-center w-full bg-[#bfdbfe] mb-6">
+                <h1 className="m-4 text-3xl font-bold">Diagram Page</h1>
             </div>
             <div className="flex items-center justify-center"> 
                 <CreateDiagramDialog ownerId={response.userData.id}/>

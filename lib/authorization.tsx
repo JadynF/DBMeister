@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-const jwtKey = process.env.JWT_SECRET;
+const jwtKey = process.env.JWT_SECRET as string;
 
 export default async function authorization() : Promise<{ authorized: boolean, userData: unknown }> {
     const cookieStore = cookies();
@@ -19,6 +19,7 @@ export default async function authorization() : Promise<{ authorized: boolean, u
         jwt.verify(token, jwtKey, (err: any, decoded: JwtPayload) => {
             if (err) { // if token fails to authorize
                 console.log("JWT Error: " + err);
+                resolve ({ authorized: false, userData: null });
                 redirect('/login');
                 resolve ({ authorized: false, userData: null }); // this needs to be here for CSR components, if before redirect SSR components wont redirect
             }

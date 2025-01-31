@@ -1,5 +1,6 @@
 import authorization from '@/lib/authorization';
 
+
 export default async function Dashboard() {
 
     const response = await authorization();

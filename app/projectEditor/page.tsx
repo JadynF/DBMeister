@@ -1,5 +1,6 @@
 'use client';
 import { useState, useCallback } from "react";
+import dynamic from 'next/dynamic';
 import {
     ReactFlow,
     addEdge,
@@ -17,9 +18,24 @@ import {
     type NodeTypes,
     type EdgeTypes,
     type DefaultEdgeOptions,
-  } from '@xyflow/react';
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import ComponentsPane from "@/components/(projectEditor)/componentsPane";
+import PropertiesPane from "@/components/(projectEditor)/propertiesPane";
+const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false })
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+
+const nodeTypes = {
+    SQLTableNode: SQLTableNode
+};
 
 //Reactflow functionalities
 const fitViewOptions: FitViewOptions = { padding: 0.2 };
@@ -32,12 +48,35 @@ const onNodeDrag: OnNodeDrag = (_, node) => {
 type NodeData = { label: string; color: string; };
 type Position = { x: number; y: number; };
 
+type SQLTableDataType = {
+    fieldName: string,
+    fieldType: string,
+    nullability: boolean,
+    keyType: string | null,
+    unique: boolean,
+    check: string | null,
+    indexing: string | null,
+    comments: string | null
+}
+type SQLTableType = {
+    id: string,
+    header: string,
+    tableData: SQLTableDataType[]
+}
+
+const defaultTable = [
+    {fieldName: 'Field1', fieldType: 'VARCHAR(55)', nullability: true, keyType: 'PRIMARY', unique: true, check: null, indexing: null, comments: 'Default Comment 1'},
+    {fieldName: 'Field2', fieldType: 'INT(8)', nullability: true, keyType: null, unique: false, check: null, indexing: null, comments: 'Default Comment 2'},
+    {fieldName: 'Field3', fieldType: 'VARCHAR(8)', nullability: true, keyType: null, unique: false, check: null, indexing: null, comments: 'Default Comment 3'},
+];
+
 
 //Default Nodes and Edges for testing
 const loginNodes: Node[] = [
     { id: "1", position: { x: 250, y: -50 }, data: { label: "Welcome" }, style: {background: "#FFD700"}},
     { id: "2", position: { x: 100, y: 100 }, data: { label: "To" }, style: {background: "#4169E1", color: "#ffffff"} },
     { id: "3", position: { x: 400, y: 250 }, data: { label: "DBMeister!" }, style: {background: "#FFD700"} },
+    { id: "sqltest", type: "SQLTableNode", position: {x: 100, y: 100 }, data: { id: "sqlTest", header: 'Testing Table', tableData: defaultTable } }
 ];
 const loginEdges: Edge[] = [
     { id: "e1-2", source: "1", target: "2", animated: true },
@@ -47,14 +86,13 @@ const loginEdges: Edge[] = [
 export default function Project() {
     const [nodes, setNodes] = useState<Node[]>(loginNodes);
     const [edges, setEdges] = useState<Edge[]>(loginEdges);
-    const [selectedElement, setSelectedElement] = useState<Node | Edge>();
+    const [selectedNode, setSelectedNode] = useState<Node>(loginNodes[0]);
 
     const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
 
     const createNode = (nodeData: NodeData, position: Position) => {
-        console.log("Got the clicked node in parent page!");
         // Handle the logic when the node is created
         const newNode: Node = {
             id: `${nodes.length + 1}`,
@@ -64,6 +102,32 @@ export default function Project() {
         };
         setNodes((nds) => nds.concat(newNode));
     }
+    const createSQLTableNode = (nodeData: SQLTableType, position: Position) => {
+        const newNode: Node = {
+            id: `${nodes.length + 1}`,
+            type: "SQLTableNode",
+            position: position,
+            data: {id: nodeData.id, header: nodeData.header, tableData: nodeData.tableData}
+        }
+        setNodes((nds) => nds.concat(newNode));
+    }
+
+    const setSelectedNodePosition = (position: Position) => {
+        const updatedNodes = nodes.map((node) =>
+            node.id === selectedNode.id ? { ...node, position: position } : node
+        );
+        setNodes(updatedNodes);
+    }
+
+    const setSelectedNodeData = (nodeData: SQLTableType) => {
+        console.log('updating data in setSelectedNodeData in page.tsx!');
+        const replacementSQLTableNode: Node = {id: selectedNode.id, type: "SQLTableNode", position: selectedNode.position, data: nodeData};
+        const updatedNodes = nodes.map((node) => 
+            node.id === selectedNode.id ? replacementSQLTableNode : node
+        );
+        setNodes(updatedNodes);
+        console.log('updatedNodes: ', updatedNodes);
+    }
 
     //Delete the selected node
     const deleteNode = (nodeId: string) => {
@@ -71,16 +135,12 @@ export default function Project() {
         setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)); // Remove edges connected to the node
     }
 
+    //Set the selected Reactflow element. Allows its properties to be displayed in the properties pane.
     const onNodeClick = (event: React.MouseEvent, node: Node) => {
-        setSelectedElement(node);
+        console.log('Old selection: ', selectedNode.id);
+        console.log('New selection: ', node.id);
+        setSelectedNode(node);
     }
-    const onEdgesClick = (event: React.MouseEvent, edge: Edge) => {
-        setSelectedElement(edge);
-    }
-
-    //Handler function from Properties pane for pressing the 'Delete' button for a selected element here
-
-        
 
     return (
         <div>
@@ -89,7 +149,7 @@ export default function Project() {
             </header>
             <div style={mainStyle}>
                 <div style={sidepaneStyle}>
-                    <ComponentsPane createNode={createNode} />
+                    <ComponentsPane createNode={createNode} createSQLTableNode={createSQLTableNode}/>
                 </div>
                 <div style={{height: '100%', width: '100%' }}>
                     <ReactFlow
@@ -98,6 +158,8 @@ export default function Project() {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
+                        nodeTypes={nodeTypes}
+                        onNodeClick={onNodeClick}
                         fitView
                     >
                         <Controls />
@@ -105,7 +167,11 @@ export default function Project() {
                     </ReactFlow>
                 </div>
                 <div style={sidepaneStyle}>
-                    Properties
+                    <PropertiesPane 
+                    selectedNode={selectedNode} 
+                    setSelectedNodePosition={setSelectedNodePosition}
+                    setSelectedNodeData={setSelectedNodeData}
+                    />
                 </div>
             </div>
         </div>
@@ -141,7 +207,8 @@ const mainStyle: React.CSSProperties = {
 const sidepaneStyle: React.CSSProperties = {
     backgroundColor: '#f4f4f46b',
     width: '30%',
-    padding: '20px'
+    padding: '20px',
+    overflowY: 'auto'
 }
 
 /* Canvas Container (React Flow) */

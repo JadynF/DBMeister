@@ -41,9 +41,43 @@ Method(s): POST
 Body: { ownerId, name, description }
 
 Returns: json object { response: string }
-respone = "Creation Successful" if diagrams were inserted into the database
+response = "Creation Successful" if diagrams were inserted into the database
 response = "Creation Error" otherwise
 
 Will create entry in both diagrams and user_owns table with body parameters.
+
+</blockquote>
+
+# /register
+
+<blockquote>
+
+Method(s): POST
+
+Body: { firstName, lastName, username, password, email}
+
+Returns: json object { response: string }
+response = error response, if email validation fails
+response = "Please provide a valid email address.", if email validation fails, but because the email does not exist
+response = "There was an error sending your verification email.", if verification email does not send
+response = "A verification email has been sent to the address you provided.", if verification email is sent
+response = "An unexpected error has occurred. Please try again later.", if there is an unexpected error
+
+Will register the user's information into database and send a verification email
+
+</blockquote>
+
+# /verifyAccount
+
+<blockquote>
+
+Method(s): POST
+
+Body: { verificationToken }
+
+Returns: json object { response: string }
+response = "Email verified successfully!", if the verification is successful
+response = "Invalid token.", if the token is not valid.
+response = "An unexpected error has occurred. Please try again later.", if an unexpected error occurs
 
 </blockquote>

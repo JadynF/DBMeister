@@ -37,11 +37,11 @@ const SQLTableNode = ({data}: {data: SQLTableType}) => {
     const tableID = data.id || `${data.tableData.length + 1}`;
 
     return (
-      <div>
+      <div style={{width: 400}}>
         <Handle type="target" position={Position.Top} style={{top: '-4px'}}/>
         <div>
             <Table className='bg-indigo-300 rounded-xl border-rounded-xl text-left'>
-                <TableHeader className="w-[100px]">
+                <TableHeader className="w-[300px]">
                     {<TableRow>
                         <TableHead>{tableHeader}</TableHead>
                         <TableHead className='align-right text-right'>({tableID})</TableHead>
@@ -53,6 +53,7 @@ const SQLTableNode = ({data}: {data: SQLTableType}) => {
                         <Handle type="target" position={Position.Left} id={`row-${row.fieldName}-t`} style={{position: 'absolute', left: '2px'}}/>
                         <TableCell className="text-left">{row.fieldName}</TableCell>
                         <TableCell className="text-right gap-5px">{row.fieldType}</TableCell>
+                        <Handle type="source" position={Position.Right} id={`row-${row.fieldName}-s`} style={{position: 'absolute', right: '2px'}}/>
                     </TableRow>
                     ))}
                 </TableBody>

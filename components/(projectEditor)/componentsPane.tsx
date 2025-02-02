@@ -1,7 +1,7 @@
 import React from 'react';
 import SQLTable from '@/components/(xyflow)/sqlTable'
 
-type NodeData = { label: string; color: string; };
+type NodeData = { header: string; color: string; };
 type Position = { x: number; y: number; };
 
 type SQLTableDataType = {
@@ -57,7 +57,7 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTa
                 New SQL Table
             </div>
             <div
-                onClick={() => handleTestClick({ label: 'Node 2', color: 'lightgreen' })}
+                onClick={() => handleTestClick({ header: 'Node 2', color: 'lightgreen' })}
                 style={{
                     padding: '10px',
                     backgroundColor: 'lightgreen',

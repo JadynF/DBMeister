@@ -13,6 +13,7 @@ import {
     type DefaultEdgeOptions
 } from '@xyflow/react';
 
+
 //Import ui components
 import { 
     Accordion,
@@ -25,6 +26,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { X } from 'lucide-react';
+import SQLTableNode from '../(xyflow)/sqlTable';
 
 type Position = { x: number; y: number; };
 
@@ -45,17 +48,23 @@ type SQLTableType = {
     header: string,
     tableData: SQLTableDataType[] //Array of type Record<string, __valueType__>
 }
+//Default New Field when appending to a SQLTableType Node
+const defaultField: SQLTableDataType = {fieldName: "New Field", fieldType: 'VARCHAR(55)', nullability: false, keyType: null, unique: false, check: null, indexing: null, comments: ''}
+
 //Function props definitions
 type PropertiesPaneProps = {
+    selectedNode: Node<TestData | SQLTableType>;
     setSelectedNodePosition: (position: Position) => void;
-    setSelectedNodeData: (nodeData: SQLTableType) => void;
-    selectedNode: Node<TestData | SQLTableType>
+    setSelectedNodeData: (nodeData: SQLTableType | TestData) => void;
+    deleteSelectedNode: (selectedNodeID: string) => void;
 };
 
-const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition, setSelectedNodeData, selectedNode}) => {
+const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode}) => {
     const [nodePosition, setPosition] = useState<Position>(selectedNode.position);
     const [nodeData, setNodeData] = useState<TestData | SQLTableType>(selectedNode.data);
-    const [nodeStyle, setNodeStyle] = useState(selectedNode.style);
+    //const [nodeStyle, setNodeStyle] = useState(selectedNode.style); //To be done later
+
+    const [nodeHeader, setNodeHeader] = useState('');
 
     //SQL Table Type TableData variable objects
     const [fieldNames, setFieldNames] = useState<Record<string, string>>({});
@@ -67,10 +76,10 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition,
     const [indexes, setIndexes] = useState<Record<string, string | null>>({});
     const [comments, setComments] = useState<Record<string, string | null>>({});
 
-    //Position Input references. Might want to replace these with useState variables and follow the style of SQL TableData variable objects?
+    //Node Position Manipulation
+    //Might want to replace these with useState variables and follow the style of SQL TableData variable objects?
     const positionXRef = useRef<HTMLInputElement>(null);
     const positionYRef = useRef<HTMLInputElement>(null);
-
     //Updating position functions (internal selectedNode)
     const handlePositionXChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         let newPosition: Position = {x: event.target.value as unknown as number, y: nodePosition.y};
@@ -89,7 +98,39 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition,
         setSelectedNodePosition(nodePosition);   
     }
 
-    //SQL Table Type Change Trackers
+    //Node Header (Name) Manipulation
+    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setNodeHeader(event.target.value);
+    }
+    const updateHeader = () => {
+        console.log('updateHeader called!');
+        console.log("isTestType? ", isTestType(nodeData));
+        if(isSQLTableType(nodeData)){
+            const newNodeData: SQLTableType = {
+                id: nodeData.id,
+                header: nodeHeader,
+                tableData: nodeData.tableData
+            };
+            setNodeData(newNodeData);
+            setSelectedNodeData(newNodeData);
+        }
+        if(isTestType(nodeData)) {
+            console.log("isTestType? ", isTestType(nodeData));
+            const newNodeData: TestData = {
+                label: nodeHeader,
+                color: nodeData.color
+            };
+            setNodeData(newNodeData);
+            setSelectedNodeData(newNodeData);
+        }
+    }
+
+    const deleteNode = () => {
+        deleteSelectedNode(selectedNode.id);
+    }
+
+    //SQLTableType Node - Data Manipulation
+    //SQLTableType Change Trackers
     const handleFieldNameChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setFieldNames((prevNames) => ({...prevNames, [keyname]: event.target.value})); }
     const handleFieldTypeChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: event.target.value})); }
     const handleNullChange = (keyname: string, change: boolean) => {setNullabilities((prevNulls) => ({...prevNulls, [keyname]: change})); }
@@ -99,34 +140,72 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition,
     const handleIndexChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: event.target.value})); }
     const handleCommentChange = (keyname: string, event: React.ChangeEvent<HTMLTextAreaElement>) => { setComments((prevComments) => ({...prevComments, [keyname]: event.target.value})); }
 
-    //Create a new set of nodeData from all SQL Table Type useState variables
-    const updateData = (nodeData: SQLTableType) => {
-        const newNodeData: SQLTableType = {
-            id: nodeData.id,
-            header: nodeData.header,
-            tableData: []
-        };
-        //for each field name in fieldNames, find the value of all elements using the field name as the key
-        for(const key in fieldNames) {
-            let field = {
-                fieldName: fieldNames[key],
-                fieldType: fieldTypes[key],
-                nullability: nullabilities[key],
-                keyType: keyTypes[key],
-                unique: uniques[key],
-                check: checks[key],
-                indexing: indexes[key],
-                comments: comments[key]
-            };
-            newNodeData.tableData.push(field); //appends field to the Record object
-        }
-        setNodeData(newNodeData);
-        setSelectedNodeData(newNodeData);
+    //SQLTableType enact change functions
+    const addField = (nodeData: SQLTableType) => {
+        let newData = nodeData;
+        let newTuple = structuredClone(defaultField); //Deep Copy, not reference
+        newTuple.fieldName = `${defaultField.fieldName}-${newData.tableData.length + 1}`;
+        newData.tableData.push(newTuple);
+        let keyname = `${newTuple.fieldName}`;
+        //You have to set each of the SQL Table Type useState variables to include the new tuple fields because it won't auto-update. So stupid.
+        setFieldNames((prevNames) => ({...prevNames, [keyname]: keyname}));
+        setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultField.fieldType}));
+        setNullabilities((prevNulls) => ({...prevNulls, [keyname]: defaultField.nullability}));
+        setKeyTypes((prevKeyTypes) => ({...prevKeyTypes, [keyname]: defaultField.keyType}));
+        setUniques((prevUniques) => ({...prevUniques, [keyname]: defaultField.unique}));
+        setChecks((prevChecks) => ({...prevChecks, [keyname]: defaultField.check}));
+        setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: defaultField.indexing}));
+        setComments((prevComments) => ({...prevComments, [keyname]: defaultField.comments}));
+
+        setSelectedNodeData(newData);
+        setNodeData(newData);
     }
+    const deleteField = (nodeData: SQLTableType, deleteFieldName: string) => {
+        let newTableData = nodeData.tableData.filter(field => field.fieldName !== deleteFieldName);
+        let newData = {id: nodeData.id, header: nodeData.header, tableData: newTableData}
+        setNodeData(newData);
+        setSelectedNodeData(newData);
+    }
+    //Create a new set of nodeData from all SQL Table Type useState variables and update the node
+    const updateData = (nodeData: TestData | SQLTableType) => {
+        if(isSQLTableType(nodeData)){
+            const newNodeData: SQLTableType = {
+                id: nodeData.id,
+                header: nodeData.header,
+                tableData: []
+            };
+            //for each field name in fieldNames, find the value of all elements using the field name as the key
+            for(const key in fieldNames) {
+                let tuple = {
+                    fieldName: fieldNames[key],
+                    fieldType: fieldTypes[key],
+                    nullability: nullabilities[key],
+                    keyType: keyTypes[key],
+                    unique: uniques[key],
+                    check: checks[key],
+                    indexing: indexes[key],
+                    comments: comments[key]
+                };
+                newNodeData.tableData.push(tuple); //appends field to the Record object
+            }
+            setNodeData(newNodeData);
+            setSelectedNodeData(newNodeData);
+        } else {
+            const newNodeData: TestData = {
+                label: nodeData.label,
+                color: nodeData.color
+            }
+            setNodeData(newNodeData);
+            setSelectedNodeData(newNodeData);
+        }
+    }
+
+
+    //HELPER FUNCTIONS
 
     //Checks type of nodeData to determine data options in html
     const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).tableData !== undefined; }
-
+    const isTestType = (data: any): data is TestData => { return (data as TestData).color !== undefined; }
     //Functions to handle non-string values in html
     const printBool = (bool: boolean) => { if(bool) { return 'true';} else {return 'false';} }
     const strToBool = (str: string) => { if(str=="true") { return true;} else {return false;} }
@@ -138,51 +217,73 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition,
         setNodeData(selectedNode.data);
     }, [selectedNode]); // Re-runs whenever selectedNode changes
 
-    //Instantiate SQL Table Type tableData variables to track user's changes to data.
+    //Set Node Name. Instantiate SQL Table Type tableData variables to track user's changes to data.
     //Keys in each variable are the fieldName, values are the corresponding values to the field
     useEffect(() => {
         if(isSQLTableType(nodeData)) {
-        const { initialNames, initialTypes, iNulls, iKeys, iUniques, iChecks, iIndexes, iComments } = nodeData.tableData.reduce((acc, field) => {
-            acc.initialNames[field.fieldName] = field.fieldName;
-            acc.initialTypes[field.fieldName] = field.fieldType;
-            acc.iNulls[field.fieldName] = field.nullability;
-            acc.iKeys[field.fieldName] = field.keyType;
-            acc.iUniques[field.fieldName] = field.unique;
-            acc.iChecks[field.fieldName] = field.check;
-            acc.iIndexes[field.fieldName] = field.indexing;
-            acc.iComments[field.fieldName] = field.comments;
-            return acc
-        }, 
-        {
-            initialNames: {} as Record<string, string>,
-            initialTypes: {} as Record<string, string>,
-            iNulls: {} as Record<string, boolean>,
-            iKeys: {} as Record<string, string | null>,
-            iUniques: {} as Record<string, boolean>,
-            iChecks: {} as Record<string, string | null>,
-            iIndexes: {} as Record<string, string | null>,
-            iComments: {} as Record<string, string | null>
-        })
-        setFieldNames(initialNames);
-        setFieldTypes(initialTypes);
-        setNullabilities(iNulls);
-        setKeyTypes(iKeys);
-        setUniques(iUniques);
-        setChecks(iChecks);
-        setIndexes(iIndexes);
-        setComments(iComments);
+            setNodeHeader(nodeData.header);
+            const { initialNames, initialTypes, iNulls, iKeys, iUniques, iChecks, iIndexes, iComments } = nodeData.tableData.reduce((acc, field) => {
+                acc.initialNames[field.fieldName] = field.fieldName;
+                acc.initialTypes[field.fieldName] = field.fieldType;
+                acc.iNulls[field.fieldName] = field.nullability;
+                acc.iKeys[field.fieldName] = field.keyType;
+                acc.iUniques[field.fieldName] = field.unique;
+                acc.iChecks[field.fieldName] = field.check;
+                acc.iIndexes[field.fieldName] = field.indexing;
+                acc.iComments[field.fieldName] = field.comments;
+                return acc
+            }, 
+            {
+                initialNames: {} as Record<string, string>,
+                initialTypes: {} as Record<string, string>,
+                iNulls: {} as Record<string, boolean>,
+                iKeys: {} as Record<string, string | null>,
+                iUniques: {} as Record<string, boolean>,
+                iChecks: {} as Record<string, string | null>,
+                iIndexes: {} as Record<string, string | null>,
+                iComments: {} as Record<string, string | null>
+            })
+            setFieldNames(initialNames);
+            setFieldTypes(initialTypes);
+            setNullabilities(iNulls);
+            setKeyTypes(iKeys);
+            setUniques(iUniques);
+            setChecks(iChecks);
+            setIndexes(iIndexes);
+            setComments(iComments);
+        }
+        if(isTestType(nodeData)) {
+            setNodeHeader(nodeData.label);
         }
     }, [nodeData]); //Re-runs when nodeData changes (only after user submits changes to the parent page)
 
     return (
+        <div>
         <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="tableHeader">
+                <AccordionTrigger>Node Name</AccordionTrigger>
+                <AccordionContent>
+                    {isSQLTableType(nodeData) && (
+                    <div>
+                        <Input id="tableHeader-In" placeholder={nodeData.header} onChange={handleNameChange} />
+                        <Button onClick={updateHeader}>Update Node Name</Button>
+                    </div>
+                    )}
+                    {isTestType(nodeData) && (
+                    <div>
+                        <Input id="tableHeader-In" placeholder={nodeData.label} onChange={handleNameChange} />
+                        <Button onClick={updateHeader}>Update Node Name</Button>
+                    </div>
+                    )}
+                </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="nodePosition">
                 <AccordionTrigger>Position</AccordionTrigger>
                 <AccordionContent>
-                    <Label htmlFor='positionY'>X position</Label>
-                    <Input id='positionX-In' ref={positionXRef} placeholder={nodePosition.x as unknown as string} onChange={handlePositionXChange} />
-                    <Label htmlFor='positionX'>Y position</Label>
-                    <Input id='positionY-In' ref={positionYRef} placeholder={nodePosition.y as unknown as string} onChange={handlePositionYChange} />
+                    <Label htmlFor="positionY">X position</Label>
+                    <Input id="positionX-In" ref={positionXRef} placeholder={nodePosition.x as unknown as string} onChange={handlePositionXChange} />
+                    <Label htmlFor="positionX">Y position</Label>
+                    <Input id="positionY-In" ref={positionYRef} placeholder={nodePosition.y as unknown as string} onChange={handlePositionYChange} />
                     <Button onClick={() => updatePosition(nodePosition)}>Set Position</Button>
                 </AccordionContent>
             </AccordionItem>
@@ -195,9 +296,16 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition,
                         <ul>
                             {nodeData.tableData.map((field, index) => (
                                 <li key={index}>
-                                    <Accordion type="single" collapsible className="w-5/6 ml-auto">
+                                    <Accordion type="single" collapsible className="w-full">
                                         <AccordionItem value={`nodeData-${field.fieldName}`}>
-                                            <AccordionTrigger>{field.fieldName}</AccordionTrigger>
+                                            <div className="flex items-center justify-between w-full">
+                                                <AccordionTrigger className="flex">
+                                                    {field.fieldName}
+                                                </AccordionTrigger>
+                                                <Button variant="destructive" className="flex justify-end" onClick={() => deleteField(nodeData, field.fieldName)}>
+                                                    <X />
+                                                </Button>
+                                            </div>
                                             <AccordionContent className='space-y-5'>
                                                 <div>
                                                     <Label htmlFor="fieldName">Field Name</Label>
@@ -237,19 +345,22 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({setSelectedNodePosition,
                                     </Accordion>
                                 </li>
                             ))}
+                            <Button onClick={() => addField(nodeData)}> Add New Field</Button>
                             <Button onClick={() => updateData(nodeData)}>Update Table</Button>
                         </ul>
                     </div>
                 )}
                 </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="item-3">
+            <AccordionItem value="nodeStyling">
                 <AccordionTrigger>Styling</AccordionTrigger>
                 <AccordionContent>
                 Yes, you will be able to style a table how you desire. No, we haven't got to it yet.
                 </AccordionContent>
             </AccordionItem>
         </Accordion>
+        <Button variant="destructive" onClick={deleteNode}>Delete Node</Button>
+        </div>
     )
 }
 

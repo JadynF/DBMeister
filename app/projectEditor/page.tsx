@@ -22,7 +22,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import ComponentsPane from "@/components/(projectEditor)/componentsPane";
 import PropertiesPane from "@/components/(projectEditor)/propertiesPane";
-const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false })
+const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 import {
     Table,
     TableBody,
@@ -45,7 +45,7 @@ const onNodeDrag: OnNodeDrag = (_, node) => {
 };
 
 //New Node information types from Components Pane
-type NodeData = { label: string; color: string; };
+type TestData = { label: string; color: string};
 type Position = { x: number; y: number; };
 
 type SQLTableDataType = {
@@ -73,9 +73,9 @@ const defaultTable = [
 
 //Default Nodes and Edges for testing
 const loginNodes: Node[] = [
-    { id: "1", position: { x: 250, y: -50 }, data: { label: "Welcome" }, style: {background: "#FFD700"}},
-    { id: "2", position: { x: 100, y: 100 }, data: { label: "To" }, style: {background: "#4169E1", color: "#ffffff"} },
-    { id: "3", position: { x: 400, y: 250 }, data: { label: "DBMeister!" }, style: {background: "#FFD700"} },
+    { id: "1", position: { x: 250, y: -50 }, data: { label: "Welcome", color:  "#FFD700"}, style: {background: "#FFD700"}},
+    { id: "2", position: { x: 100, y: 100 }, data: { label: "To", color: "#4169E1"}, style: {background: "#4169E1", color: "#ffffff"} },
+    { id: "3", position: { x: 400, y: 250 }, data: { label: "DBMeister!", color: "#FFD700"}, style: {background: "#FFD700"} },
     { id: "sqltest", type: "SQLTableNode", position: {x: 100, y: 100 }, data: { id: "sqlTest", header: 'Testing Table', tableData: defaultTable } }
 ];
 const loginEdges: Edge[] = [
@@ -92,7 +92,7 @@ export default function Project() {
     const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
 
-    const createNode = (nodeData: NodeData, position: Position) => {
+    const createNode = (nodeData: TestData, position: Position) => {
         // Handle the logic when the node is created
         const newNode: Node = {
             id: `${nodes.length + 1}`,
@@ -118,19 +118,25 @@ export default function Project() {
         );
         setNodes(updatedNodes);
     }
-
-    const setSelectedNodeData = (nodeData: SQLTableType) => {
-        console.log('updating data in setSelectedNodeData in page.tsx!');
-        const replacementSQLTableNode: Node = {id: selectedNode.id, type: "SQLTableNode", position: selectedNode.position, data: nodeData};
-        const updatedNodes = nodes.map((node) => 
-            node.id === selectedNode.id ? replacementSQLTableNode : node
-        );
-        setNodes(updatedNodes);
-        console.log('updatedNodes: ', updatedNodes);
+    const setSelectedNodeData = (nodeData: SQLTableType | TestData) => {
+        if(isSQLTableType(nodeData)) {
+            const replacementSQLTableNode: Node = {id: selectedNode.id, type: "SQLTableNode", position: selectedNode.position, data: nodeData};
+            const updatedNodes = nodes.map((node) => 
+                node.id === selectedNode.id ? replacementSQLTableNode : node
+            );
+            setNodes(updatedNodes);
+        }
+        if(isTestType(nodeData)) {
+            const replacementTestNode: Node = {id: selectedNode.id, position: selectedNode.position, data: nodeData, style: {background: nodeData.color}};
+            const updatedNodes = nodes.map((node) => 
+                node.id === selectedNode.id ? replacementTestNode : node
+            );
+            setNodes(updatedNodes);
+        }
     }
 
     //Delete the selected node
-    const deleteNode = (nodeId: string) => {
+    const deleteSelectedNode = (nodeId: string) => {
         setNodes((nds) => nds.filter((node) => node.id !== nodeId)); // Remove the node
         setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)); // Remove edges connected to the node
     }
@@ -141,6 +147,10 @@ export default function Project() {
         console.log('New selection: ', node.id);
         setSelectedNode(node);
     }
+
+    //Checks type of nodeData to determine data options in html
+    const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).tableData !== undefined; }
+    const isTestType = (data: any): data is TestData => { return (data as TestData).color !== undefined; }
 
     return (
         <div>
@@ -171,6 +181,7 @@ export default function Project() {
                     selectedNode={selectedNode} 
                     setSelectedNodePosition={setSelectedNodePosition}
                     setSelectedNodeData={setSelectedNodeData}
+                    deleteSelectedNode={deleteSelectedNode}
                     />
                 </div>
             </div>

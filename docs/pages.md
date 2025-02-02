@@ -14,6 +14,42 @@ Contains info about the website, contains links to login and signup pages, the G
 
 </blockquote>
 
+## Login
+
+<blockquote>
+
+Page that allows a user to log into the website. 
+
+The user submits their username and password. If the information is correct, they are assigned a json web token which allows them to remain idle in the website for 1 hour before being sent back to the login page.
+
+Displays an example Reactflow canvas to show the website's functionality on the left half of the screen.
+
+</blockquote>
+
+## Register
+
+<blockquote>
+
+Page that allows a user to register an account with the website.
+
+The user submits their basic information in the registration form, including first and last names, username, password, and email. When registering, they will be sent an email to verify their account, after which they are logged in. 
+
+A user's email undergoes thorough validation to ensure that it is a valid email. The email undergoes a regex formatting check, a domain check, and a final check using an outside API provided by MailboxValidator.
+
+</blockquote>
+
+## VerifyAccount
+
+<blockquote>
+
+This page is for a user to verify their account through their email.
+
+After registering their account, a user is sent a verification email. After clicking the link, the user is brought to this page.
+
+The page contains a button which will verify the user's account. Afterwards, the page can be closed and the user can log in.
+
+</blockquote>
+
 ## Dashboard
 
 <blockquote>
@@ -33,5 +69,15 @@ Imports diagramCard.tsx and diagramDialog from '@/app/components/(dashDiagram)' 
 Will, upon render, fetch /getDashDiagrams to get all of the current users diagrams.
 
 </blockquote>
+
+## ProjectEditor
+
+<blockquote>
+
+Page for editing projects. Includes a taskbar at the top, a Components Pane on the left, a Properties Pane on the right, and a ReactFlow canvas in the center of the page.
+
+Users can add nodes to the canvas via the Components Pane. Pressing on a Component adds it to the center of the canvas. 
+When clicking on a node, it is selected, and its properties are displayed in the Properties Pane. From here, users can edit the name, change the position and edit the data of the node.
+In the Reactflow canvas, users can move nodes around, and connect nodes with lines, called edges. These show the relationship between two nodes.
 
 </blockquote>

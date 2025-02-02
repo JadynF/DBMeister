@@ -23,7 +23,7 @@ export default async function Dashboard() {
     return (
         <div> 
             <div className="flex items-center justify-center w-full bg-[#bfdbfe] mb-6">
-                <h1 className="m-4 text-3xl font-bold">Diagram Page</h1>
+                <h1 className="m-4 text-3xl font-bold">Personal Diagrams</h1>
             </div>
             <div className="flex items-center justify-center"> 
                 <CreateDiagramDialog ownerId={response.userData.id}/>

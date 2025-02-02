@@ -1,5 +1,7 @@
 import React from 'react';
 import SQLTable from '@/components/(xyflow)/sqlTable'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 
 type NodeData = { header: string; color: string; };
 type Position = { x: number; y: number; };
@@ -43,31 +45,47 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTa
     }
 
     return (
-        <div style={{ width: '100%', backgroundColor: '#f4f4f4', padding: '20px' }}>
-            <h3>Components</h3>
-            <div
-                onClick={() => handleClick({id: 'new_node', header: 'New_SQL_Table', tableData: defaultSQLTableData})}
-                style={{
-                    padding: '10px',
-                    backgroundColor: 'lightblue',
-                    marginBottom: '10px',
-                    cursor: 'pointer',
-                }}
-            >
-                New SQL Table
-            </div>
-            <div
-                onClick={() => handleTestClick({ header: 'Node 2', color: 'lightgreen' })}
-                style={{
-                    padding: '10px',
-                    backgroundColor: 'lightgreen',
-                    marginBottom: '10px',
-                    cursor: 'pointer',
-                }}
-            >
-                Node 2
-            </div>
-        </div>
+        <>
+        <h3 className="text-center mb-2">Components</h3>
+        <Tabs defaultValue="Icons" className="w-auto">
+            <TabsList>
+                <TabsTrigger value="Icons">Icons</TabsTrigger>
+                <TabsTrigger value="Tables">Tables</TabsTrigger>
+                <TabsTrigger value="Shapes">Shapes</TabsTrigger>
+            </TabsList>
+            <TabsContent value="Icons">
+                <div style={{ width: '100%', backgroundColor: '#f4f4f4', padding: '20px' }}>
+                    <div
+                        onClick={() => handleTestClick({ label: 'New Node', color: 'lightgreen' })}
+                        style={{
+                            padding: '10px',
+                            backgroundColor: 'lightgreen',
+                            marginBottom: '10px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        New Node
+                    </div>
+                </div>
+            </TabsContent>
+            <TabsContent value="Tables">
+                <div style={{ width: '100%', backgroundColor: '#f4f4f4', padding: '20px' }}>
+                    <div
+                        onClick={() => handleClick({id: 'new_node', header: 'New_SQL_Table', tableData: defaultSQLTableData})}
+                        style={{
+                            padding: '10px',
+                            backgroundColor: 'lightblue',
+                            marginBottom: '10px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        New SQL Table
+                    </div>
+                </div>
+            </TabsContent>
+            <TabsContent value="Shapes">Insert Shape</TabsContent>
+        </Tabs>
+        </>
     );
 }
 

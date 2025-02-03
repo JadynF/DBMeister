@@ -13,6 +13,7 @@ const SettingsPage = () => {
     const [fontSize, setFontSize] = useState("medium");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState(""); // Add state for confirm password
     const router = useRouter();
 
     // Load settings from local storage
@@ -58,8 +59,13 @@ const SettingsPage = () => {
 
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => setUsername(event.target.value);
     const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value);
+    const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(event.target.value);
 
     const handleUpdateAccount = async () => {
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
         try {
             const res = await fetch("/api/update-account", {
                 method: "POST",
@@ -112,6 +118,10 @@ const SettingsPage = () => {
                         <div className="flex flex-col space-y-2">
                             <Label htmlFor="password">Change Password</Label>
                             <Input id="password" type="password" value={password} onChange={handlePasswordChange} placeholder="Enter new password" />
+                        </div>
+                        <div className="flex flex-col space-y-2">
+                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={handleConfirmPasswordChange} placeholder="Confirm new password" />
                         </div>
                     </div>
                 </CardContent>

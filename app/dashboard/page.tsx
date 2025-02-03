@@ -1,21 +1,34 @@
+// app/dashboard/page.tsx
+
 import authorization from "@/lib/authorization";
 import NewsFeed from "@/components/ui/newsfeed";
-import Link from "next/link";
+import CreateDiagramDialog from "@/components/(dash)/(dashDiagram)/diagramDialog";
+import DashboardDiagrams from "@/components/(dash)/(dashDiagram)/diagramList";
 
-
-// Server-side component
 export default async function Dashboard() {
-  // Fetch user data and news feed data
   const response = await authorization();
 
-  // Dummy news items (you can replace this with actual data from an API or database)
   const newsItems = [
-    { id: 1, imgSrc: "/collab1.jpg", alt: "News 1", text:"Collaborate with DBMeister" },
-    { id: 2, imgSrc: "/diagrams.jpg", alt: "News 2", text:"Create custom diagrams to your liking" },
-    { id: 3, imgSrc: "/tech.jpg", alt: "News 3", text: "Louisiana Tech capstone project is going off" },
+    { id: 1, imgSrc: "/collab1.jpg", alt: "News 1", text: "Collaborate with DBMeister" },
+    { id: 2, imgSrc: "/diagrams.jpg", alt: "News 2", text: "Create custom diagrams to your liking" },
+    { id: 3, imgSrc: "/tech.jpg", alt: "News 3", text: "DBMeister is killing it" },
   ];
 
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const payload = { id: response.userData.id };
+
+  const res = await fetch(`${baseURL}/api/getDashDiagrams`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  let diagramData = await res.json();
+  diagramData = diagramData.data;
+  console.log("Dashboard diagrams:", diagramData);
+
   return (
+<<<<<<< HEAD
     <div className="flex h-screen">
 <<<<<<< HEAD
 =======
@@ -51,10 +64,16 @@ export default async function Dashboard() {
       <div className="flex-1 p-6 bg-gray-100">
         {/* News Feed */}
         <div className="relative bg-white shadow rounded-lg overflow-hidden mb-6 h-64 h-[500px]">
+=======
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      {/* Top Section: News Feed & Greeting */}
+      <div className="flex-1 p-6">
+        <div className="relative bg-white shadow rounded-lg overflow-hidden mb-6 h-[500px]">
+>>>>>>> d5516cc (Modified the dashboard and forums page)
           <NewsFeed newsItems={newsItems} />
         </div>
 
-        <div className="p-4 bg-white shadow rounded-lg">
+        <div className="p-4 bg-white shadow rounded-lg mb-6">
           <h2 className="text-xl font-bold">
 <<<<<<< HEAD
             Greetings {response.userData.firstName} {response.userData.lastName}
@@ -63,6 +82,16 @@ export default async function Dashboard() {
 >>>>>>> 0566761 (Added the News Feed on Dashboard)
           </h2>
           <p className="mt-2">Explore the links on the left to manage your dashboard.</p>
+        </div>
+
+        {/* Diagram Cards Section */}
+        <div className="p-4 bg-white shadow rounded-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Your Diagrams</h2>
+            <CreateDiagramDialog ownerId={response.userData.id} />
+          </div>
+
+          <DashboardDiagrams diagramData={diagramData} />
         </div>
       </div>
     </div>

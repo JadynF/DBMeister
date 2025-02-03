@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import authorization from '@/lib/authorization';
+import { Trash2, Flag, Send, MessageSquare } from 'lucide-react';
 
 type UserData = {
   firstName: string;

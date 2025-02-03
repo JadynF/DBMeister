@@ -29,6 +29,7 @@ export default async function Dashboard() {
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
     <div className="flex h-screen">
 <<<<<<< HEAD
 =======
@@ -65,11 +66,16 @@ export default async function Dashboard() {
         {/* News Feed */}
         <div className="relative bg-white shadow rounded-lg overflow-hidden mb-6 h-64 h-[500px]">
 =======
+=======
+>>>>>>> d5516cc0f20e428ab377cadcf8fb2ff2a5c34020
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Top Section: News Feed & Greeting */}
       <div className="flex-1 p-6">
         <div className="relative bg-white shadow rounded-lg overflow-hidden mb-6 h-[500px]">
+<<<<<<< HEAD
 >>>>>>> d5516cc (Modified the dashboard and forums page)
+=======
+>>>>>>> d5516cc0f20e428ab377cadcf8fb2ff2a5c34020
           <NewsFeed newsItems={newsItems} />
         </div>
 

@@ -20,6 +20,7 @@
     "@radix-ui/react-tooltip": "^1.1.7",
     "@xyflow/react": "^12.4.2",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",

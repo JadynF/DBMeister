@@ -1,6 +1,7 @@
 import React from 'react';
-import SQLTable from '@/components/(xyflow)/sqlTable'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import SQLTable from '@/components/(xyflow)/sqlTable';
+import ExcelTable from '@/components/(xyflow)/excelTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 type NodeData = { header: string; color: string; };
@@ -22,14 +23,36 @@ type SQLTableType = {
     tableData: SQLTableDataType[]
 }
 
+type ExcelField = {
+    fieldName: string,
+    fieldFormat: string,
+    fieldDataType: string,
+    fieldDataValidation: string | null,
+    fieldSort: string | null,
+    fieldComments: string | null
+}
+type ExcelSheet = {
+    sheetName: string,
+    sheetData: ExcelField[]
+}
+type ExcelTableType = {
+    id: string,
+    header: string,
+    tableData: ExcelSheet[]
+}
+
 type ComponentsPaneProps = {
     createNode: (nodeData: NodeData, position: Position) => void,
-    createSQLTableNode: (nodeData: SQLTableType, position: Position) => void;
+    createSQLTableNode: (nodeData: SQLTableType, position: Position) => void,
+    createExcelTableNode: (nodeData: ExcelTableType, position: Position) => void;
 };
 
 const defaultSQLTableData: SQLTableDataType[] = [{fieldName: 'field_name', fieldType: 'VARCHAR(55)', nullability: true, keyType: null, unique: true, check: null, indexing: null, comments: 'comment'}];
+const defaultExcelTableData: ExcelSheet = {sheetName: "Sheet 1", sheetData: [
+    {fieldName: "Field 1", fieldFormat: "Text", fieldDataType: "Text", fieldDataValidation: null, fieldSort: "Ascending", fieldComments: null},
+    {fieldName: "Field 2", fieldFormat: "Number", fieldDataType: "Number", fieldDataValidation: null, fieldSort: null, fieldComments: null}]};
 
-const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTableNode }) => {
+const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTableNode, createExcelTableNode }) => {
     const handleTestClick = (nodeData: NodeData) => {
         console.log('Component Clicked!');
         // The position where the node is created
@@ -37,11 +60,18 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTa
         createNode(nodeData, position);
     };
 
-    const handleClick = (nodeData: SQLTableType) => {
+    const handleSQLClick = (nodeData: SQLTableType) => {
         console.log('SQL Table Component Clicked!');
         console.log(nodeData.id, nodeData.header, nodeData.tableData);
         const position: Position = {x: 100, y: 100};
         createSQLTableNode(nodeData, position);   
+    }
+
+    const handleExcelClick = (nodeData: ExcelTableType) => {
+        console.log('Excel Table Component Clicked!');
+        console.log(nodeData.id, nodeData.header, nodeData.tableData);
+        const position: Position = {x: 100, y: 100};
+        createExcelTableNode(nodeData, position);
     }
 
     return (
@@ -56,7 +86,7 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTa
             <TabsContent value="Icons">
                 <div style={{ width: '100%', backgroundColor: '#f4f4f4', padding: '20px' }}>
                     <div
-                        onClick={() => handleTestClick({ label: 'New Node', color: 'lightgreen' })}
+                        onClick={() => handleTestClick({ header: 'New Node', color: 'lightgreen' })}
                         style={{
                             padding: '10px',
                             backgroundColor: 'lightgreen',
@@ -71,15 +101,26 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode, createSQLTa
             <TabsContent value="Tables">
                 <div style={{ width: '100%', backgroundColor: '#f4f4f4', padding: '20px' }}>
                     <div
-                        onClick={() => handleClick({id: 'new_node', header: 'New_SQL_Table', tableData: defaultSQLTableData})}
+                        onClick={() => handleSQLClick({id: 'new_node', header: 'New_SQL_Table', tableData: defaultSQLTableData})}
                         style={{
                             padding: '10px',
                             backgroundColor: 'lightblue',
                             marginBottom: '10px',
-                            cursor: 'pointer',
+                            cursor: 'pointer'
                         }}
                     >
                         New SQL Table
+                    </div>
+                    <div
+                        onClick={() => handleExcelClick({id: 'new_excel_node', header: 'New_Excel_Table', tableData: [defaultExcelTableData]})}
+                        style={{
+                            padding: '10px',
+                            backgroundColor: 'lightgreen',
+                            marginBottom: '10px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        New Excel Table
                     </div>
                 </div>
             </TabsContent>

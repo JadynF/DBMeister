@@ -9,7 +9,6 @@ import {
     TableRow
 } from "@/components/ui/table";
 
-
 type SQLTableDataType = {
     fieldName: string,
     fieldType: string,

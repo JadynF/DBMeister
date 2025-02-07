@@ -23,6 +23,7 @@ import '@xyflow/react/dist/style.css';
 import ComponentsPane from "@/components/(projectEditor)/componentsPane";
 import PropertiesPane from "@/components/(projectEditor)/propertiesPane";
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
+const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
 import {
     Table,
     TableBody,
@@ -34,7 +35,8 @@ import {
 } from "@/components/ui/table";
 
 const nodeTypes = {
-    SQLTableNode: SQLTableNode
+    SQLTableNode: SQLTableNode,
+    ExcelTableNode: ExcelTableNode
 };
 
 //Reactflow functionalities
@@ -60,23 +62,36 @@ type SQLTableDataType = {
 }
 type SQLTableType = {
     id: string,
+    type: string,
     header: string,
     tableData: SQLTableDataType[]
 }
 
-const defaultTable = [
-    {fieldName: 'Field1', fieldType: 'VARCHAR(55)', nullability: true, keyType: 'PRIMARY', unique: true, check: null, indexing: null, comments: 'Default Comment 1'},
-    {fieldName: 'Field2', fieldType: 'INT(8)', nullability: true, keyType: null, unique: false, check: null, indexing: null, comments: 'Default Comment 2'},
-    {fieldName: 'Field3', fieldType: 'VARCHAR(8)', nullability: true, keyType: null, unique: false, check: null, indexing: null, comments: 'Default Comment 3'},
-];
+type ExcelField = {
+    fieldName: string,
+    fieldFormat: string,
+    fieldDataType: string,
+    fieldDataValidation: string | null,
+    fieldSort: string | null,
+    fieldComments: string | null
+}
+type ExcelSheet = {
+    sheetName: string,
+    sheetData: ExcelField[]
+}
+type ExcelTableType = {
+    id: string,
+    type: string,
+    header: string,
+    tableData: ExcelSheet[]
+}
 
 
 //Default Nodes and Edges for testing
 const loginNodes: Node[] = [
     { id: "1", position: { x: 250, y: -50 }, data: { label: "Welcome", color:  "#FFD700"}, style: {background: "#FFD700"}},
     { id: "2", position: { x: 100, y: 100 }, data: { label: "To", color: "#4169E1"}, style: {background: "#4169E1", color: "#ffffff"} },
-    { id: "3", position: { x: 400, y: 250 }, data: { label: "DBMeister!", color: "#FFD700"}, style: {background: "#FFD700"} },
-    { id: "sqltest", type: "SQLTableNode", position: {x: 100, y: 100 }, data: { id: "sqlTest", header: 'Testing Table', tableData: defaultTable } }
+    { id: "3", position: { x: 400, y: 250 }, data: { label: "DBMeister!", color: "#FFD700"}, style: {background: "#FFD700"} }
 ];
 const loginEdges: Edge[] = [
     { id: "e1-2", source: "1", target: "2", animated: true },
@@ -107,7 +122,16 @@ export default function Project() {
             id: `${nodes.length + 1}`,
             type: "SQLTableNode",
             position: position,
-            data: {id: nodeData.id, header: nodeData.header, tableData: nodeData.tableData}
+            data: {id: nodeData.id, type: "sql", header: nodeData.header, tableData: nodeData.tableData}
+        }
+        setNodes((nds) => nds.concat(newNode));
+    }
+    const createExcelTableNode = (nodeData: ExcelTableType, position: Position) => {
+        const newNode: Node = {
+            id: `${nodes.length + 1}`,
+            type: "ExcelTableNode",
+            position: position,
+            data: {id: nodeData.id, type: "excel", header: nodeData.header, tableData: nodeData.tableData}
         }
         setNodes((nds) => nds.concat(newNode));
     }
@@ -123,6 +147,13 @@ export default function Project() {
             const replacementSQLTableNode: Node = {id: selectedNode.id, type: "SQLTableNode", position: selectedNode.position, data: nodeData};
             const updatedNodes = nodes.map((node) => 
                 node.id === selectedNode.id ? replacementSQLTableNode : node
+            );
+            setNodes(updatedNodes);
+        }
+        if(isExcelTableType(nodeData)) {
+            const replacementExcelTableNode: Node = {id: selectedNode.id, type: "ExcelTableNode", position: selectedNode.position, data: nodeData};
+            const updatedNodes = nodes.map((node) => 
+                node.id === selectedNode.id ? replacementExcelTableNode : node
             );
             setNodes(updatedNodes);
         }
@@ -149,6 +180,7 @@ export default function Project() {
     }
 
     //Checks type of nodeData to determine data options in html
+    const isExcelTableType = (data: any): data is ExcelTableType => { return (data as ExcelTableType).tableData[0].sheetName !== undefined; }
     const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).tableData !== undefined; }
     const isTestType = (data: any): data is TestData => { return (data as TestData).color !== undefined; }
 
@@ -159,7 +191,11 @@ export default function Project() {
             </header>
             <div style={mainStyle}>
                 <div style={sidepaneStyle}>
-                    <ComponentsPane createNode={createNode} createSQLTableNode={createSQLTableNode}/>
+                    <ComponentsPane 
+                        createNode={createNode} 
+                        createSQLTableNode={createSQLTableNode}
+                        createExcelTableNode={createExcelTableNode}
+                    />
                 </div>
                 <div style={{height: '100%', width: '100%' }}>
                     <ReactFlow

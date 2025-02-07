@@ -33,6 +33,7 @@ type Position = { x: number; y: number; };
 
 //Node type definitions
 type TestData = { label: string; color: string; };
+
 type SQLTableDataType = {
     fieldName: string,
     fieldType: string,
@@ -42,26 +43,48 @@ type SQLTableDataType = {
     check: string | null,
     indexing: string | null,
     comments: string | null
-}
+};
 type SQLTableType = {
     id: string,
+    type: string,
     header: string,
     tableData: SQLTableDataType[] //Array of type Record<string, __valueType__>
+};
+
+type ExcelField = {
+    fieldName: string,
+    fieldFormat: string,
+    fieldDataType: string,
+    fieldDataValidation: string | null,
+    fieldSort: string | null,
+    fieldComments: string | null
+}
+
+type ExcelSheet = {
+    sheetName: string,
+    sheetData: ExcelField[]
+}
+
+type ExcelTableType = {
+    id: string,
+    type: string,
+    header: string,
+    tableData: ExcelSheet[]
 }
 //Default New Field when appending to a SQLTableType Node
-const defaultField: SQLTableDataType = {fieldName: "New Field", fieldType: 'VARCHAR(55)', nullability: false, keyType: null, unique: false, check: null, indexing: null, comments: ''}
+const defaultSQLField: SQLTableDataType = {fieldName: "New Field", fieldType: 'VARCHAR(55)', nullability: false, keyType: null, unique: false, check: null, indexing: null, comments: ''}
 
 //Function props definitions
 type PropertiesPaneProps = {
     selectedNode: Node<TestData | SQLTableType>;
     setSelectedNodePosition: (position: Position) => void;
-    setSelectedNodeData: (nodeData: SQLTableType | TestData) => void;
+    setSelectedNodeData: (nodeData: TestData | SQLTableType | ExcelTableType) => void;
     deleteSelectedNode: (selectedNodeID: string) => void;
 };
 
 const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode}) => {
     const [nodePosition, setPosition] = useState<Position>(selectedNode.position);
-    const [nodeData, setNodeData] = useState<TestData | SQLTableType>(selectedNode.data);
+    const [nodeData, setNodeData] = useState<TestData | SQLTableType | ExcelTableType>(selectedNode.data);
     //const [nodeStyle, setNodeStyle] = useState(selectedNode.style); //To be done later
 
     const [nodeHeader, setNodeHeader] = useState('');
@@ -108,6 +131,18 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelecte
         if(isSQLTableType(nodeData)){
             const newNodeData: SQLTableType = {
                 id: nodeData.id,
+                type: nodeData.type,
+                header: nodeHeader,
+                tableData: nodeData.tableData
+            };
+            setNodeData(newNodeData);
+            setSelectedNodeData(newNodeData);
+        }
+        if(isExcelTableType(nodeData)) {
+            console.log("isTestType? ", isExcelTableType(nodeData));
+            const newNodeData: ExcelTableType = {
+                id: nodeData.id,
+                type: nodeData.type,
                 header: nodeHeader,
                 tableData: nodeData.tableData
             };
@@ -143,26 +178,27 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelecte
     //SQLTableType enact change functions
     const addField = (nodeData: SQLTableType) => {
         let newData = nodeData;
-        let newTuple = structuredClone(defaultField); //Deep Copy, not reference
-        newTuple.fieldName = `${defaultField.fieldName}-${newData.tableData.length + 1}`;
+        let newTuple = structuredClone(defaultSQLField); //Deep Copy, not reference
+        newTuple.fieldName = `${defaultSQLField.fieldName}-${newData.tableData.length + 1}`;
         newData.tableData.push(newTuple);
         let keyname = `${newTuple.fieldName}`;
         //You have to set each of the SQL Table Type useState variables to include the new tuple fields because it won't auto-update. So stupid.
         setFieldNames((prevNames) => ({...prevNames, [keyname]: keyname}));
-        setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultField.fieldType}));
-        setNullabilities((prevNulls) => ({...prevNulls, [keyname]: defaultField.nullability}));
-        setKeyTypes((prevKeyTypes) => ({...prevKeyTypes, [keyname]: defaultField.keyType}));
-        setUniques((prevUniques) => ({...prevUniques, [keyname]: defaultField.unique}));
-        setChecks((prevChecks) => ({...prevChecks, [keyname]: defaultField.check}));
-        setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: defaultField.indexing}));
-        setComments((prevComments) => ({...prevComments, [keyname]: defaultField.comments}));
+        setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultSQLField.fieldType}));
+        setNullabilities((prevNulls) => ({...prevNulls, [keyname]: defaultSQLField.nullability}));
+        setKeyTypes((prevKeyTypes) => ({...prevKeyTypes, [keyname]: defaultSQLField.keyType}));
+        setUniques((prevUniques) => ({...prevUniques, [keyname]: defaultSQLField.unique}));
+        setChecks((prevChecks) => ({...prevChecks, [keyname]: defaultSQLField.check}));
+        setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: defaultSQLField.indexing}));
+        setComments((prevComments) => ({...prevComments, [keyname]: defaultSQLField.comments}));
 
         setSelectedNodeData(newData);
         setNodeData(newData);
     }
+
     const deleteField = (nodeData: SQLTableType, deleteFieldName: string) => {
         let newTableData = nodeData.tableData.filter(field => field.fieldName !== deleteFieldName);
-        let newData = {id: nodeData.id, header: nodeData.header, tableData: newTableData}
+        let newData = {id: nodeData.id, type: nodeData.type, header: nodeData.header, tableData: newTableData}
         setNodeData(newData);
         setSelectedNodeData(newData);
     }
@@ -171,6 +207,7 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelecte
         if(isSQLTableType(nodeData)){
             const newNodeData: SQLTableType = {
                 id: nodeData.id,
+                type: nodeData.type,
                 header: nodeData.header,
                 tableData: []
             };
@@ -204,7 +241,8 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelecte
     //HELPER FUNCTIONS
 
     //Checks type of nodeData to determine data options in html
-    const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).tableData !== undefined; }
+    const isExcelTableType = (data: any): data is ExcelTableType => { return (data as ExcelTableType).type === "excel"; }
+    const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).type === "sql"; }
     const isTestType = (data: any): data is TestData => { return (data as TestData).color !== undefined; }
     //Functions to handle non-string values in html
     const printBool = (bool: boolean) => { if(bool) { return 'true';} else {return 'false';} }
@@ -263,7 +301,7 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelecte
             <AccordionItem value="tableHeader">
                 <AccordionTrigger>Node Name</AccordionTrigger>
                 <AccordionContent>
-                    {isSQLTableType(nodeData) && (
+                    {(isSQLTableType(nodeData) || isExcelTableType(nodeData)) && (
                     <div>
                         <Input id="tableHeader-In" placeholder={nodeData.header} onChange={handleNameChange} />
                         <Button onClick={updateHeader}>Update Node Name</Button>
@@ -350,6 +388,64 @@ const PropertiesPane: React.FC<PropertiesPaneProps> = ({selectedNode, setSelecte
                         </ul>
                     </div>
                 )}
+                </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="nodeData" className={isExcelTableType(nodeData) ? "block" : "hidden"}>
+                <AccordionTrigger>Excel Table Data</AccordionTrigger>
+                <AccordionContent>
+                    {/*Excel Table Data Accordian */}
+                    {isExcelTableType(nodeData) && (
+                        <div>
+                            <ul>
+                                {nodeData.tableData.map((sheet, index) => (
+                                    <li key={index}>
+                                        <Accordion type="single" collapsible className="w-full">
+                                            <AccordionItem value={`nodeData-${sheet.sheetName}`}>
+                                                <AccordionTrigger className="flex">{sheet.sheetName}</AccordionTrigger>
+                                                <AccordionContent className="space-y-5">
+                                                {sheet.sheetData.map((field, indexS) => (
+                                                    <li key={indexS}>
+                                                        <Accordion type="single" collapsible className="w-4/5 ml-auto">
+                                                            <AccordionItem value={`${sheet.sheetName}-${field.fieldName}`}>
+                                                                <AccordionTrigger className="flex">{field.fieldName}</AccordionTrigger>
+                                                                <AccordionContent className="space-y-5">
+                                                                    <div>
+                                                                        <Label htmlFor="fieldName">Field Name</Label>
+                                                                        <Input id={field.fieldName} placeholder={field.fieldName} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor="fieldFormat">Field Format</Label>
+                                                                        <Input id={field.fieldFormat} placeholder={field.fieldFormat} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor="fieldDataType">Field Data Type</Label>
+                                                                        <Input id={field.fieldDataType} placeholder={field.fieldDataType} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor="fieldDataValidation">Field Validation</Label>
+                                                                        <Input id={printStrOption(field.fieldDataValidation)} placeholder={printStrOption(field.fieldDataValidation)} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor="fieldSort">Field Sort</Label>
+                                                                        <Input id={printStrOption(field.fieldSort)} placeholder={printStrOption(field.fieldSort)} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor="fieldComments">Field Comments</Label>
+                                                                        <Input id={printStrOption(field.fieldComments)} placeholder={printStrOption(field.fieldComments)} />
+                                                                    </div>
+                                                                </AccordionContent>
+                                                            </AccordionItem>
+                                                        </Accordion>
+                                                    </li>
+                                                ))}
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </Accordion>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </AccordionContent>
             </AccordionItem>
             <AccordionItem value="nodeStyling">

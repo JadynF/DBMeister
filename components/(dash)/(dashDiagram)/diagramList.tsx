@@ -1,4 +1,8 @@
 // components/(dash)/(dashDiagram)/diagramList
+=======
+// components/DashboardDiagrams.tsx
+
+>>>>>>> origin/Jacob-NextJS
 "use client";
 
 import { useState } from "react";
@@ -47,4 +51,8 @@ const DashboardDiagrams = ({ diagramData }: { diagramData: any[] }) => {
   );
 };
 
+<<<<<<< HEAD
 export default DashboardDiagrams;
+=======
+export default DashboardDiagrams;
+>>>>>>> origin/Jacob-NextJS

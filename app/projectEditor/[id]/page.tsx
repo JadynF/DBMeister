@@ -36,6 +36,7 @@ import {
 import { useParams } from 'next/navigation';
 import authorization from '@/lib/authorization';
 import authProject from '@/lib/authProjectEditor';
+import { saveProject, getProject } from '@/lib/stateManager';
 
 const nodeTypes = {
     SQLTableNode: SQLTableNode,
@@ -106,26 +107,65 @@ export default function Project() {
 
     const [projectId, setProjectId] = useState<string | undefined>(undefined);
     const [userId, setUserId] = useState<string | undefined>(undefined);
+    const [isAuth, setIsAuth] = useState<boolean>(false);
+    const [nodeIndex, setNodeIndex] = useState<int | undefined>(undefined);
 
     useEffect(() => {
         if (params.id) {
-            setProjectId(params.id);  // Set the id from useParams
+            setProjectId(params.id);
         }
 
         const checkAuth = async () => {
             const authResponse = await authorization();
             if (authResponse) {
                 setUserId(authResponse.userData.id);
+                let authProj = await authProject(authResponse.userData.id, params.id);
+                setIsAuth(authProj);
             }
-
-            await authProject(authResponse.userData.id, params.id);
         }
 
         checkAuth();
-
-        // get existing state data and apply to page
-
     }, []);
+
+    useEffect(() => { // only run once the user has been authorized for the project
+        if (isAuth) {
+            const getState = async () => {
+                let savedState = await getProject(params.id);
+    
+                if (savedState) {
+                    console.log(savedState);
+                    let maxID = 0;
+                    for (let i in savedState.nodes) { // get the maxID for the node index
+                        if (savedState.nodes[i].id > maxID) {
+                            maxID = savedState.nodes[i].id;
+                        }
+                    }
+
+                    setNodes(savedState.nodes);
+                    setEdges(savedState.edges);
+
+                    console.log("Max ID: " + maxID);
+                    setNodeIndex(maxID);
+                }
+            }
+    
+            getState();
+        }
+    }, [isAuth]);
+
+    const saveState = async () => {
+        if (userId && projectId) { // protections from unauthorized saving states
+            console.log(nodes);
+            console.log(edges);
+
+            const state = {"nodes" : nodes, "edges" : edges};
+
+            const saved = await saveProject(state, projectId);
+
+            // do something with saved to let user know the project has been saved
+        }
+    }
+
 
     const [nodes, setNodes] = useState<Node[]>(loginNodes);
     const [edges, setEdges] = useState<Edge[]>(loginEdges);
@@ -215,7 +255,15 @@ export default function Project() {
     return (
         <div>
             <header style={taskbarStyle}>
-                Project {projectId}
+                <div>
+                    <button onClick={saveState}>Save</button>
+                </div>
+                <div>
+                    Project {projectId}
+                </div>
+                <div>
+                    <button>Go Back</button>
+                </div>
             </header>
             <div style={mainStyle}>
                 <div style={sidepaneStyle}>
@@ -269,7 +317,9 @@ const taskbarStyle: React.CSSProperties = {
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 0
+    zIndex: 0,
+    display: 'flex',
+    justifyContent: 'space-between'
 }
 
 const mainStyle: React.CSSProperties = {

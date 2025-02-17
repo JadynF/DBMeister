@@ -32,4 +32,7 @@ export default async function authProject(userId : string, diagramId : string) :
         redirect('/dashboard');
         return ({authorized: false});
     }
+    finally {
+        connection.end();
+    }
 }

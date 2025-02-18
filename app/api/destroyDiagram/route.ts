@@ -2,14 +2,12 @@ import { createConnection } from '@/lib/db';
 
 export async function POST(req: Request) {
     const body = await req.json();
-    const ownerId = body.owner;
-    const name = body.name;
-    const description = body.description;
+    const id = body.id;
 
     const connection = createConnection()
     try {
         let response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('INSERT INTO diagrams (name, description) VALUES(?, ?);', [name, description], (err, results: any[]) => {
+            connection.query('DELETE FROM user_owns WHERE diagram_id = ?', [id], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -18,26 +16,24 @@ export async function POST(req: Request) {
             });
         });
 
-        const newDiagramId = response.insertId
-
         response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('INSERT INTO user_owns (user_id, diagram_id) VALUES(?, ?);', [ownerId, newDiagramId], (err, results: any[]) => {
+            connection.query('DELETE FROM diagrams WHERE id = ?', [id], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {
                     resolve(results);
                 }
-            })
-        })
+            });
+        });
 
-        return new Response(JSON.stringify({response: "Creation Successful"}), {
+        return new Response(JSON.stringify({response: "Deletion Successful"}), {
             header: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
-        return new Response(JSON.stringify({response: "Creation Error"}), {
+        return new Response(JSON.stringify({response: "Deletion Error"}), {
             header: { "Content-Type": "application/json" },
             status: 500
         });

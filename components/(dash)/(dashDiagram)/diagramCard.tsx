@@ -47,7 +47,7 @@ import {
                 </div>
             </CardContent>
             <CardFooter className="flex justify-around">
-                <Link href="/projectEditor">
+                <Link href={"/projectEditor/" + diagramData.id}>
                     <Button>Open</Button>
                 </Link>
                 <Button variant="outline">Edit Details</Button>

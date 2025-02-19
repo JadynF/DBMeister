@@ -1,6 +1,6 @@
 import { createConnection } from '@/lib/db';
 import { comparePasswords } from '@/lib/bcrypt'
-//import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 const jwtKey = process.env.JWT_SECRET;
 

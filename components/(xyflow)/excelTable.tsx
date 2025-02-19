@@ -11,11 +11,10 @@ import {
 
 type ExcelField = {
     fieldName: string,
-    fieldFormat: string,
-    fieldDataType: string,
-    fieldDataValidation: string | null,
-    fieldSort: string | null,
-    fieldComments: string | null
+    fieldType: string,
+    check: string | null,
+    sort: string | null,
+    comments: string | null
 };
 
 type ExcelSheet = {
@@ -31,11 +30,11 @@ type ExcelTableType = {
 
 const defaultExcelTable: ExcelSheet[] = [
     {sheetName: "Sheet 1", sheetData: [
-        {fieldName: "Column 1", fieldFormat: "Text", fieldDataType: "Text", fieldDataValidation: null, fieldSort: null, fieldComments: "First Comment!"}, 
-        {fieldName: "Column 2", fieldFormat: "Number", fieldDataType: "Number", fieldDataValidation: null, fieldSort: null, fieldComments: "Second Comment!"}]},
+        {fieldName: "Column 1", fieldType: "Text", check: null, sort: null, comments: "First Comment!"}, 
+        {fieldName: "Column 2", fieldType: "Number", check: null, sort: null, comments: "Second Comment!"}]},
     {sheetName: "Sheet 2", sheetData: [
-        {fieldName: "Column 1", fieldFormat: "Text", fieldDataType: "Text", fieldDataValidation: null, fieldSort: null, fieldComments: "Second First Comment!"},
-        {fieldName: "Column 2", fieldFormat: "Text", fieldDataType: "Text", fieldDataValidation: null, fieldSort: null, fieldComments: "Second Second Comment!"}]}   
+        {fieldName: "Column 1", fieldType: "Text", check: null, sort: null, comments: "Second First Comment!"},
+        {fieldName: "Column 2", fieldType: "Text", check: null, sort: null, comments: "Second Second Comment!"}]}   
 ];
 
 const ExcelTableNode = ({data}: {data: ExcelTableType}) => {
@@ -44,35 +43,41 @@ const ExcelTableNode = ({data}: {data: ExcelTableType}) => {
     const tableID = data.id || `${data.tableData.length + 1}`;
 
     return (
-        <div style={{width: 400}}>
+        <div style={{width: 450}}>
             <Handle type="target" position={Position.Top} style={{top: '-4px'}}/>
-            <div>
                 <Table className='bg-green-100 rounded-xl border-rounded-xl text-left'>
                     <TableHeader className="w-[300px]">
-                        {<TableRow>
+                        <TableRow className="w-full">
                             <TableHead>{tableHeader}</TableHead>
                             <TableHead className='align-right text-right'>({tableID})</TableHead>
-                        </TableRow>}
+                        </TableRow>
                     </TableHeader>
                     <TableBody className='text-left'>
-                    {tableData.map((sheet) => (
-                    <TableRow key={sheet.sheetName} className="relative">
-                        <Handle type="target" position={Position.Left} id={`row-${sheet.sheetName}-t`} style={{position: 'absolute', left: '2px'}}/>
-                        <TableCell className="text-left">{sheet.sheetName}</TableCell>
-                        <TableBody>
-                            {sheet.sheetData.map((field) => (
-                                <TableRow key={field.fieldName} className="relative">
-                                    <TableCell className="text-left">{field.fieldName}</TableCell>
-                                    <TableCell className="text-left">{field.fieldFormat}</TableCell>
-                                    <Handle type="source" position={Position.Right} id={`row-${field.fieldName}-s`} style={{position: 'absolute', right: '2px'}}/>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </TableRow>
-                    ))}
+                        {tableData.map((sheet) => (
+                        <TableRow key={sheet.sheetName} className="relative w-1/2">
+                            <td>
+                                <Handle type="target" position={Position.Left} id={`row-${sheet.sheetName}-t`} style={{position: 'absolute', left: '4px'}}/>
+                            </td>
+                            <TableCell className="text-left w-1/2">{sheet.sheetName}</TableCell>
+                            <TableCell className="w-1/2 p-0">
+                                <Table>
+                                    <TableBody>
+                                    {sheet.sheetData.map((field) => (
+                                        <TableRow key={field.fieldName} className="relative w-full">
+                                            <TableCell className="text-left">{field.fieldName}</TableCell>
+                                            <TableCell className="text-left">{field.fieldType}</TableCell>
+                                            <td>
+                                                <Handle type="source" position={Position.Right} id={`row-${field.fieldName}-s`} style={{position: 'absolute', right: '4px'}}/>
+                                            </td>
+                                        </TableRow>
+                                    ))}
+                                    </TableBody>
+                                </Table>
+                            </TableCell>
+                        </TableRow>
+                        ))}
                 </TableBody>
                 </Table>
-            </div>
             <Handle type="source" position={Position.Bottom} style={{bottom: '-4px'}}id="a" />
         </div>
     )

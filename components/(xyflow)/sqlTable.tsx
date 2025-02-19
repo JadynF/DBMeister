@@ -49,10 +49,14 @@ const SQLTableNode = ({data}: {data: SQLTableType}) => {
                 <TableBody className='text-left'>
                     {tableData.map((row) => (
                     <TableRow key={row.fieldName} className="relative">
-                        <Handle type="target" position={Position.Left} id={`row-${row.fieldName}-t`} style={{position: 'absolute', left: '2px'}}/>
+                        <td>
+                            <Handle type="target" position={Position.Left} id={`row-${row.fieldName}-t`} style={{position: 'absolute', left: '4px'}}/>
+                        </td>
                         <TableCell className="text-left">{row.fieldName}</TableCell>
                         <TableCell className="text-right gap-5px">{row.fieldType}</TableCell>
-                        <Handle type="source" position={Position.Right} id={`row-${row.fieldName}-s`} style={{position: 'absolute', right: '2px'}}/>
+                        <td>
+                            <Handle type="source" position={Position.Right} id={`row-${row.fieldName}-s`} style={{position: 'absolute', right: '4px'}}/>
+                        </td>
                     </TableRow>
                     ))}
                 </TableBody>

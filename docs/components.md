@@ -78,23 +78,26 @@ All components for the projectEditor page
 
 SSR Component
 
-Props: { createNode, createSQLTableNode } : functions, these functions handle the creation of different Node Types
+Props: { createNode }
+
+createNode: parent function to create a node in the canvas. Can be used to create any type of node (basic, icon, sqlTable, excelTable).
 
 This component is to handle the creation of nodes in the Reactflow canvas. Clicking on an element in the pane will create a node in the canvas at the center of the screen.
 
-The pane contains three tabs: Tables, Icons, and Shapes. The tables tab will contain every different type of table structure, with relevant fields, such as a SQL table with the field name, type, key type, uniqueness, etc. The Icons tab will contain icons of outside applications, to represent them within data flows. The shapes field will contain several shapes which can be customized by the user, to represent anything not already available in the components pane.
+The pane contains three tabs: Tables, Icons, and Shapes. The tables tab contains every different type of table structure, with relevant fields, such as a SQL table with the field name, type, key type, uniqueness, etc. The Icons tab contains icons of outside applications, such as ETL and Visualization applications. The shapes field will contain several shapes which can be customized by the user, to represent anything not already available in the components pane.
 
 </blockquote>
 
-## propertiesPane
+## nodePropertiesPane
 
 <blockquote>
 
 CSR Component
 
-Props: { selectedNode, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode }: {Node, function(Position), function(nodeData: NodeTypes), function(selectedNodeID)}
+Props: { selectedNode, selectedStatus, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode }: {Node, function(Position), function(nodeData: NodeTypes), function(selectedNodeID)}
 
 selectedNode: the node last clicked by the user. The Properties Pane displays its data and allows its manipulation
+selectedStatus: boolean on whether a node is currently selected
 setSelectedNodePosition: parent function. Takes the edited position data and changes it in both this component and the Reactflow canvas.
 setSelectedNodeData: parent function. Takes the selectedNode's data and allows manipulation, both in this component and the canvas.
 deleteSelectedNode: parent function. Takes the selectedNode's id and deletes it from the canvas
@@ -105,9 +108,38 @@ The styling of this component is an Accordion selection menu for easy readabilit
 
 </blockquote>
 
+## edgePropertiesPane
+
+<blockquote>
+
+CSR Component
+
+Props: { selectedEdge, selectedStatus, deleteSelectedEdge, animateEdge }
+
+selectedEdge: the edge last clicked by the user. This pane displays the settings of the edge and allows manipulation
+selectedStatus: determines if an edge is currently selected or not
+deleteSelectedEdge: parent function that deletes the selected edge
+animateEdge: parent function which switches whether an edge is solid or a dashed line
+
+This component is similar in the purpose of the nodePropertiesPane, but handles edges.
+
+</blockquote>
+
 # (xyflow)
 
 Contains all custom node types for the Reactflow (xyflow) canvas.
+
+## iconNode
+
+<blockquote>
+
+Custom Reactflow node which represents a particular outside application which can access data.
+
+Includes a logo for each application and a label. The label can be edited in the nodePropertiesPane. This allows visibility on how outside applications can access data from databases or files.
+
+Includes one source and one target handle.
+
+</blockquote>
 
 ## sqlTable
 
@@ -118,5 +150,22 @@ Custom Reactflow node type that represents a SQL Table.
 Allows the user to name the table, and add or delete as many fields as they like. Each field contains options to edit the field name, type, if it can be null, uniqueness of entries, if it is a key and what type, checks, indexing, and any comments.
 
 Each field then has two connection, a target and source, on either side of the field. These are used to show relationships with other tables or outside applications by row, for greater visibility of how the data connects across streams.
+
+</blockquote>
+
+## excelTable
+
+<blockquote>
+
+Custom Reactflow node type that represents an Excel Table.
+
+Allows the user to name, position, and manipulate the data of the node in any way they wish. The node is green for better recognition as an Excel table.
+
+The structure of the table are as follows:
+Table: The entirety of an Excel file.
+Sheet: A single Excel sheet. A table can have any number of sheets.
+Field: A single Excel field (or column). A sheet can have any number of fields within it. Each field has a name, format, validation, sort-order, and comments associated with it.
+
+A target handle is attached to each sheet, as the most modular a program can write to excel is a sheet. However, a source handle is attached to each individual field for greater dataflow visibility.
 
 </blockquote>

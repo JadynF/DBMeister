@@ -48,7 +48,7 @@ All components for the dashboard/diagram page.
 
 <blockquote>
 
-SSR Component
+CSR Component
 
 Props: { diagramData } : any, diagramData is a json object with all of a single diagrams details
 
@@ -65,6 +65,18 @@ CSR Component
 Props: { ownerId } : string, ownerId is the id of the person opening the dialog component
 
 This component appears as a button that says "Create Diagram". Once clicked, a window will open prompting the user to create a diagram with the name and description. Once submitted, fetch requests are made to /makeDiagram to create the diagram, and the page is refreshed.
+
+</blockquote>
+
+## diagramEditDialog
+
+<blockquote>
+
+CSR Component
+
+Props: { diagramId, diagramName, diagramDesc } : strings
+
+This component appears as a button that says "Edit Diagram". Once clicked, a window will open prompting the user to edit the selected diagram with a new name and description. Once submitted, the database will be updated and the page will be refreshed.
 
 </blockquote>
 

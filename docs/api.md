@@ -2,6 +2,35 @@
 
 ---
 
+# /destroyDiagram
+
+<blockquote>
+
+Method(s): POST
+
+Body: { id }
+
+Returns: json object { response: string }
+response = "Deletion Successful" if deleted
+response = "Deletion Error" otherwise
+
+</blockquote>
+
+# /editDiagram
+
+<blockquote>
+
+Method(s): POST
+
+Body: { id, name, description }
+Will edit diagram of id to save new name and description
+
+Returns: json object { response: string }
+response = "Edit Successful" if edited
+response = "Edit Error" otherwise
+
+</blockquote>
+
 # /login
 
 <blockquote>

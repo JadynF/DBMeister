@@ -8,7 +8,7 @@
 
 ## Server-side-rendered
 
-## authorization.authorization() : Promise<{ authorized: boolean, userData: unknown }>
+## authorization() : Promise<{ authorized: boolean, userData: unknown }>
 
 <blockquote>
 
@@ -22,7 +22,13 @@ If the token is successfully authorized, userData will be extracted from the tok
 
 </blockquote>
 
-## authProjectEditor.authProject(userId : string, diagramId : string) : Promise<{ authorized: boolean }>
+</blockquote>
+
+# authProjectEditor
+
+<blockquote>
+
+## authProject(userId : string, diagramId : string) : Promise<{ authorized: boolean }>
 
 <blockquote>
 

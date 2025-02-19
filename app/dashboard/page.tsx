@@ -11,7 +11,7 @@ export default async function Dashboard() {
   const newsItems = [
     { id: 1, imgSrc: "/collab1.jpg", alt: "News 1", text: "Collaborate with DBMeister" },
     { id: 2, imgSrc: "/diagrams.jpg", alt: "News 2", text: "Create custom diagrams to your liking" },
-    { id: 3, imgSrc: "/tech.jpg", alt: "News 3", text: "DBMeister is killing it" },
+    { id: 3, imgSrc: "/tech.jpg", alt: "News 3", text: "DBMeister is killing it" }
   ];
 
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;

@@ -43,3 +43,36 @@ If not, {authorized : false} will be returned, and they will be redirected to th
 </blockquote>
 
 </blockquote>
+
+# stateManager
+
+<blockquote>
+
+## saveProject(state : any, id : any) : Promise<{ saved : boolean }>
+
+<blockquote>
+
+Description: Will save the state of the canvas this currently shown.
+
+Return:
+
+If the state was successfully saved, { saved: true }
+
+Otherwise, { saved : false }
+
+</blockquote>
+
+
+## getProject(id : any) : Promise<any> 
+
+<blockquote>
+
+Description: Will fetch the state of the diagram with given id.
+
+Return:
+
+JSON object with the state string, contains information on nodes and edges
+
+</blockquote>
+
+</blockquote>

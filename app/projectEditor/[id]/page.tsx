@@ -106,7 +106,7 @@ export default function Project() {
     const [projectId, setProjectId] = useState<string | undefined>(undefined);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAuth, setIsAuth] = useState<boolean>(false);
-    const [nodeIndex, setNodeIndex] = useState<int | undefined>(undefined);
+    const [nodeIDCounter, setIDCounter] = useState<int>(4);
 
     useEffect(() => {
         if (params.id) {
@@ -143,7 +143,7 @@ export default function Project() {
                     setEdges(savedState.edges);
 
                     console.log("Max ID: " + maxID);
-                    setNodeIndex(maxID);
+                    setIDCounter(maxID + 1);
                 }
             }
     
@@ -167,7 +167,6 @@ export default function Project() {
 
     const [nodes, setNodes] = useState<Node[]>(loginNodes);
     const [edges, setEdges] = useState<Edge[]>(loginEdges);
-    const [nodeIDCounter, setIDCounter] = useState(4);
     const [selectedObject, setSelectedObject] = useState<Node | Edge>(loginNodes[0]);
     const [selectedStatus, setSelectedStatus] = useState(true);
 

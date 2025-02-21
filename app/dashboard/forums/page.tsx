@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import authorization from '@/lib/authorization';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
@@ -10,14 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
 type UserData = {
+  id: number;
   firstName: string;
   lastName: string;
 };
 
 type Post = {
   id: number;
-  content: string;
+  title: string;
+  text: string;
   user: string;
+  date_made: string;
   comments: Comment[];
 };
 
@@ -44,33 +47,72 @@ export default function ForumPage() {
   useEffect(() => {
     (async () => {
       try {
-        const response = await authorization();
-        setUserData(response.userData);
+        const userResponse = await authorization();
+        setUserData(userResponse.userData);
+
+        // Fetch posts from the backend API
+        const postsResponse = await fetch('/api/forums');
+        if (!postsResponse.ok) throw new Error('Failed to fetch posts');
+        const postsData = await postsResponse.json();
+
+        // Transform the fetched posts to match our Post type.
+        const mappedPosts = postsData.posts.map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          text: post.text,
+          // Here we simply display "User [id]". You can adjust this when you have full user info.
+          user: `User ${post.user_id}`,
+          date_made: post.date_made,
+          comments: [] // No comments from the API; handled locally.
+        }));
+
+        setPosts(mappedPosts);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching data:', error);
       }
     })();
   }, []);
 
-  const handlePostSubmit = (e: React.FormEvent) => {
+  const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userData) return;
 
-    const post: Post = {
-      id: Date.now(),
-      content: newPost,
-      user: `${userData.firstName} ${userData.lastName}`,
-      comments: [],
-    };
-    setPosts([post, ...posts]);
-    setNewPost('');
-    // Close the create post dialog after posting
-    setIsCreatePostOpen(false);
+    try {
+      const response = await fetch('/api/forums', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userData.id,
+          title: 'Default Title', // You may add a title input later.
+          text: newPost,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create post');
+
+      const { response: creationResponse } = await response.json();
+      console.log(creationResponse);
+
+      // Since the API doesn't return the new post, we create a new post object locally.
+      const newPostData: Post = {
+        id: Date.now(),
+        title: 'Default Title',
+        text: newPost,
+        user: `${userData.firstName} ${userData.lastName}`,
+        date_made: new Date().toISOString().split('T')[0],
+        comments: [],
+      };
+
+      setPosts([newPostData, ...posts]);
+      setNewPost('');
+      setIsCreatePostOpen(false);
+    } catch (error) {
+      console.error('Error creating post:', error);
+    }
   };
 
   const handleCommentSubmit = (postId: number, commentContent: string) => {
     if (!userData) return;
-
     const updatedPosts = posts.map((post) =>
       post.id === postId
         ? {
@@ -92,7 +134,6 @@ export default function ForumPage() {
 
   const handleReplySubmit = (postId: number, commentId: number, replyContent: string) => {
     if (!userData) return;
-
     const updatedPosts = posts.map((post) => {
       if (post.id === postId) {
         const updatedComments = post.comments.map((comment) =>
@@ -117,8 +158,20 @@ export default function ForumPage() {
     setPosts(updatedPosts);
   };
 
-  const handleDeletePost = (postId: number) => {
-    setPosts(posts.filter((post) => post.id !== postId));
+  const handleDeletePost = async (postId: number) => {
+    try {
+      const response = await fetch('/api/forums', {
+        method: 'DELETE',
+        // Removed headers to avoid triggering a preflight OPTIONS request
+        body: JSON.stringify({ id: postId }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete post');
+      }
+      setPosts(posts.filter((post) => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
   };
 
   const handleReportPost = (postId: number, explanation: string) => {
@@ -126,7 +179,7 @@ export default function ForumPage() {
   };
 
   const filteredPosts = posts.filter((post) =>
-    post.content.toLowerCase().includes(searchQuery.toLowerCase())
+    post.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!userData) {
@@ -218,7 +271,7 @@ export default function ForumPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-800">{post.content}</p>
+              <p className="text-gray-800">{post.text}</p>
               <CommentSection
                 post={post}
                 onCommentSubmit={handleCommentSubmit}
@@ -297,19 +350,12 @@ const CommentSection = ({
                 <Button type="submit" className="mt-2">
                   Submit Reply
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveReplyId(null)}
-                  className="mt-2 ml-2"
-                >
+                <Button variant="outline" onClick={() => setActiveReplyId(null)} className="mt-2 ml-2">
                   Cancel
                 </Button>
               </form>
             ) : (
-              <span
-                className="text-blue-500 cursor-pointer hover:underline"
-                onClick={() => setActiveReplyId(comment.id)}
-              >
+              <span className="text-blue-500 cursor-pointer hover:underline" onClick={() => setActiveReplyId(comment.id)}>
                 Reply
               </span>
             )}

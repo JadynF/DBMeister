@@ -8,6 +8,7 @@ import {
     applyEdgeChanges,
     Controls,
     Background,
+    ReactFlowProvider,
     type Node,
     type Edge,
     type OnConnect,
@@ -19,14 +20,14 @@ import '@xyflow/react/dist/style.css';
 import ComponentsPane from "@/components/(projectEditor)/componentsPane";
 import NodePropertiesPane from "@/components/(projectEditor)/nodePropertiesPane";
 import EdgePropertiesPane from "@/components/(projectEditor)/edgePropertiesPane";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import authorization from '@/lib/authorization';
 import authProject from '@/lib/authProjectEditor';
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
 const BasicNode = dynamic(() => import('@/components/(xyflow)/basicNode'), { ssr: false });
-const IconNode = dynamic(() => import('@/components/(xyflow)/iconNode'), {ssr: false});
+const IconNode = dynamic(() => import('@/components/(xyflow)/iconNode'), { ssr: false });
 import { saveProject, getProject } from '@/lib/stateManager';
 
 const nodeTypes = {
@@ -36,60 +37,7 @@ const nodeTypes = {
     ExcelTableNode: ExcelTableNode
 };
 
-//New Node information types from Components Pane
-type Position = { x: number; y: number; };
-type TestData = { header: string; color: string};
-type BasicType = {
-    id: string,
-    type: string,
-    header: string,
-    data: TestData
-};
-
-type IconData = { header: string; image: string};
-type IconType = {
-    id: string,
-    type: string,
-    header: string,
-    data: IconData
-};
-
-type SQLTableDataType = {
-    fieldName: string,
-    fieldType: string,
-    nullability: boolean,
-    keyType: string | null,
-    unique: boolean,
-    check: string | null,
-    indexing: string | null,
-    comments: string | null
-};
-type SQLTableType = {
-    id: string,
-    type: string,
-    header: string,
-    tableData: SQLTableDataType[]
-};
-
-type ExcelField = {
-    fieldName: string,
-    fieldType: string,
-    check: string | null,
-    sort: string | null,
-    comments: string | null
-};
-type ExcelSheet = {
-    sheetName: string,
-    sheetData: ExcelField[]
-};
-type ExcelTableType = {
-    id: string,
-    type: string,
-    header: string,
-    tableData: ExcelSheet[]
-};
-
-//Default Nodes and Edges for testing
+// Default Nodes and Edges for testing
 const loginNodes: Node[] = [
     { id: "1", type: "BasicNode", position: { x: 250, y: -50 }, data: { header: "Welcome", color:  "#FFD700"} },
     { id: "2", type: "BasicNode", position: { x: 100, y: 100 }, data: { header: "To", color: "#4169E1"} },
@@ -102,11 +50,12 @@ const loginEdges: Edge[] = [
 
 export default function Project() {
     const params = useParams();
+    const router = useRouter();
 
     const [projectId, setProjectId] = useState<string | undefined>(undefined);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAuth, setIsAuth] = useState<boolean>(false);
-    const [nodeIDCounter, setIDCounter] = useState<int>(4);
+    const [nodeIDCounter, setIDCounter] = useState<number>(4);
 
     useEffect(() => {
         if (params.id) {
@@ -123,7 +72,7 @@ export default function Project() {
         }
 
         checkAuth();
-    }, []);
+    }, [params.id]);
 
     useEffect(() => { // only run once the user has been authorized for the project
         if (isAuth) {
@@ -131,9 +80,8 @@ export default function Project() {
                 let savedState = await getProject(params.id);
     
                 if (savedState) {
-                    console.log(savedState);
                     let maxID = 0;
-                    for (let i in savedState.nodes) { // get the maxID for the node index
+                    for (let i in savedState.nodes) {
                         if (savedState.nodes[i].id > maxID) {
                             maxID = savedState.nodes[i].id;
                         }
@@ -141,8 +89,6 @@ export default function Project() {
 
                     setNodes(savedState.nodes);
                     setEdges(savedState.edges);
-
-                    console.log("Max ID: " + maxID);
                     setIDCounter(maxID + 1);
                 }
             }
@@ -152,18 +98,11 @@ export default function Project() {
     }, [isAuth]);
 
     const saveState = async () => {
-        if (userId && projectId) { // protections from unauthorized saving states
-            console.log(nodes);
-            console.log(edges);
-
+        if (userId && projectId) {
             const state = {"nodes" : nodes, "edges" : edges};
-
-            const saved = await saveProject(state, projectId);
-
-            // do something with saved to let user know the project has been saved
+            await saveProject(state, projectId);
         }
-    }
-
+    };
 
     const [nodes, setNodes] = useState<Node[]>(loginNodes);
     const [edges, setEdges] = useState<Edge[]>(loginEdges);
@@ -174,21 +113,8 @@ export default function Project() {
     const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
 
-    const createNode = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType, position: Position) => {
-        let newNode: Node = {
-            id: `${nodeIDCounter}`,
-            position: position,
-            data: {id: nodeIDCounter}
-        }
-        if(isBasicType(nodeData)){
-            newNode = {...newNode, type: "BasicNode", data: {...newNode.data, type: "basic", header: nodeData.header, data: nodeData.data}};
-        } else if(isIconType(nodeData)){
-            newNode = {...newNode, type: "IconNode", data: {...newNode.data, type: "icon", header: nodeData.header, data: nodeData.data}};
-        } else if(isSQLTableType(nodeData)){
-            newNode = {...newNode, type: "SQLTableNode", data: {...newNode.data, type: "sql", header: nodeData.header, tableData: nodeData.tableData}};
-        } else {
-            newNode = {...newNode, type: "ExcelTableNode", data: {...newNode.data, type: "excel", header: nodeData.header, tableData: nodeData.tableData}};
-        }
+    const createNode = (nodeData: any, position: Position) => {
+        let newNode: Node = { id: `${nodeIDCounter}`, position: position, data: { id: nodeIDCounter } };
         setIDCounter(nodeIDCounter + 1);
         setNodes((nds) => nds.concat(newNode));
         setSelectedStatus(true);
@@ -203,26 +129,14 @@ export default function Project() {
             setNodes(updatedNodes);
         }
     }
-    const setSelectedNodeData = (nodeData: SQLTableType | ExcelTableType | IconType | BasicType) => {
+    const setSelectedNodeData = (nodeData: any) => {
         if(selectedIsNode(selectedObject)){
-            let replacementNode: Node = {id: selectedObject.id, position: selectedObject.position, data: nodeData};
-            if(isSQLTableType(nodeData)) {
-                replacementNode = {...replacementNode, type: "SQLTableNode"};
-            } else if(isExcelTableType(nodeData)) {
-                replacementNode = {...replacementNode, type: "ExcelTableNode"};
-            } else if(isIconType(nodeData)) {
-                replacementNode = {...replacementNode, type: "IconNode"};
-            } else {
-                replacementNode = {...replacementNode, type: "BasicNode"};
-            }
-            const updatedNodes = nodes.map((node) => 
-                node.id === selectedObject.id ? replacementNode : node
-            );
+            let replacementNode: Node = { id: selectedObject.id, position: selectedObject.position, data: nodeData };
+            const updatedNodes = nodes.map((node) => node.id === selectedObject.id ? replacementNode : node);
             setNodes(updatedNodes);
         }
     }
 
-    //Delete the selected node
     const deleteSelectedNode = (nodeId: string) => {
         if(selectedIsNode(selectedObject)){
             setSelectedStatus(false);
@@ -240,14 +154,13 @@ export default function Project() {
 
     const animateEdge = (aniVal: boolean) => {
         if(selectedIsEdge(selectedObject)){
-            let replacementEdge: Edge = {id: selectedObject.id, source: selectedObject.source, target: selectedObject.target, animated: aniVal};
-            const updatedEdges = edges.map((edge) =>
-            edge.id === selectedObject.id ? replacementEdge : edge);
+            let replacementEdge: Edge = { id: selectedObject.id, source: selectedObject.source, target: selectedObject.target, animated: aniVal };
+            const updatedEdges = edges.map((edge) => edge.id === selectedObject.id ? replacementEdge : edge);
             setEdges(updatedEdges);
         }
     }
 
-    //Set the selected Reactflow element. Allows its properties to be displayed in the properties pane.
+    // Set the selected Reactflow element
     const onNodeClick = (event: React.MouseEvent, node: Node) => {
         setSelectedStatus(true);
         setSelectedObject(node);
@@ -257,26 +170,35 @@ export default function Project() {
         setSelectedObject(edge);
     }
 
-    //Checks type of selectedObject
+    // Check type of selectedObject
     const selectedIsNode = (data: any): data is Node => { return (data as Node).position !== undefined; }
     const selectedIsEdge = (data: any): data is Edge => { return (data as Edge).source !== undefined; }
-    //Checks type of nodeData to determine data options in html
-    const isExcelTableType = (data: any): data is ExcelTableType => { return (data as ExcelTableType).type === "excel"; }
-    const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).type === "sql"; }
-    const isBasicType = (data: any): data is BasicType => { return (data as BasicType).type === "basic"; }
-    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon"; }
+
+    // Navigate to home or exit editor
+    const navigateToHome = () => {
+        router.push('/home');
+    }
+
+    const exitEditor = () => {
+        router.push('/home');
+    }
 
     return (
         <div>
             <header style={taskbarStyle}>
+                <div style={navigationBarStyle}>
+                    <button onClick={() => router.push('/home')}>Home</button>
+                    <button onClick={() => router.push('/settings')}>Settings</button>
+                    <button onClick={() => router.push('/profile')}>Profile</button>
+                </div>
                 <div>
                     <button onClick={saveState}>Save</button>
                 </div>
                 <div>
-                    Project {projectId}
+                    <button onClick={exitEditor}>Exit Editor</button>
                 </div>
                 <div>
-                    <button>Go Back</button>
+                    Project {projectId}
                 </div>
             </header>
             <div style={mainStyle}>
@@ -302,12 +224,12 @@ export default function Project() {
                 <div style={sidepaneStyle}>
                     {selectedIsNode(selectedObject) && (
                         <NodePropertiesPane 
-                        selectedNode={selectedObject} 
-                        selectedStatus={selectedStatus}
-                        setSelectedNodePosition={setSelectedNodePosition}
-                        setSelectedNodeData={setSelectedNodeData}
-                        deleteSelectedNode={deleteSelectedNode}
-                    />
+                            selectedNode={selectedObject} 
+                            selectedStatus={selectedStatus}
+                            setSelectedNodePosition={setSelectedNodePosition}
+                            setSelectedNodeData={setSelectedNodeData}
+                            deleteSelectedNode={deleteSelectedNode}
+                        />
                     )}
                     {selectedIsEdge(selectedObject) && (
                         <EdgePropertiesPane
@@ -320,10 +242,10 @@ export default function Project() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-//Styles
+// Styles
 const taskbarStyle: React.CSSProperties = {
     backgroundColor: '#4169E1',
     color: 'white',

@@ -40,6 +40,7 @@ type Reply = {
 export default function ForumPage() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [newHeader, setNewHeader] = useState(''); // New state for header input
   const [newPost, setNewPost] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
@@ -83,7 +84,7 @@ export default function ForumPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userData.id,
-          title: 'Default Title', // You may add a title input later.
+          title: newHeader, // Use the provided header
           text: newPost,
         }),
       });
@@ -96,7 +97,7 @@ export default function ForumPage() {
       // Since the API doesn't return the new post, we create a new post object locally.
       const newPostData: Post = {
         id: Date.now(),
-        title: 'Default Title',
+        title: newHeader,
         text: newPost,
         user: `${userData.firstName} ${userData.lastName}`,
         date_made: new Date().toISOString().split('T')[0],
@@ -104,6 +105,7 @@ export default function ForumPage() {
       };
 
       setPosts([newPostData, ...posts]);
+      setNewHeader(''); // Reset header
       setNewPost('');
       setIsCreatePostOpen(false);
     } catch (error) {
@@ -162,7 +164,6 @@ export default function ForumPage() {
     try {
       const response = await fetch('/api/forums', {
         method: 'DELETE',
-        // Removed headers to avoid triggering a preflight OPTIONS request
         body: JSON.stringify({ id: postId }),
       });
       if (!response.ok) {
@@ -191,76 +192,98 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="bg-gray-100 p-8">
-      {/* Header */}
-      <div className="flex items-center justify-center w-full bg-[#bfdbfe] mb-6 p-4 rounded-md">
-        <h1 className="text-3xl font-bold">Forums Page</h1>
-      </div>
+    <div className="container mx-auto max-w-4xl px-4 py-8 bg-gray-50 min-h-screen">
+      {/* Forum Header */}
+      <header className="mb-8 text-center">
+        <h1 className="text-4xl font-extrabold text-gray-800">My Forum</h1>
+        <p className="text-lg text-gray-600">Join the conversation and share your thoughts</p>
+      </header>
 
       {/* FAQ Section */}
-      <Accordion type="single" collapsible>
-        <AccordionItem value="faq">
-          <AccordionTrigger>Frequently Asked Questions (FAQ)</AccordionTrigger>
-          <AccordionContent>
-            <ul className="list-disc pl-5">
-              <li>
-                <strong>How do I create a post?</strong> Click the "Create New Post" button and share your thoughts!
-              </li>
-              <li>
-                <strong>How can I comment on a post?</strong> Simply type your comment below a post and hit "Comment".
-              </li>
-              <li>
-                <strong>How do I reply to a comment?</strong> Click "Reply" to respond to a comment.
-              </li>
-              <li>
-                <strong>Can I delete my post?</strong> Yes, click "Delete" on your post to remove it.
-              </li>
-              <li>
-                <strong>How can I report inappropriate content?</strong> Click "Report" and provide a reason for reporting.
-              </li>
-            </ul>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <div className="mb-8 bg-white shadow rounded-lg p-4">
+        <Accordion type="single" collapsible>
+          <AccordionItem value="faq">
+            <AccordionTrigger className="text-xl font-semibold">
+              Frequently Asked Questions (FAQ)
+            </AccordionTrigger>
+            <AccordionContent>
+              <ul className="list-disc pl-5">
+                <li>
+                  <strong>How do I create a post?</strong> Click the "Create New Post" button and share your thoughts!
+                </li>
+                <li>
+                  <strong>How can I comment on a post?</strong> Simply type your comment below a post and hit "Comment".
+                </li>
+                <li>
+                  <strong>How do I create a diagram?</strong> Go to the diagrams page and simply add a diagram.
+                </li>
+                <li>
+                  <strong>Can I see add an excel table to my canvas?</strong> Yes, you can add an excel table to your canvas, including all the data.
+                </li>
+                <li>
+                  <strong>How can I report inappropriate content?</strong> Click "Report" and provide a reason for reporting.
+                </li>
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
 
       {/* Search Bar */}
-      <Input
-        type="text"
-        placeholder="Search posts..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="mt-4 mb-6"
-      />
+      <div className="mb-6">
+        <Input
+          type="text"
+          placeholder="Search posts..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-3 border rounded"
+        />
+      </div>
 
       {/* Create Post Dialog */}
-      <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4" onClick={() => setIsCreatePostOpen(true)}>
-            Create New Post
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <form onSubmit={handlePostSubmit}>
-            <Textarea
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              placeholder="What's on your mind?"
-              required
-            />
-            <Button type="submit" className="w-full mt-2">
-              Post
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <div className="mb-8">
+        <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
+          <DialogTrigger asChild>
+            <Button className="mb-4">Create New Post</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={handlePostSubmit} className="flex flex-col space-y-4">
+              <Input
+                value={newHeader}
+                onChange={(e) => setNewHeader(e.target.value)}
+                placeholder="Enter post header..."
+                required
+                className="p-3 border rounded"
+              />
+              <Textarea
+                value={newPost}
+                onChange={(e) => setNewPost(e.target.value)}
+                placeholder="What's on your mind?"
+                required
+                className="p-3 border rounded"
+              />
+              <Button type="submit" className="w-full">
+                Post
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Posts */}
-      <div className="space-y-8">
+      <div className="space-y-6">
         {filteredPosts.map((post) => (
-          <Card key={post.id}>
-            <CardHeader className="flex justify-between items-center">
-              <p className="text-lg font-semibold">{post.user}</p>
-              <div className="flex space-x-4">
+          <Card key={post.id} className="bg-white shadow rounded-lg">
+            <CardHeader className="relative p-4 border-b">
+              <div className="flex justify-center">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold text-gray-800">{post.title}</h2>
+                  <p className="text-sm text-gray-600">
+                    Posted by {post.user} on {post.date_made}
+                  </p>
+                </div>
+              </div>
+              <div className="absolute top-2 right-2 flex space-x-2">
                 <span
                   className="text-red-500 cursor-pointer hover:underline"
                   onClick={() => handleDeletePost(post.id)}
@@ -270,8 +293,8 @@ export default function ForumPage() {
                 <ReportDialog postId={post.id} onReport={handleReportPost} />
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-800">{post.text}</p>
+            <CardContent className="p-4">
+              <p className="text-gray-700">{post.text}</p>
               <CommentSection
                 post={post}
                 onCommentSubmit={handleCommentSubmit}
@@ -299,34 +322,36 @@ const CommentSection = ({
   const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 border-t pt-4">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           onCommentSubmit(post.id, commentContent);
           setCommentContent('');
         }}
+        className="mb-4"
       >
         <Textarea
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
           placeholder="Write a comment..."
           required
+          className="w-full p-2 border rounded"
         />
-        <Button type="submit" className="mt-2 w-full">
+        <Button type="submit" className="mt-2">
           Comment
         </Button>
       </form>
 
       {post.comments.map((comment) => (
-        <div key={comment.id} className="border-t pt-4">
-          <p className="font-semibold">{comment.user}</p>
-          <p>{comment.content}</p>
+        <div key={comment.id} className="mb-4">
+          <p className="font-semibold text-gray-800">{comment.user}</p>
+          <p className="text-gray-700">{comment.content}</p>
 
           {comment.replies.map((reply) => (
-            <div key={reply.id} className="ml-6 mt-2 text-gray-600">
-              <p className="font-semibold">{reply.user}</p>
-              <p>{reply.content}</p>
+            <div key={reply.id} className="ml-6 mt-2 border-l pl-4">
+              <p className="font-semibold text-gray-800">{reply.user}</p>
+              <p className="text-gray-700">{reply.content}</p>
             </div>
           ))}
 
@@ -340,22 +365,27 @@ const CommentSection = ({
                   setReplyContent('');
                   setActiveReplyId(null);
                 }}
+                className="flex flex-col space-y-2"
               >
                 <Textarea
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
                   placeholder="Write a reply..."
                   required
+                  className="w-full p-2 border rounded"
                 />
-                <Button type="submit" className="mt-2">
-                  Submit Reply
-                </Button>
-                <Button variant="outline" onClick={() => setActiveReplyId(null)} className="mt-2 ml-2">
-                  Cancel
-                </Button>
+                <div className="flex space-x-2">
+                  <Button type="submit">Submit Reply</Button>
+                  <Button variant="outline" onClick={() => setActiveReplyId(null)}>
+                    Cancel
+                  </Button>
+                </div>
               </form>
             ) : (
-              <span className="text-blue-500 cursor-pointer hover:underline" onClick={() => setActiveReplyId(comment.id)}>
+              <span
+                className="text-blue-500 cursor-pointer hover:underline"
+                onClick={() => setActiveReplyId(comment.id)}
+              >
                 Reply
               </span>
             )}
@@ -385,6 +415,7 @@ const ReportDialog = ({
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
           placeholder="Explain reason..."
+          className="w-full p-2 border rounded"
         />
         <Button onClick={() => onReport(postId, explanation)} className="mt-2">
           Submit Report

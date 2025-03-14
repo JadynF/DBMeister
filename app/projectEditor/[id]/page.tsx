@@ -108,6 +108,8 @@ export default function Project() {
     const [isAuth, setIsAuth] = useState<boolean>(false);
     const [nodeIDCounter, setIDCounter] = useState<int>(4);
 
+    const [loading, setIsLoading] = useState<boolean>(true);
+
     useEffect(() => {
         if (params.id) {
             setProjectId(params.id);
@@ -145,6 +147,8 @@ export default function Project() {
                     console.log("Max ID: " + maxID);
                     setIDCounter(maxID + 1);
                 }
+
+                setIsLoading(false);
             }
     
             getState();
@@ -268,57 +272,63 @@ export default function Project() {
 
     return (
         <div>
-            <header style={taskbarStyle}>
+            {loading ? (
+                <p>Loading...</p>
+            ) : (
                 <div>
-                    <button onClick={saveState}>Save</button>
+                    <header style={taskbarStyle}>
+                        <div>
+                            <button onClick={saveState}>Save</button>
+                        </div>
+                        <div>
+                            Project {projectId}
+                        </div>
+                        <div>
+                            <button>Go Back</button>
+                        </div>
+                    </header>
+                    <div style={mainStyle}>
+                        <div style={sidepaneStyle}>
+                            <ComponentsPane createNode={createNode} />
+                        </div>
+                        <div style={{height: '100%', width: '100%' }}>
+                            <ReactFlow
+                                nodes={nodes}
+                                edges={edges}
+                                onNodesChange={onNodesChange}
+                                onEdgesChange={onEdgesChange}
+                                onConnect={onConnect}
+                                nodeTypes={nodeTypes}
+                                onNodeClick={onNodeClick}
+                                onEdgeClick={onEdgeClick}
+                                fitView
+                            >
+                                <Controls />
+                                <Background color="#aaa" gap={16} />
+                            </ReactFlow>
+                        </div>
+                        <div style={sidepaneStyle}>
+                            {selectedIsNode(selectedObject) && (
+                                <NodePropertiesPane 
+                                selectedNode={selectedObject} 
+                                selectedStatus={selectedStatus}
+                                setSelectedNodePosition={setSelectedNodePosition}
+                                setSelectedNodeData={setSelectedNodeData}
+                                deleteSelectedNode={deleteSelectedNode}
+                            />
+                            )}
+                            {selectedIsEdge(selectedObject) && (
+                                <EdgePropertiesPane
+                                    selectedEdge={selectedObject}
+                                    selectedStatus={selectedStatus}
+                                    animateEdge={animateEdge}
+                                    deleteSelectedEdge={deletedSelectedEdge}
+                                />
+                            )}
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    Project {projectId}
-                </div>
-                <div>
-                    <button>Go Back</button>
-                </div>
-            </header>
-            <div style={mainStyle}>
-                <div style={sidepaneStyle}>
-                    <ComponentsPane createNode={createNode} />
-                </div>
-                <div style={{height: '100%', width: '100%' }}>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        nodeTypes={nodeTypes}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
-                        fitView
-                    >
-                        <Controls />
-                        <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-                </div>
-                <div style={sidepaneStyle}>
-                    {selectedIsNode(selectedObject) && (
-                        <NodePropertiesPane 
-                        selectedNode={selectedObject} 
-                        selectedStatus={selectedStatus}
-                        setSelectedNodePosition={setSelectedNodePosition}
-                        setSelectedNodeData={setSelectedNodeData}
-                        deleteSelectedNode={deleteSelectedNode}
-                    />
-                    )}
-                    {selectedIsEdge(selectedObject) && (
-                        <EdgePropertiesPane
-                            selectedEdge={selectedObject}
-                            selectedStatus={selectedStatus}
-                            animateEdge={animateEdge}
-                            deleteSelectedEdge={deletedSelectedEdge}
-                        />
-                    )}
-                </div>
-            </div>
+            )}
         </div>
     )
 }

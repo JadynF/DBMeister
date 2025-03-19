@@ -155,6 +155,9 @@ export default function Project() {
                     console.log("Max ID: " + maxID);
                     setIDCounter(maxID + 1);
                 }
+                else {
+                    setProgress(100);
+                }
             }
             
             setProgress(prevProgress => prevProgress + 10);

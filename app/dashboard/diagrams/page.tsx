@@ -2,7 +2,7 @@ import authorization from '@/lib/authorization';
 import CreateDiagramDialog from '@/components/(dash)/(dashDiagram)/diagramDialog';
 import CreateDiagramCard from '@/components/(dash)/(dashDiagram)/diagramCard'
 
-export default async function Dashboard() {
+export default async function Diagrams() {
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
     const response = await authorization();
 

@@ -7,6 +7,7 @@ import userInvite from '@/lib/userInvite';
 import authGroup from '@/lib/authGroup';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function Group() {
     const params = useParams();
@@ -22,9 +23,42 @@ export default function Group() {
 
     const inviteUser = async () => {
         if (userInvite != undefined || userInvite != "") {
-            const inviteResponse = await userInvite(userId, invitedUser, groupId);
+            let inviteResponse = null;
+            if (userId != invitedUser)
+                inviteResponse = await userInvite(userId, invitedUser, groupId);
+            else {
+                console.log("You cant invite yourself");
+                toast("You silly billy! You can't invite yourself!", {
+                    action: {
+                      label: "Close"
+                    }
+                    });
+                return;
+            }
+
             if (inviteResponse.invited) {
                 console.log("invited");
+                toast("Invite Sent Successfully!", {
+                    action: {
+                      label: "Close"
+                    }
+                    });
+            }
+            else if (inviteResponse.res == 'no user') {
+                console.log("user not found");
+                toast("Invite Failed! User Not Found!", {
+                    action: {
+                      label: "Close"
+                    }
+                    });
+            }
+            else {
+                console.log("unknown error");
+                toast("Invite Failed!", {
+                    action: {
+                      label: "Close"
+                    }
+                    });
             }
         }
         setInvitedUser("");

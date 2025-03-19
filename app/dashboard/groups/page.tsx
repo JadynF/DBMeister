@@ -1,6 +1,7 @@
 import authorization from '@/lib/authorization';
 import CreateGroupDialog from '@/components/(dash)/(dashGroups)/groupCreateDialog'
 import CreateGroupCard from '@/components/(dash)/(dashGroups)/groupCard'
+import Link from 'next/link';
 
 export default async function Group() {
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -34,7 +35,9 @@ export default async function Group() {
                 {Array.isArray(groupData) && groupData.length > 0 ? (
                     groupData.map((group) => (
                         <div key={group.id}> {/* Ensure unique key for each item */}
-                            <CreateGroupCard groupData={group}/>
+                            <Link href={`/dashboard/groups/${group.id}`}>
+                                <CreateGroupCard groupData={group}/>
+                            </Link>
                         </div>
                     ))
                 ) : (

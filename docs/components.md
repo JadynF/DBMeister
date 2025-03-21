@@ -80,6 +80,50 @@ This component appears as a button that says "Edit Diagram". Once clicked, a win
 
 </blockquote>
 
+# (dashGroups)
+
+All components for the dashboard groups page
+
+<blockquote>
+
+## groupCard
+
+<blockquote>
+
+CSR Component
+
+Props: { groupData } : json object
+
+This component appears as a card for each group a user is in. It will contain the group name, and group description.
+
+</blockquote>
+
+## groupCreateDialog
+
+<blockquote>
+
+CSR Component
+
+Props: { ownerId } : string
+
+This component creates a button that, when clicked, will create a popup prompting users to create a new group. Will ask for a group name and description. Also has a button to create, and once pressed, a toast will appear altering the user if the creation was successful or not.
+
+</blockquote>
+
+## inviteCard
+
+<blockquote>
+
+CSR Component
+
+Props: { inviteData } : json object
+
+This component will create a card for an any incoming invites for the user. Will show the group name, description, and the user that sent the invite. Also, buttons are present to either accept or decline the invitation, once done, a toast will appear alerting the user if the action was successful.
+
+</blockquote>
+
+</blockquote>
+
 # (projectEditor)
 
 All components for the projectEditor page

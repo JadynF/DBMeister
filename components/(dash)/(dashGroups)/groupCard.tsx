@@ -26,7 +26,7 @@ import {
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     return (
-        <Card className="w-[350px] h-auto m-5">
+        <Card className="w-[100%] h-auto m-5">
             <CardHeader>
                 <CardTitle>{groupData.name}</CardTitle>
                 <CardDescription>{groupData.group_desc}</CardDescription>

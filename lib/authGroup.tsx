@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createConnection } from '@/lib/db';
 
-export default async function authProject(userId : string, groupId : string) : Promise<{ authorized: boolean }> {
+export default async function authGroup(userId : string, groupId : string) : Promise<{ authorized: boolean }> {
     const connection = createConnection();
 
     console.log("here");

@@ -2,6 +2,28 @@
 
 ---
 
+# authGroup
+
+<blockquote>
+
+## Server-side-rendered
+
+## authGroup(userId : string, groupId : string) : Promise<{ authorized: boolean }>
+
+<blockquote>
+
+Description: Will check whether the current user is authorized to view the group.
+
+Return:
+
+If the user is authorized: authorized: true
+
+Otherwise, authorized: false and the user will be redirected to /dashboard
+
+</blockquote>
+
+</blockquote>
+
 # authorization
 
 <blockquote>
@@ -72,6 +94,61 @@ Description: Will fetch the state of the diagram with given id.
 Return:
 
 JSON object with the state string, contains information on nodes and edges
+
+</blockquote>
+
+</blockquote>
+
+# handleInvite
+
+<blockquote>
+
+## acceptInvite(userId : string, groupId : string) : Promise<{ accepted: boolean }>
+
+<blockquote>
+
+Description: Will accept the invitation, and join the user to the group. The invitation will also be deleted.
+
+Returns: 
+
+accepted: true if the invitation was successfully accepted
+accepted: false otherwise
+
+</blockquote>
+
+## declineInvite(userId : string, groupId : string) : Promise<{ accepted: boolean }>
+
+<blockquote>
+
+Description: Will decline the invitation, and delete the invitation.
+
+Returns:
+
+declined: true if the invitation was successfully declined
+declined: false otherwise
+
+</blockquote>
+
+</blockquote>
+
+# userInvite
+
+<blockquote>
+
+## userInvite(userId : string, invitedUser : string, groupId : string) : Promise<{ invited: boolean, res: string }>
+
+<blockquote>
+
+Description: Will send an invitation to the invitedUser for the group.
+
+Returns: json object
+
+invited: true if the invitation was successfully sent
+
+invited: false otherwise
+
+res: "no user" if the user doesn't exist
+res: "in group" if the user is already in the group
 
 </blockquote>
 

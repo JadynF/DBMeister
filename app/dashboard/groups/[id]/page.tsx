@@ -52,6 +52,14 @@ export default function Group() {
                     }
                     });
             }
+            else if (inviteResponse.res == 'in group') {
+                console.log("user already in group");
+                toast("User already in group!", {
+                    action: {
+                      label: "Close"
+                    }
+                    });
+            }
             else {
                 console.log("unknown error");
                 toast("Invite Failed!", {

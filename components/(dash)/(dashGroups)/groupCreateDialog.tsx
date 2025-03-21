@@ -23,12 +23,12 @@ export default function CreateGroupDialog({ ownerId } : string) {
     
     const [open, setOpen] = useState(false);
 
-    const [diagramName, setDiagramName] = useState("");
-    const [diagramDesc, setDiagramDesc] = useState("");
+    const [groupName, setGroupName] = useState("");
+    const [groupDesc, setGroupDesc] = useState("");
     const [btnDisabled, setBtnDisabled] = useState(true);
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setDiagramName(event.target.value)
+        setGroupName(event.target.value)
         if (event.target.value != "") {
           setBtnDisabled(false);
         }
@@ -37,15 +37,15 @@ export default function CreateGroupDialog({ ownerId } : string) {
         }
       };
     
-    const handleDescChange = (event: React.ChangeEvent<HTMLInputElement>) => setDiagramDesc(event.target.value);
+    const handleDescChange = (event: React.ChangeEvent<HTMLInputElement>) => setGroupDesc(event.target.value);
 
     const createGroup = async () => {
         console.log("Sending request to make group in database");
     
         let payload = {
-          name: diagramName,
+          name: groupName,
           owner: ownerId,
-          description: diagramDesc
+          description: groupDesc
         };
     
         let res = await fetch(baseURL + '/api/makeGroup', {
@@ -60,8 +60,8 @@ export default function CreateGroupDialog({ ownerId } : string) {
         if (data.response == "Creation Successful") {
           setOpen(false);
           setBtnDisabled(true);
-          setDiagramName("");
-          setDiagramDesc("");
+          setGroupName("");
+          setGroupDesc("");
           toast("Group has been created!", {
             action: {
               label: "Close"

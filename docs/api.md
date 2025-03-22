@@ -70,7 +70,7 @@ Method(s): POST
 Body: { id }
 
 Returns: json object {response: string, data: (json object)}
-response = "Fetched Groups", data = all groups where id is a member
+response = "Fetched Groups", data = all groups where id is a member, as well as invite data
 response = "Failed to Fetch Groups" if fetch fails
 
 </blockquote>
@@ -104,6 +104,22 @@ response = "Creation Successful" if the group was inserted into the database
 response = "Creation Error" otherwise
 
 Will create entry in both group and user_group table with body parameters.
+
+</blockquote>
+
+# /makeGroupDiagram
+
+<blockquote>
+
+Method(s): POST
+
+Body: { group, name, description }
+
+Returns: json object { response: string }
+response = "Creation Successful" if the diagram was inserted into the database
+response = "Creation Error" otherwise
+
+Will create entry in both diagrams and group_owns table with body parameters.
 
 </blockquote>
 

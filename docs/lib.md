@@ -8,7 +8,7 @@
 
 ## Server-side-rendered
 
-## authGroup(userId : string, groupId : string) : Promise<{ authorized: boolean }>
+## authGroup(userId : string, groupId : string) : Promise<[{ authorized: boolean }, data: any]>
 
 <blockquote>
 
@@ -17,6 +17,7 @@ Description: Will check whether the current user is authorized to view the group
 Return:
 
 If the user is authorized: authorized: true
+data will also include all group data for the authorized group in index 1, as well as all groups that are owned by the group in index 2
 
 Otherwise, authorized: false and the user will be redirected to /dashboard
 

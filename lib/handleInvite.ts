@@ -78,7 +78,7 @@ export async function declineInvite(userId : string, groupId : string) : Promise
         });
 
         if (response.length == 0)
-            return ({accepted: false});
+            return ({declined: false});
 
         response = await new Promise<any[]>((resolve, reject) => {
             connection.query('DELETE FROM invite WHERE recvId = ? and groupId = ?;', [userId, groupId], (err, results: any[]) => {

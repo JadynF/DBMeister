@@ -86,6 +86,48 @@ All components for the dashboard groups page
 
 <blockquote>
 
+## diagramCard
+
+<blockquote>
+
+CSR Component
+
+Props: { diagramData, setReload } : { any, any }
+
+setReload: a useState variable used to reload the parent component
+
+This component creates a card for the group diagram. Will provide the name and description, also has buttons that allows users to open, edit, and delete diagrams.
+
+</blockquote>
+
+## diagramDialog 
+
+<blockquote>
+
+CSR Component
+
+Props: { groupId, setReload } : { string, any }
+
+setReload: a useState variable used to reload the parent component
+
+This component creates a button that, when clicked, will create a new window prompting the user to create a group diagram. With fields to enter a name and description.
+
+</blockquote>
+
+## diagramEditDialog
+
+<blockquote>
+
+CSR Component
+
+Props: { diagramId, diagramName, diagramDesc, setReload } : { string, string, string, any }
+
+setReload: a useState variable used to reload the parent component
+
+This component creates a button that, when clicked, will create a window prompting the user to edit the group diagram. With fields to enter a name and description.
+
+</blockquote>
+
 ## groupCard
 
 <blockquote>

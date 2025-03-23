@@ -6,7 +6,7 @@ import { createConnection } from '@/lib/db';
 export default async function authGroup(userId : string, groupId : string) : Promise<[{ authorized: boolean }, any]> {
     const connection = createConnection();
 
-    console.log("here");
+    console.log("Authorizing Group");
 
     try {
         let response = await new Promise<any[]>((resolve, reject) => {
@@ -19,11 +19,12 @@ export default async function authGroup(userId : string, groupId : string) : Pro
             });
         });
     
+        console.log("First response:");
         console.log(response);
 
         if (response.length == 0) {
             redirect('/dashboard');
-            return ({authorized: false});
+            return ([{authorized: false}]);
         }
 
         let data = [];
@@ -61,7 +62,7 @@ export default async function authGroup(userId : string, groupId : string) : Pro
     catch (error) {
         console.log(error);
         redirect('/dashboard');
-        return ({authorized: false});
+        return ([{authorized: false}]);
     }
     finally {
         connection.end();

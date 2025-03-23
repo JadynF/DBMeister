@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback } from "react";
 import dynamic from 'next/dynamic';
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
     ReactFlow,
     addEdge,
@@ -53,6 +55,12 @@ type IconType = {
     header: string,
     data: IconData
 };
+type CustomIconType = {
+    id: string,
+    type: string,
+    header: string,
+    data: IconData
+};
 
 type SQLTableDataType = {
     fieldName: string,
@@ -89,16 +97,12 @@ type ExcelTableType = {
     tableData: ExcelSheet[]
 };
 
+
 //Default Nodes and Edges for testing
 const loginNodes: Node[] = [
-    { id: "1", type: "BasicNode", position: { x: 250, y: -50 }, data: { header: "Welcome", color:  "#FFD700"} },
-    { id: "2", type: "BasicNode", position: { x: 100, y: 100 }, data: { header: "To", color: "#4169E1"} },
-    { id: "3", type: "BasicNode", position: { x: 400, y: 250 }, data: { header: "DBMeister!", color: "#FFD700"} }
+    { id: "1", type: "BasicNode", position: { x: 250, y: -50 }, data: { header: "Welcome", color:  "#FFD700"} }
 ];
-const loginEdges: Edge[] = [
-    { id: "e1-2", source: "1", target: "2", animated: true },
-    { id: "e2-3", source: "2", target: "3" },
-];
+const loginEdges: Edge[] = [];
 
 export default function Project() {
     const params = useParams();
@@ -106,7 +110,20 @@ export default function Project() {
     const [projectId, setProjectId] = useState<string | undefined>(undefined);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAuth, setIsAuth] = useState<boolean>(false);
-    const [nodeIndex, setNodeIndex] = useState<int | undefined>(undefined);
+    const [nodeIDCounter, setIDCounter] = useState(4);
+
+    const [importFile, setImFile] = useState<File | null>(null);
+    const [cloudImgsToDelete, setImgsToDelete] = useState<string[]>([]);
+
+    const [nodes, setNodes] = useState<Node[]>(loginNodes);
+    const [edges, setEdges] = useState<Edge[]>(loginEdges);
+    const [selectedObject, setSelectedObject] = useState<Node | Edge>(loginNodes[0]);
+    const [selectedStatus, setSelectedStatus] = useState(true);
+
+    const [compPaneMini, setCompMini] = useState(true);
+    const [propPaneMini, setPropMini] = useState(true);
+    const [importPop, setImPop] = useState(false);
+    const [exportPop, setExPop] = useState(false);
 
     useEffect(() => {
         if (params.id) {
@@ -131,6 +148,7 @@ export default function Project() {
                 let savedState = await getProject(params.id);
     
                 if (savedState) {
+                    nodes[0].data.header = "Loading your project...";
                     console.log(savedState);
                     let maxID = 0;
                     for (let i in savedState.nodes) { // get the maxID for the node index
@@ -138,38 +156,188 @@ export default function Project() {
                             maxID = savedState.nodes[i].id;
                         }
                     }
-
                     setNodes(savedState.nodes);
                     setEdges(savedState.edges);
-
-                    console.log("Max ID: " + maxID);
-                    setNodeIndex(maxID);
+                    setIDCounter(maxID + 1);
                 }
             }
-    
             getState();
         }
     }, [isAuth]);
 
+    async function getFileFromPath(filePath: string) {
+        const response = await fetch(filePath); // Fetch the file from local path
+        const blob = await response.blob(); // Convert response to Blob
+      
+        // Create a File object (optional: provide a lastModified timestamp)
+        return new File([blob], filePath.split("=").pop() as string, { type: blob.type });
+    }
+    async function fileToBase64(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+        });
+    }
+
     const saveState = async () => {
         if (userId && projectId) { // protections from unauthorized saving states
+            //Upload all new images to the cloud
+            for(let i = 0; i < nodes.length; i++){
+                let currNode = nodes[i];
+                if(isCustomIconType(currNode.data)){
+                    if(!currNode.data.data.image.includes(process.env.CUSTOMIMG_SPACES_ENDPOINT as string)){
+                        //Upload file to cloud and replace link in node's data
+                        let localFilePath = currNode.data.data.image; //currently the local file path
+                        let imgFile: File = await getFileFromPath(localFilePath); //now the image file
+                        const base64File = await fileToBase64(imgFile); //imgFile is now a base64 string
+                        const res = await fetch('/api/customImageCloud', {
+                            method: 'POST',
+                            headers: {
+                            'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                projectID: projectId as string,
+                                nodeID: currNode.id,
+                                file: base64File as string,
+                                fileName: imgFile.name,
+                                fileType: imgFile.type,
+                            })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            currNode.data.data.image = data.url;
+                        } else {
+                            console.error('Upload failed:', data.message);
+                            return;
+                        }
+                        //Delete local file
+                        const resLoc = await fetch('/api/customImageLocal', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                url: localFilePath
+                            })
+                        });
+                        const delData = await resLoc.json();
+                        if(resLoc.ok){
+                            console.log(delData.response);
+                        } else {
+                            console.error('Local file deletion failed:', data.response);
+                            return;
+                        }
+                    }
+                };
+            }
+            //Delete all custom images from the cloud if they are no longer needed
+            if(cloudImgsToDelete.length > 0){
+                for(let i = 0; i < cloudImgsToDelete.length; i++){
+                    const res = await fetch('/api/customImageCloud', {
+                        method: 'DELETE',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            fileName: cloudImgsToDelete[i]
+                        }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        console.log(data.response);
+                    } else {
+                        console.error('Upload failed:', data.message);
+                        return;
+                    }
+                }
+                setImgsToDelete([]);
+            }
+
             console.log(nodes);
             console.log(edges);
-
-            const state = {"nodes" : nodes, "edges" : edges};
-
+            const state = {"nodes": nodes, "edges": edges};
             const saved = await saveProject(state, projectId);
-
             // do something with saved to let user know the project has been saved
         }
     }
 
+    const exportProject = async () => {
+        if (userId && projectId) {
 
-    const [nodes, setNodes] = useState<Node[]>(loginNodes);
-    const [edges, setEdges] = useState<Edge[]>(loginEdges);
-    const [nodeIDCounter, setIDCounter] = useState(4);
-    const [selectedObject, setSelectedObject] = useState<Node | Edge>(loginNodes[0]);
-    const [selectedStatus, setSelectedStatus] = useState(true);
+            const state = {"nodes": nodes, "edges": edges};
+            const jsonString = JSON.stringify(state, null, 2);
+
+            // Create a Blob object from the JSON string
+            const blob = new Blob([jsonString], { type: 'application/json' });
+
+            // Create a link element
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+
+            link.download = 'state.dbmp'; //custom file extension (.dbmp)
+            // Trigger the download
+            link.click();
+
+            // Clean up the object URL to avoid memory leaks
+            URL.revokeObjectURL(link.href);
+        }
+    }
+
+    const importProject = async () => {
+        if(!importFile){
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+              const state = JSON.parse(e.target.result);
+              console.log(state);
+              setNodes(state["nodes"]);
+              setEdges(state["edges"]);
+            } catch (err) {
+              console.error('Error parsing JSON:', err);
+            }
+        };
+        
+        reader.readAsText(importFile);
+        setImFile(null);
+        document.getElementById('file-name').textContent = "";
+        setImPop(!importPop);
+    }
+    // Trigger file browser when the drop area is clicked
+    const browseFile = () => {
+        document.getElementById('file-input')?.click();
+    };
+    // Handle drag over (prevent default to enable drop)
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault(); // Allows the file to be dropped
+        event.dataTransfer.dropEffect = 'copy'; // Shows "copy" cursor
+    };
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = event.target.files?.[0]; // `?.` handles if no file is selected
+        if (selectedFile) {
+          setImFile(selectedFile);
+          displayFileName(selectedFile);
+        }
+    };
+    // Handle file drop
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const file = event.dataTransfer.files[0];
+        if (file) {
+            setImFile(file);
+            displayFileName(file);
+        }
+    };
+    // Display file name after selection
+    const displayFileName = (file: any) => {
+        document.getElementById('file-name').textContent = `Selected file: ${file.name}`;
+    };
+
+    const handleCompPaneMini = () => { setCompMini(!compPaneMini); }
+    const handlePropPaneMini = () => { setPropMini(!propPaneMini); }
+    const handleImPopChange = () => { setImPop(!importPop); }
+    const handleExPopChange = () => { setExPop(!exportPop); }
 
     const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -184,7 +352,7 @@ export default function Project() {
         if(isBasicType(nodeData)){
             newNode = {...newNode, type: "BasicNode", data: {...newNode.data, type: "basic", header: nodeData.header, data: nodeData.data}};
         } else if(isIconType(nodeData)){
-            newNode = {...newNode, type: "IconNode", data: {...newNode.data, type: "icon", header: nodeData.header, data: nodeData.data}};
+            newNode = {...newNode, type: "IconNode", data: {...newNode.data, type: nodeData.type, header: nodeData.header, data: nodeData.data}};
         } else if(isSQLTableType(nodeData)){
             newNode = {...newNode, type: "SQLTableNode", data: {...newNode.data, type: "sql", header: nodeData.header, tableData: nodeData.tableData}};
         } else {
@@ -194,6 +362,9 @@ export default function Project() {
         setNodes((nds) => nds.concat(newNode));
         setSelectedStatus(true);
         setSelectedObject(newNode);
+        if(!propPaneMini) {
+            handlePropPaneMini();
+        }
     }
 
     const setSelectedNodePosition = (position: Position) => {
@@ -226,9 +397,15 @@ export default function Project() {
     //Delete the selected node
     const deleteSelectedNode = (nodeId: string) => {
         if(selectedIsNode(selectedObject)){
+            console.log(isCustomIconType(selectedObject.data));
+            if(isCustomIconType(selectedObject.data)){
+                let imgStr: string = selectedObject.data.data.image;
+                setImgsToDelete(prevImages => [...prevImages, imgStr]);
+            }
             setSelectedStatus(false);
             setNodes((nds) => nds.filter((node) => node.id !== nodeId)); // Remove the node
             setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)); // Remove edges connected to the node
+            console.log(cloudImgsToDelete);
         }
     }
 
@@ -265,13 +442,16 @@ export default function Project() {
     const isExcelTableType = (data: any): data is ExcelTableType => { return (data as ExcelTableType).type === "excel"; }
     const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).type === "sql"; }
     const isBasicType = (data: any): data is BasicType => { return (data as BasicType).type === "basic"; }
-    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon"; }
+    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon" || (data as IconType).type === "customicon"; }
+    const isCustomIconType = (data: any): data is CustomIconType => { return (data as CustomIconType).type === "customicon"; }
 
     return (
         <div>
             <header style={taskbarStyle}>
                 <div>
-                    <button onClick={saveState}>Save</button>
+                    <Button className="space-x-5" onClick={saveState}>Save</Button>
+                    <Button className="space-x-5" onClick={handleExPopChange}>Export</Button>
+                    <Button className="space-x-5" onClick={handleImPopChange}>Import</Button>
                 </div>
                 <div>
                     Project {projectId}
@@ -280,10 +460,59 @@ export default function Project() {
                     <button>Go Back</button>
                 </div>
             </header>
-            <div style={mainStyle}>
-                <div style={sidepaneStyle}>
-                    <ComponentsPane createNode={createNode} />
+            <div id="import-popup-overlay" 
+                className={importPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
+                <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                    <h2 className="text-xl font-bold mb-4">
+                        Import a Project
+                    </h2>
+                    <div id="import-drop-area"
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
+                        onClick={browseFile}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}>
+                        <p className="text-gray-500">Drag & drop a file here or <span className="text-blue-500 font-semibold">click to browse</span></p>
+                        <input id="file-input" type="file" accept=".dbmp" className="hidden" onChange={handleFileChange} />
+                        <p id="file-name" className="mt-4 text-gray-700"></p>
+                    </div>
+                    <Button variant="destructive" onClick={handleImPopChange}>Close</Button>
+                    <Button onClick={importProject}>Import</Button>
                 </div>
+            </div>
+            <div id="export-popup-overlay" 
+                className={exportPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
+                <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                    <h2 className="text-xl font-bold mb-4">
+                        Export this Project
+                    </h2>
+                    <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
+                    <Button onClick={exportProject}>Export</Button>
+                </div>
+            </div>
+            <div style={mainStyle}>
+                {compPaneMini && (
+                    <div className="flex sticky" style={compPaneStyle}>
+                        <Button variant="ghost" 
+                            className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                            onClick={handleCompPaneMini}
+                        >
+                            <ChevronLeft/>
+                        </Button>
+                        <div className="w-5/6 ml-auto p-5" style={{padding: "20px"}}>
+                            <ComponentsPane createNode={createNode} />
+                        </div>
+                    </div>
+                )}
+                {!compPaneMini && (
+                    <div style={sidepaneMinimizedStyle}>
+                    <Button variant="ghost" 
+                        className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full mt-[50px] bg-indigo-200 hover:bg-indigo-300" 
+                        onClick={handleCompPaneMini}
+                    >
+                        <ChevronRight/>
+                    </Button>
+                    </div>
+                )}
                 <div style={{height: '100%', width: '100%' }}>
                     <ReactFlow
                         nodes={nodes}
@@ -300,25 +529,48 @@ export default function Project() {
                         <Background color="#aaa" gap={16} />
                     </ReactFlow>
                 </div>
-                <div style={sidepaneStyle}>
-                    {selectedIsNode(selectedObject) && (
-                        <NodePropertiesPane 
-                        selectedNode={selectedObject} 
-                        selectedStatus={selectedStatus}
-                        setSelectedNodePosition={setSelectedNodePosition}
-                        setSelectedNodeData={setSelectedNodeData}
-                        deleteSelectedNode={deleteSelectedNode}
-                    />
-                    )}
-                    {selectedIsEdge(selectedObject) && (
-                        <EdgePropertiesPane
-                            selectedEdge={selectedObject}
-                            selectedStatus={selectedStatus}
-                            animateEdge={animateEdge}
-                            deleteSelectedEdge={deletedSelectedEdge}
-                        />
-                    )}
-                </div>
+                {propPaneMini && (
+                    <div className="flex sticky justify-between" style={propPaneStyle}>
+                        {selectedIsNode(selectedObject) && (
+                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
+                                <NodePropertiesPane 
+                                projectID={projectId}
+                                selectedNode={selectedObject} 
+                                selectedStatus={selectedStatus}
+                                setSelectedNodePosition={setSelectedNodePosition}
+                                setSelectedNodeData={setSelectedNodeData}
+                                deleteSelectedNode={deleteSelectedNode}
+                                />
+                            </div>
+                        )}
+                        {selectedIsEdge(selectedObject) && (
+                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
+                                <EdgePropertiesPane
+                                    selectedEdge={selectedObject}
+                                    selectedStatus={selectedStatus}
+                                    animateEdge={animateEdge}
+                                    deleteSelectedEdge={deletedSelectedEdge}
+                                />
+                            </div>
+                        )}
+                        <Button variant="ghost" 
+                            className="ml-auto flex top-1/2 transform -translate-y-1 justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                            onClick={handlePropPaneMini}
+                        >
+                            <ChevronRight/>
+                        </Button>
+                    </div>
+                )}
+                {!propPaneMini && (
+                    <div style={sidepaneMinimizedStyle}>
+                    <Button variant="ghost" 
+                        className="flex top-1/2 transform -translate-y-1 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                        onClick={handlePropPaneMini}
+                    >
+                        <ChevronLeft/>
+                    </Button>
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -342,14 +594,23 @@ const taskbarStyle: React.CSSProperties = {
 
 const mainStyle: React.CSSProperties = {
     display: 'flex',
-    marginTop: '40px',
-    height: 'calc(100vh - 40px)'
+    marginTop: '60px',
+    height: 'calc(100vh - 60px)'
 }
 
 /* Left and Right Sidebars */
-const sidepaneStyle: React.CSSProperties = {
+const compPaneStyle: React.CSSProperties = {
     backgroundColor: '#f4f4f46b',
-    width: '30%',
-    padding: '20px',
+    width: '35%',
     overflowY: 'auto'
+}
+const propPaneStyle: React.CSSProperties = {
+    backgroundColor: '#f4f4f46b',
+    width: '35%',
+    overflowY: 'auto'
+}
+
+const sidepaneMinimizedStyle: React.CSSProperties = {
+    backgroundColor: '#f4f4f46b',
+    width: '4%'
 }

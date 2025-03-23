@@ -56,7 +56,7 @@ const ExcelTableNode = ({data}: {data: ExcelTableType}) => {
                         {tableData.map((sheet) => (
                         <TableRow key={sheet.sheetName} className="relative w-1/2">
                             <td>
-                                <Handle type="target" position={Position.Left} id={`row-${sheet.sheetName}-t`} style={{position: 'absolute', left: '4px'}}/>
+                                <Handle type="target" position={Position.Left} id={`sheet-${sheet.sheetName}-t`} style={{position: 'absolute', left: '4px'}}/>
                             </td>
                             <TableCell className="text-left w-1/2">{sheet.sheetName}</TableCell>
                             <TableCell className="w-1/2 p-0">
@@ -67,7 +67,7 @@ const ExcelTableNode = ({data}: {data: ExcelTableType}) => {
                                             <TableCell className="text-left">{field.fieldName}</TableCell>
                                             <TableCell className="text-left">{field.fieldType}</TableCell>
                                             <td>
-                                                <Handle type="source" position={Position.Right} id={`row-${field.fieldName}-s`} style={{position: 'absolute', right: '4px'}}/>
+                                                <Handle type="source" position={Position.Right} id={`${sheet.sheetName}-row-${field.fieldName}-s`} style={{position: 'absolute', right: '4px'}}/>
                                             </td>
                                         </TableRow>
                                     ))}

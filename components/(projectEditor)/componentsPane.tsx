@@ -70,7 +70,6 @@ const defaultExcelTableData: ExcelSheet[] = [
         {fieldName: "Column 1", fieldType: "Currency", check: null, sort: null, comments: "Testing 1!"},
         {fieldName: "Column 2", fieldType: "Text", check: null, sort: null, comments: "Succeeding 1!"}]}   
 ];
-
 const icons = [
     {imageSrc: "/nodeIcons/alteryxIcon.png", imageLbl: "Alteryx Node"},
     {imageSrc: "/nodeIcons/talendIcon.png", imageLbl: "Talend Node"},
@@ -120,8 +119,8 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
     const handleIconClick = (type: string, imageSrc: string) => {
         let iconDataGuard = structuredClone(defaultIconNodeData);
         const newNodeData: IconType = {
-            id: 'new_icon_node',
-            type: 'icon',
+            id: `new-${type}-node`,
+            type: type, //allows icon or customicon
             header: 'New_Icon',
             data: {header: iconDataGuard.header, image: imageSrc}
         }
@@ -152,6 +151,15 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
                         <span className="text-center text-sm font-medium">{icon.imageLbl}</span>
                     </div>
                 ))}
+                <div className="flex flex-col items-center border" onClick={() => handleIconClick("customicon", "/nodeIcons/custom.png")} style={{cursor: "pointer"}}>
+                    <Image
+                        src={"/nodeIcons/custom.png"}
+                        alt={"Custom Icon"}
+                        width={100}
+                        height={100}
+                        className="mb-2" />
+                    <span className="text-center text-sm font-medium">Custom Icon</span>
+                </div>
             </div>
             </TabsContent>
             <TabsContent value="Tables">
@@ -191,7 +199,9 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
                     </div>
                 </div>
             </TabsContent>
-            <TabsContent value="Shapes">Insert Shape</TabsContent>
+            <TabsContent value="Shapes">
+                <h1>Shapes</h1>
+            </TabsContent>
         </Tabs>
         </>
     );

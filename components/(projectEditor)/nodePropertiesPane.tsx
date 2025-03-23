@@ -34,6 +34,12 @@ type IconType = {
     header: string,
     data: IconData
 };
+type CustomIconType = {
+    id: string,
+    type: string,
+    header: string,
+    data: IconData
+} //Subset for custom images
 
 type SQLTableDataType = {
     fieldName: string,
@@ -70,6 +76,7 @@ type ExcelTableType = {
     tableData: ExcelSheet[]
 }
 
+
 //Default New Field when appending to a SQLTableType Node
 const defaultSQLField: SQLTableDataType = {fieldName: "New Field", fieldType: 'VARCHAR(55)', nullability: false, keyType: null, unique: false, check: null, indexing: null, comments: ''};
 const defaultExcelField: ExcelField = {fieldName: "New Column", fieldType: "Text", check: null, sort: "Ascending", comments: null};
@@ -77,6 +84,7 @@ const defaultExcelSheet: ExcelSheet = {sheetName: "New Sheet", sheetData: []};
 
 //Function props definitions
 type NodePropertiesPaneProps = {
+    projectID: string | undefined;
     selectedNode: Node<BasicType | IconType | SQLTableType | ExcelTableType>;
     selectedStatus: boolean;
     setSelectedNodePosition: (position: Position) => void;
@@ -84,13 +92,13 @@ type NodePropertiesPaneProps = {
     deleteSelectedNode: (selectedNodeID: string) => void;
 };
 
-const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, selectedStatus, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode}) => {
+const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selectedNode, selectedStatus, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode}) => {
     const [nodePosition, setPosition] = useState<Position>(selectedNode.position);
     const [nodeStatus, setStatus] = useState(selectedStatus);
     const [nodeData, setNodeData] = useState<BasicType | IconType | SQLTableType | ExcelTableType>(selectedNode.data);
     //const [nodeStyle, setNodeStyle] = useState(selectedNode.style); //To be done later
-
     const [nodeHeader, setNodeHeader] = useState('');
+    const [customImgFile, setcustomImgFile] = useState<File | null>(null);
 
     //SQL Table Type TableData variable objects
     const [fieldNames, setFieldNames] = useState<Record<string, string>>({});
@@ -178,7 +186,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         }
     }
 
-    const deleteNode = () => {
+    const deleteNode = async () => {
         deleteSelectedNode(selectedNode.id);
         setStatus(false);
     }
@@ -274,20 +282,6 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         setNodeData(newData);
     }
 
-    /* Used to see current state of excel table data
-    const printEData = () => {
-        console.log(eSheetNames);
-        console.log("Sheet Data :");
-        console.log(eSheetData);
-        console.log(": End Of Sheet Data");
-        console.log(eFieldNames);
-        console.log(eFieldTypes);
-        console.log(eChecks);
-        console.log(eSorts);
-        console.log(eComments);
-    }
-    */
-
     const deleteField = (nodeData: SQLTableType, deleteFieldName: string) => {
         let newTableData = nodeData.tableData.filter(field => field.fieldName !== deleteFieldName);
         let newData = {id: nodeData.id, type: nodeData.type, header: nodeData.header, tableData: newTableData}
@@ -313,8 +307,70 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         setSelectedNodeData(newData);
     }
 
+    const browseImg = () => {
+        document.getElementById('image-file-upload')?.click();
+    };
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault(); // Allows the file to be dropped
+        event.dataTransfer.dropEffect = 'copy'; // Shows "copy" cursor
+    };
+    const handleImgChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedImg = event.target.files?.[0];
+        if(selectedImg){
+            setcustomImgFile(selectedImg);
+            displayImgName(selectedImg);
+        }
+    };
+    const handleImgDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const img = event.dataTransfer.files[0];
+        if (img) {
+            setcustomImgFile(img);
+            displayImgName(img);
+        }
+    };
+    const displayImgName = (img: any) => {
+        document.getElementById('image-name').textContent = `Selected image: ${img.name}`;
+    };
+    //Calls api route customImageCloud to upload the image locally in /tmp/uploads/ and assigns the url to the nodeData.data.image
+    const uploadImageToLocal = async () => {
+        if(!customImgFile){
+            return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(customImgFile);
+        reader.onloadend = async () => {
+            const base64File = reader.result;
+            const res = await fetch('/api/customImageLocal', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file: base64File,
+                    fileName: customImgFile.name
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                if(isCustomIconType(nodeData)){
+                    let newData = nodeData;
+                    newData.data = {...newData.data, image: data.url};
+                    console.log(newData.data);
+                    setNodeData(newData);
+                    setSelectedNodeData(newData);
+                }
+                return data.url;
+            } else {
+                console.error('Upload failed:', data.message);
+                return;
+            }
+        };
+    }
+
     //Create a new set of nodeData from all SQL Table Type useState variables and update the node
-    const updateData = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType) => {
+    const updateData = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType ) => {
         if(isSQLTableType(nodeData)){
             const newNodeData: SQLTableType = {
                 id: nodeData.id,
@@ -392,13 +448,12 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         }
     }
 
-
     //HELPER FUNCTIONS
-
     //Checks type of nodeData to determine data options in html
     const isExcelTableType = (data: any): data is ExcelTableType => { return (data as ExcelTableType).type === "excel"; }
     const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).type === "sql"; }
-    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon"; }
+    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon" || (data as IconType).type === "customicon"; }
+    const isCustomIconType = (data: any): data is CustomIconType => {return (data as CustomIconType).type === "customicon"; }
     const isBasicType = (data: any): data is BasicType => { return (data as BasicType).type === "basic"; }
     //Functions to handle non-string values in html
     const printBool = (bool: boolean) => { if(bool) { return 'true';} else {return 'false';} }
@@ -649,6 +704,28 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                                 <Button className="w-1/2 " onClick={() => updateData(nodeData)}>Update Data</Button>
                             </div>
                         )}
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="nodeData" className={nodeData.type==="customicon" ? "block" : "hidden"}>
+                    <AccordionTrigger>Custom Image Upload</AccordionTrigger>
+                    <AccordionContent>
+                    <div id="importCustomImage-popup-overlay" >
+                        <div className="bg-white p-6 rounded-lg shadow-lg w-30">
+                            <h2 className="text-xl font-bold mb-4">
+                                Upload a Custom Image
+                            </h2>
+                            <div id="import-drop-area"
+                                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
+                                onClick={browseImg}
+                                onDragOver={handleDragOver}
+                                onDrop={handleImgDrop}>
+                                <p className="text-gray-500">Drag & drop a file here or <span className="text-blue-500 font-semibold">click to browse</span></p>
+                                <input id="image-file-upload" type="file" accept="image/jpeg, image/jpg, image/png" className="hidden" onChange={handleImgChange} />
+                                <p id="image-name" className="mt-4 text-gray-700"></p>
+                            </div>
+                            <Button onClick={uploadImageToLocal}>Upload</Button>
+                        </div>
+                    </div>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodeStyling">

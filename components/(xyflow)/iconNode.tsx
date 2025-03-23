@@ -32,6 +32,7 @@ const IconNode = ({data}: {data: IconType}) => {
                         quality={75}
                         priority={nodeImage === "/nodeIcons/alteryxIcon.png" ? true : false}
                         className="justify-center align-center"
+                        unoptimized
                     />
                 </div>
                 <div className="flex justify-center">

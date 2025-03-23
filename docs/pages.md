@@ -70,6 +70,28 @@ Will, upon render, fetch /getDashDiagrams to get all of the current users diagra
 
 </blockquote>
 
+## Groups
+
+<blockquote>
+
+Part of the dashboard. A page that shows a users groups as well as incoming invites. Located in '@/app/dashboard/groups'
+
+Allows user to navigate to groups, and accept or decline incoming invitations.
+
+Will, upon render, fetch /getDashGroups to get all information concerning the users groups.
+
+</blockquote>
+
+## Groups/[id]
+
+<blockquote>
+
+A page that shows an invdividual group. Located in '@/app/dashboard/groups[id]'
+
+Allows user to invite others to the group.
+
+</blockquote>
+
 ## ProjectEditor
 
 <blockquote>

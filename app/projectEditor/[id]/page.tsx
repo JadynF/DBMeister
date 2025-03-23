@@ -24,6 +24,8 @@ import EdgePropertiesPane from "@/components/(projectEditor)/edgePropertiesPane"
 import { useParams } from 'next/navigation';
 import authorization from '@/lib/authorization';
 import authProject from '@/lib/authProjectEditor';
+import { Progress } from "@/components/ui/progress"
+
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
@@ -110,7 +112,6 @@ export default function Project() {
     const [projectId, setProjectId] = useState<string | undefined>(undefined);
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAuth, setIsAuth] = useState<boolean>(false);
-    const [nodeIDCounter, setIDCounter] = useState(4);
 
     const [importFile, setImFile] = useState<File | null>(null);
     const [cloudImgsToDelete, setImgsToDelete] = useState<string[]>([]);
@@ -124,29 +125,37 @@ export default function Project() {
     const [propPaneMini, setPropMini] = useState(true);
     const [importPop, setImPop] = useState(false);
     const [exportPop, setExPop] = useState(false);
+    const [nodeIDCounter, setIDCounter] = useState(4);
+
+    const [loading, setIsLoading] = useState<boolean>(true);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
+        setProgress(prevProgress => prevProgress + 10);
         if (params.id) {
             setProjectId(params.id);
         }
-
         const checkAuth = async () => {
             const authResponse = await authorization();
+            setProgress(prevProgress => prevProgress + 10);
             if (authResponse) {
                 setUserId(authResponse.userData.id);
                 let authProj = await authProject(authResponse.userData.id, params.id);
                 setIsAuth(authProj);
             }
+            setProgress(prevProgress => prevProgress + 10);
         }
-
+        setProgress(prevProgress => prevProgress + 10);
         checkAuth();
+        setProgress(prevProgress => prevProgress + 10);
     }, []);
 
     useEffect(() => { // only run once the user has been authorized for the project
+        setProgress(prevProgress => prevProgress + 10);
         if (isAuth) {
             const getState = async () => {
                 let savedState = await getProject(params.id);
-    
+                setProgress(prevProgress => prevProgress + 10);
                 if (savedState) {
                     nodes[0].data.header = "Loading your project...";
                     console.log(savedState);
@@ -156,14 +165,33 @@ export default function Project() {
                             maxID = savedState.nodes[i].id;
                         }
                     }
+                    setProgress(prevProgress => prevProgress + 10);
                     setNodes(savedState.nodes);
                     setEdges(savedState.edges);
+                    setProgress(prevProgress => prevProgress + 10);
+            
+                    console.log("Max ID: " + maxID);
                     setIDCounter(maxID + 1);
                 }
+                else {
+                    setProgress(100);
+                }
             }
+            
+            setProgress(prevProgress => prevProgress + 10);
             getState();
         }
     }, [isAuth]);
+
+    useEffect(() => {
+        console.log(progress);
+        if(progress == 100) { // strict mode will cause the page to mount twice, set to 100 if not set
+            setIsLoading(false);
+        }
+        else if (progress > 100) {
+            setProgress(100);
+        }
+    }, [progress])
 
     async function getFileFromPath(filePath: string) {
         const response = await fetch(filePath); // Fetch the file from local path
@@ -445,22 +473,49 @@ export default function Project() {
     const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon" || (data as IconType).type === "customicon"; }
     const isCustomIconType = (data: any): data is CustomIconType => { return (data as CustomIconType).type === "customicon"; }
 
+    // Styles for fade in/out effects
+    const loadingStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      opacity: loading ? 1 : 0, // fade out when loading is false
+      pointerEvents: loading ? 'auto' : 'none', // prevent interaction when hidden
+      transition: 'opacity 0.5s ease-out', // smooth fade-out transition
+    };
+
+    const contentStyle: React.CSSProperties = {
+      opacity: loading ? 0 : 1, // fade in once loading is complete
+      transition: 'opacity 0.5s ease-in', // smooth fade-in transition
+    };
+
     return (
         <div>
-            <header style={taskbarStyle}>
-                <div>
-                    <Button className="space-x-5" onClick={saveState}>Save</Button>
+            <div style={loadingStyle}>
+                <h1 className="text-4xl mb-4">Loading Your Project...</h1>
+                <Progress value={progress} className="w-[60%]" />
+            </div>
+            <div style={contentStyle}>
+                <header style={taskbarStyle}>
+                    <div>
+                        <Button className="space-x-5" onClick={saveState}>Save</Button>
                     <Button className="space-x-5" onClick={handleExPopChange}>Export</Button>
                     <Button className="space-x-5" onClick={handleImPopChange}>Import</Button>
-                </div>
-                <div>
-                    Project {projectId}
-                </div>
-                <div>
-                    <button>Go Back</button>
-                </div>
-            </header>
-            <div id="import-popup-overlay" 
+                    </div>
+                    <div>
+                        Project {projectId}
+                    </div>
+                    <div>
+                        <button>Go Back</button>
+                    </div>
+                </header>
+                <div id="import-popup-overlay" 
                 className={importPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
                 <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                     <h2 className="text-xl font-bold mb-4">
@@ -490,7 +545,7 @@ export default function Project() {
                 </div>
             </div>
             <div style={mainStyle}>
-                {compPaneMini && (
+                    {compPaneMini && (
                     <div className="flex sticky" style={compPaneStyle}>
                         <Button variant="ghost" 
                             className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
@@ -499,9 +554,9 @@ export default function Project() {
                             <ChevronLeft/>
                         </Button>
                         <div className="w-5/6 ml-auto p-5" style={{padding: "20px"}}>
-                            <ComponentsPane createNode={createNode} />
+                                <ComponentsPane createNode={createNode} />
+                            </div>
                         </div>
-                    </div>
                 )}
                 {!compPaneMini && (
                     <div style={sidepaneMinimizedStyle}>
@@ -514,44 +569,44 @@ export default function Project() {
                     </div>
                 )}
                 <div style={{height: '100%', width: '100%' }}>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        nodeTypes={nodeTypes}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
-                        fitView
-                    >
-                        <Controls />
-                        <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-                </div>
-                {propPaneMini && (
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
+                            onConnect={onConnect}
+                            nodeTypes={nodeTypes}
+                            onNodeClick={onNodeClick}
+                            onEdgeClick={onEdgeClick}
+                            fitView
+                        >
+                            <Controls />
+                            <Background color="#aaa" gap={16} />
+                        </ReactFlow>
+                    </div>
+                    {propPaneMini && (
                     <div className="flex sticky justify-between" style={propPaneStyle}>
-                        {selectedIsNode(selectedObject) && (
-                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
+                            {selectedIsNode(selectedObject) && (
+                                <div className="w-5/6 p-5" style={{padding: "20px"}}>
                                 <NodePropertiesPane 
-                                projectID={projectId}
-                                selectedNode={selectedObject} 
-                                selectedStatus={selectedStatus}
-                                setSelectedNodePosition={setSelectedNodePosition}
-                                setSelectedNodeData={setSelectedNodeData}
-                                deleteSelectedNode={deleteSelectedNode}
-                                />
-                            </div>
-                        )}
-                        {selectedIsEdge(selectedObject) && (
-                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
-                                <EdgePropertiesPane
-                                    selectedEdge={selectedObject}
+                                    projectID={projectId}
+                                    selectedNode={selectedObject} 
                                     selectedStatus={selectedStatus}
-                                    animateEdge={animateEdge}
-                                    deleteSelectedEdge={deletedSelectedEdge}
-                                />
-                            </div>
+                                    setSelectedNodePosition={setSelectedNodePosition}
+                                    setSelectedNodeData={setSelectedNodeData}
+                                    deleteSelectedNode={deleteSelectedNode}
+                                    />
+                                </div>
+                        )}
+                            {selectedIsEdge(selectedObject) && (
+                                <div className="w-5/6 p-5" style={{padding: "20px"}}>
+                                <EdgePropertiesPane
+                                        selectedEdge={selectedObject}
+                                        selectedStatus={selectedStatus}
+                                        animateEdge={animateEdge}
+                                        deleteSelectedEdge={deletedSelectedEdge}
+                                    />
+                                </div>
                         )}
                         <Button variant="ghost" 
                             className="ml-auto flex top-1/2 transform -translate-y-1 justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
@@ -570,8 +625,10 @@ export default function Project() {
                         <ChevronLeft/>
                     </Button>
                     </div>
+                    
                 )}
             </div>
+        </div>
         </div>
     )
 }

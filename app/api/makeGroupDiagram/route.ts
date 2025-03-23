@@ -2,12 +2,14 @@ import { createConnection } from '@/lib/db';
 
 export async function POST(req: Request) {
     const body = await req.json();
-    const id = body.id;
+    const groupId = body.group;
+    const name = body.name;
+    const description = body.description;
 
     const connection = createConnection()
     try {
         let response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('DELETE FROM user_owns WHERE diagram_id = ?', [id], (err, results: any[]) => {
+            connection.query('INSERT INTO diagrams (name, description) VALUES(?, ?);', [name, description], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -15,35 +17,27 @@ export async function POST(req: Request) {
                 }
             });
         });
+
+        const newDiagramId = response.insertId
 
         response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('DELETE FROM group_owns WHERE diagram_id = ?', [id], (err, results: any[]) => {
+            connection.query('INSERT INTO group_owns (group_id, diagram_id) VALUES(?, ?);', [groupId, newDiagramId], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {
                     resolve(results);
                 }
-            });
-        });
+            })
+        })
 
-        response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('DELETE FROM diagrams WHERE id = ?', [id], (err, results: any[]) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(results);
-                }
-            });
-        });
-
-        return new Response(JSON.stringify({response: "Deletion Successful"}), {
+        return new Response(JSON.stringify({response: "Creation Successful"}), {
             header: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
-        return new Response(JSON.stringify({response: "Deletion Error"}), {
+        return new Response(JSON.stringify({response: "Creation Error"}), {
             header: { "Content-Type": "application/json" },
             status: 500
         });

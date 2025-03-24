@@ -139,7 +139,7 @@ export default function Group() {
             <div className="bg-white dark:bg-slate-800 shadow-sm rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
                 <Tabs defaultValue="GroupDiagrams" className="w-full">
                     <div className="px-6 pt-6">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className={"grid w-full " + (userId == groupData.admin_id ? "grid-cols-4" : "grid-cols-3")}>
                             <TabsTrigger value="GroupDiagrams" className="flex items-center">
                                 <FileImage className="mr-2 h-4 w-4" />
                                 Group Diagrams

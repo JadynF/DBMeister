@@ -1,6 +1,6 @@
-"use client";
-import { Home, Users, Shapes, MessageCircleQuestion, Settings } from "lucide-react"
+"use client"
 
+import { Home, Users, Shapes, MessageCircleQuestion, Settings } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -50,9 +50,11 @@ export function DashSidebar() {
   return (
     <Sidebar className="border-r border-slate-200 dark:border-slate-800">
       <SidebarHeader className="py-6 px-4 flex items-center justify-center">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent bg-clip-text">
-          DBMeister
-        </h1>
+        <Link href="/dashboard" className="hover:opacity-80 transition-opacity">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent bg-clip-text">
+            DBMeister
+          </h1>
+        </Link>
       </SidebarHeader>
       
       <SidebarContent className="px-3">

@@ -507,8 +507,8 @@ export default function Project() {
                 <header style={taskbarStyle}>
                     <div>
                         <Button variant="ghost" onClick={saveState}><Save/></Button>
-                    <Button variant="ghost" className="space-x-5" onClick={handleExPopChange}><FileDown/></Button>
-                    <Button variant="ghost" className="space-x-5" onClick={handleImPopChange}><Import/></Button>
+                    <Button variant="ghost" onClick={handleExPopChange}><FileDown/></Button>
+                    <Button variant="ghost" onClick={handleImPopChange}><Import/></Button>
                     </div>
                     <div>
                         Project {projectId}
@@ -613,7 +613,7 @@ export default function Project() {
                                 </div>
                         )}
                         <Button variant="ghost" 
-                            className="ml-auto flex top-1/2 transform -translate-y-1 justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                            className="ml-auto flex-grow top-1/2 transform -translate-y-1 justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
                             onClick={handlePropPaneMini}
                         >
                             <ChevronRight/>
@@ -655,8 +655,8 @@ const taskbarStyle: React.CSSProperties = {
 
 const mainStyle: React.CSSProperties = {
     display: 'flex',
-    marginTop: '60px',
-    height: 'calc(100vh - 60px)'
+    marginTop: '5px',
+    height: 'calc(85vh)'
 }
 
 /* Left and Right Sidebars */

@@ -22,6 +22,8 @@ import EdgePropertiesPane from "@/components/(projectEditor)/edgePropertiesPane"
 import { useParams } from 'next/navigation';
 import authorization from '@/lib/authorization';
 import authProject from '@/lib/authProjectEditor';
+import { Progress } from "@/components/ui/progress"
+
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
@@ -108,28 +110,35 @@ export default function Project() {
     const [isAuth, setIsAuth] = useState<boolean>(false);
     const [nodeIDCounter, setIDCounter] = useState<int>(4);
 
+    const [loading, setIsLoading] = useState<boolean>(true);
+    const [progress, setProgress] = useState<int>(0);
+
     useEffect(() => {
+        setProgress(prevProgress => prevProgress + 10);
         if (params.id) {
             setProjectId(params.id);
         }
-
         const checkAuth = async () => {
             const authResponse = await authorization();
+            setProgress(prevProgress => prevProgress + 10);
             if (authResponse) {
                 setUserId(authResponse.userData.id);
                 let authProj = await authProject(authResponse.userData.id, params.id);
                 setIsAuth(authProj);
             }
+            setProgress(prevProgress => prevProgress + 10);
         }
-
+        setProgress(prevProgress => prevProgress + 10);
         checkAuth();
+        setProgress(prevProgress => prevProgress + 10);
     }, []);
 
     useEffect(() => { // only run once the user has been authorized for the project
+        setProgress(prevProgress => prevProgress + 10);
         if (isAuth) {
             const getState = async () => {
                 let savedState = await getProject(params.id);
-    
+                setProgress(prevProgress => prevProgress + 10);
                 if (savedState) {
                     console.log(savedState);
                     let maxID = 0;
@@ -138,18 +147,33 @@ export default function Project() {
                             maxID = savedState.nodes[i].id;
                         }
                     }
-
+                    setProgress(prevProgress => prevProgress + 10);
                     setNodes(savedState.nodes);
                     setEdges(savedState.edges);
-
+                    setProgress(prevProgress => prevProgress + 10);
+            
                     console.log("Max ID: " + maxID);
                     setIDCounter(maxID + 1);
                 }
+                else {
+                    setProgress(100);
+                }
             }
-    
+            
+            setProgress(prevProgress => prevProgress + 10);
             getState();
         }
     }, [isAuth]);
+
+    useEffect(() => {
+        console.log(progress);
+        if(progress == 100) { // strict mode will cause the page to mount twice, set to 100 if not set
+            setIsLoading(false);
+        }
+        else if (progress > 100) {
+            setProgress(100);
+        }
+    }, [progress])
 
     const saveState = async () => {
         if (userId && projectId) { // protections from unauthorized saving states
@@ -266,57 +290,85 @@ export default function Project() {
     const isBasicType = (data: any): data is BasicType => { return (data as BasicType).type === "basic"; }
     const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon"; }
 
+    // Styles for fade in/out effects
+    const loadingStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      opacity: loading ? 1 : 0, // fade out when loading is false
+      pointerEvents: loading ? 'auto' : 'none', // prevent interaction when hidden
+      transition: 'opacity 0.5s ease-out', // smooth fade-out transition
+    };
+
+    const contentStyle: React.CSSProperties = {
+      opacity: loading ? 0 : 1, // fade in once loading is complete
+      transition: 'opacity 0.5s ease-in', // smooth fade-in transition
+    };
+
     return (
         <div>
-            <header style={taskbarStyle}>
-                <div>
-                    <button onClick={saveState}>Save</button>
-                </div>
-                <div>
-                    Project {projectId}
-                </div>
-                <div>
-                    <button>Go Back</button>
-                </div>
-            </header>
-            <div style={mainStyle}>
-                <div style={sidepaneStyle}>
-                    <ComponentsPane createNode={createNode} />
-                </div>
-                <div style={{height: '100%', width: '100%' }}>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        nodeTypes={nodeTypes}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
-                        fitView
-                    >
-                        <Controls />
-                        <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-                </div>
-                <div style={sidepaneStyle}>
-                    {selectedIsNode(selectedObject) && (
-                        <NodePropertiesPane 
-                        selectedNode={selectedObject} 
-                        selectedStatus={selectedStatus}
-                        setSelectedNodePosition={setSelectedNodePosition}
-                        setSelectedNodeData={setSelectedNodeData}
-                        deleteSelectedNode={deleteSelectedNode}
-                    />
-                    )}
-                    {selectedIsEdge(selectedObject) && (
-                        <EdgePropertiesPane
-                            selectedEdge={selectedObject}
+            <div style={loadingStyle}>
+                <h1 className="text-4xl mb-4">Loading Your Project...</h1>
+                <Progress value={progress} className="w-[60%]" />
+            </div>
+            <div style={contentStyle}>
+                <header style={taskbarStyle}>
+                    <div>
+                        <button onClick={saveState}>Save</button>
+                    </div>
+                    <div>
+                        Project {projectId}
+                    </div>
+                    <div>
+                        <button>Go Back</button>
+                    </div>
+                </header>
+                <div style={mainStyle}>
+                    <div style={sidepaneStyle}>
+                        <ComponentsPane createNode={createNode} />
+                    </div>
+                    <div style={{height: '100%', width: '100%' }}>
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
+                            onConnect={onConnect}
+                            nodeTypes={nodeTypes}
+                            onNodeClick={onNodeClick}
+                            onEdgeClick={onEdgeClick}
+                            fitView
+                        >
+                            <Controls />
+                            <Background color="#aaa" gap={16} />
+                        </ReactFlow>
+                    </div>
+                    <div style={sidepaneStyle}>
+                        {selectedIsNode(selectedObject) && (
+                            <NodePropertiesPane 
+                            selectedNode={selectedObject} 
                             selectedStatus={selectedStatus}
-                            animateEdge={animateEdge}
-                            deleteSelectedEdge={deletedSelectedEdge}
+                            setSelectedNodePosition={setSelectedNodePosition}
+                            setSelectedNodeData={setSelectedNodeData}
+                            deleteSelectedNode={deleteSelectedNode}
                         />
-                    )}
+                        )}
+                        {selectedIsEdge(selectedObject) && (
+                            <EdgePropertiesPane
+                                selectedEdge={selectedObject}
+                                selectedStatus={selectedStatus}
+                                animateEdge={animateEdge}
+                                deleteSelectedEdge={deletedSelectedEdge}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

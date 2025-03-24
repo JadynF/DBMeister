@@ -1,7 +1,6 @@
 import { createConnection } from '@/lib/db';
 
 export async function POST(req: Request) {
-    console.log("here");
     const body = await req.json();
     const ownerId = body.id;
 
@@ -21,8 +20,6 @@ export async function POST(req: Request) {
         let returnData = [];
         returnData[0] = response;
 
-        console.log(returnData);
-
         response = await new Promise<any[]>((resolve, reject) => {
             connection.query('SELECT invite.*, `groups`.name, `groups`.group_desc, `groups`.date_made, user_information.username FROM invite JOIN `groups` on invite.groupId = `groups`.id JOIN user_information on invite.sendId = user_information.id WHERE invite.recvId = ?;', [ownerId], (err, results: any[]) => {
                 if (err) {
@@ -33,7 +30,6 @@ export async function POST(req: Request) {
             });
         });       
         
-        console.log(response);
 
         returnData[1] = response;
     

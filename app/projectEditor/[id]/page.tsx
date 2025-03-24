@@ -541,15 +541,11 @@ export default function Project() {
             <div id="export-popup-overlay" 
                 className={exportPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
                 <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                    <div>
-                        <h2 className="text-xl font-bold mb-4">
-                            Export this Project?
-                        </h2>
-                    </div>
-                    <div>
-                        <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
-                        <Button className="ml-auto" onClick={exportProject}>Export</Button>
-                    </div>
+                    <h2 className="text-xl font-bold mb-4">
+                        Export this Project
+                    </h2>
+                    <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
+                    <Button onClick={exportProject}>Export</Button>
                 </div>
             </div>
             <div style={mainStyle}>

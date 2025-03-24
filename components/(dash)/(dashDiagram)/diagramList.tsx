@@ -1,4 +1,3 @@
-// components/(dash)/(dashDiagram)/diagramList
 "use client";
 
 import { useState } from "react";

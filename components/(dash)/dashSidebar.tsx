@@ -1,3 +1,4 @@
+"use client";
 import { Home, Users, Shapes, MessageCircleQuestion, Settings } from "lucide-react"
 
 import {
@@ -11,11 +12,13 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-// Menu items.
+// Menu items
 const items = [
   {
-    title: "Dashboard Home",
+    title: "Dashboard",
     url: "/dashboard",
     icon: Home,
   },
@@ -42,23 +45,47 @@ const items = [
 ]
 
 export function DashSidebar() {
+  const pathname = usePathname()
+  
   return (
-    <Sidebar>
-      <SidebarHeader className="text-3xl font-bold text-center bg-blue-100 h-100">DBMeister</SidebarHeader>
-      <SidebarContent className="bg-blue-100">
+    <Sidebar className="border-r border-slate-200 dark:border-slate-800">
+      <SidebarHeader className="py-6 px-4 flex items-center justify-center">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent bg-clip-text">
+          DBMeister
+        </h1>
+      </SidebarHeader>
+      
+      <SidebarContent className="px-3">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon className="w-6 h-6"/>
-                      <span className="text-xl">{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const isActive = pathname === item.url || 
+                  (item.url !== "/dashboard" && pathname?.startsWith(item.url))
+                
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild 
+                      className={`transition-colors ${
+                        isActive 
+                          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" 
+                          : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      <Link href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-md">
+                        <item.icon className={`w-5 h-5 ${
+                          isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-600 dark:text-slate-400"
+                        }`}/>
+                        <span className={`text-base font-medium ${
+                          isActive ? "text-blue-700 dark:text-blue-300" : ""
+                        }`}>
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

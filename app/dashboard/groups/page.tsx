@@ -1,23 +1,14 @@
 import authorization from '@/lib/authorization';
-import CreateGroupDialog from '@/components/(dash)/(dashGroups)/groupCreateDialog'
-import CreateGroupCard from '@/components/(dash)/(dashGroups)/groupCard'
-import CreateInviteCard from '@/components/(dash)/(dashGroups)/inviteCard'
+import CreateGroupDialog from '@/components/(dash)/(dashGroups)/groupCreateDialog';
+import CreateGroupCard from '@/components/(dash)/(dashGroups)/groupCard';
+import CreateInviteCard from '@/components/(dash)/(dashGroups)/inviteCard';
 import Link from 'next/link';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/components/ui/tabs";
 
 export default async function Group() {
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -25,7 +16,7 @@ export default async function Group() {
 
     const payload = {
         id: response.userData.id
-    }
+    };
 
     let res = await fetch(baseURL + '/api/getDashGroups', {
         method: 'POST',
@@ -34,11 +25,8 @@ export default async function Group() {
     });
 
     let returnedData = await res.json();
-    let groupData = returnedData.data[0];
-    console.log("GroupData: " + groupData);
-
-    let inviteData = returnedData.data[1];
-    console.log("InviteData: " + inviteData);
+    let groupData = returnedData.data[0] || [];
+    let inviteData = returnedData.data[1] || [];
 
     return (
         <>
@@ -50,43 +38,40 @@ export default async function Group() {
             </div>
             <Tabs defaultValue="MyGroups" className="w-[100%]">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="MyGroups">My Groups</TabsTrigger>
-                  <TabsTrigger value="IncomingInvites">Incoming Invites</TabsTrigger>
+                    <TabsTrigger value="MyGroups">My Groups</TabsTrigger>
+                    <TabsTrigger value="IncomingInvites">Incoming Invites</TabsTrigger>
                 </TabsList>
-                <TabsContent value="MyGroups">
-                    <div> 
-                        <div className="flex items-center justify-center"> 
-                            <CreateGroupDialog ownerId={response.userData.id}/>
-                        </div>
 
-                        <div className="flex flex-col flex-wrap justify-center w-[100%]">
-                            {/* Check if diagramData is an array before mapping */}
-                            {Array.isArray(groupData) && groupData.length > 0 ? (
+                {/* My Groups Tab */}
+                <TabsContent value="MyGroups">
+                    <div className="flex flex-col items-center">
+                        <CreateGroupDialog ownerId={response.userData.id} />
+                        <div className="w-full flex flex-wrap justify-center gap-4 mt-4">
+                            {groupData.length > 0 ? (
                                 groupData.map((group) => (
-                                    <div key={group.id}> {/* Ensure unique key for each item */}
-                                        <Link href={`/dashboard/groups/${group.id}`}>
-                                            <CreateGroupCard groupData={group}/>
-                                        </Link>
-                                    </div>
+                                    <Link key={group.id} href={`/dashboard/groups/${group.id}`} className="block">
+                                        <CreateGroupCard groupData={group} currentUserId={response.userData.id} />
+                                    </Link>
                                 ))
                             ) : (
-                                <h2 className="m-4 text-xl text-center">Once you're in a group, it will appear here!</h2> // Fallback message when there are no diagrams
+                                <h2 className="m-4 text-xl text-center">Once you're in a group, it will appear here!</h2>
                             )}
                         </div>
                     </div>
                 </TabsContent>
+
+                {/* Incoming Invites Tab */}
                 <TabsContent value="IncomingInvites">
-                    <div>
-                        <div className="flex flex-col flex-wrap justify-center w-[100%]">
-                            {/* Check if diagramData is an array before mapping */}
-                            {Array.isArray(inviteData) && inviteData.length > 0 ? (
+                    <div className="flex flex-col items-center">
+                        <div className="w-full flex flex-wrap justify-center gap-4">
+                            {inviteData.length > 0 ? (
                                 inviteData.map((invite) => (
-                                    <div key={invite.groupId}> {/* Ensure unique key for each item */}
-                                        <CreateInviteCard inviteData={invite}/>
+                                    <div key={invite.groupId} className="block">
+                                        <CreateInviteCard inviteData={invite} />
                                     </div>
                                 ))
                             ) : (
-                                <h2 className="m-4 text-xl text-center">Once you've received an invite it will appear here!</h2> // Fallback message when there are no diagrams
+                                <h2 className="m-4 text-xl text-center">Once you've received an invite, it will appear here!</h2>
                             )}
                         </div>
                     </div>

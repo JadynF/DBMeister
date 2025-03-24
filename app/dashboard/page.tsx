@@ -1,9 +1,9 @@
-// app/dashboard/page.tsx
-
 import authorization from "@/lib/authorization";
 import NewsFeed from "@/components/ui/newsfeed";
 import CreateDiagramDialog from "@/components/(dash)/(dashDiagram)/diagramDialog";
 import DashboardDiagrams from "@/components/(dash)/(dashDiagram)/diagramList";
+import DashboardGroups from "@/components/(dash)/(dashGroups)/groupList";
+
 
 export default async function Dashboard() {
   const response = await authorization();
@@ -27,6 +27,18 @@ export default async function Dashboard() {
   diagramData = diagramData.data;
   console.log("Dashboard diagrams:", diagramData);
 
+  const groupRes = await fetch(`${baseURL}/api/getDashGroups`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  
+  let groupData = await groupRes.json();
+  groupData = groupData.data.flat();
+
+  
+  
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Top Section: News Feed & Greeting */}
@@ -48,8 +60,13 @@ export default async function Dashboard() {
             <h2 className="text-xl font-bold">Your Diagrams</h2>
             <CreateDiagramDialog ownerId={response.userData.id} />
           </div>
-
           <DashboardDiagrams diagramData={diagramData} />
+        </div>
+        
+        {/* Groups Cards Section */}
+        <div className="p-4 bg-white shadow rounded-lg mt-6">
+          <h2 className="text-xl font-bold">Your Groups</h2>
+          <DashboardGroups groupData={groupData} />
         </div>
       </div>
     </div>

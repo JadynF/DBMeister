@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileDown, Import, Save, House } from "lucide-react";
+import Link from "next/link";
 import {
     ReactFlow,
     addEdge,
@@ -25,6 +26,7 @@ import { useParams } from 'next/navigation';
 import authorization from '@/lib/authorization';
 import authProject from '@/lib/authProjectEditor';
 import { Progress } from "@/components/ui/progress"
+
 
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
@@ -504,15 +506,17 @@ export default function Project() {
             <div style={contentStyle}>
                 <header style={taskbarStyle}>
                     <div>
-                        <Button className="space-x-5" onClick={saveState}>Save</Button>
-                    <Button className="space-x-5" onClick={handleExPopChange}>Export</Button>
-                    <Button className="space-x-5" onClick={handleImPopChange}>Import</Button>
+                        <Button variant="ghost" onClick={saveState}><Save/></Button>
+                    <Button variant="ghost" className="space-x-5" onClick={handleExPopChange}><FileDown/></Button>
+                    <Button variant="ghost" className="space-x-5" onClick={handleImPopChange}><Import/></Button>
                     </div>
                     <div>
                         Project {projectId}
                     </div>
                     <div>
-                        <button>Go Back</button>
+                        <Link href="/dashboard">
+                            <Button variant="ghost"><House/></Button>
+                        </Link>
                     </div>
                 </header>
                 <div id="import-popup-overlay" 
@@ -537,11 +541,15 @@ export default function Project() {
             <div id="export-popup-overlay" 
                 className={exportPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
                 <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                    <h2 className="text-xl font-bold mb-4">
-                        Export this Project
-                    </h2>
-                    <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
-                    <Button onClick={exportProject}>Export</Button>
+                    <div>
+                        <h2 className="text-xl font-bold mb-4">
+                            Export this Project?
+                        </h2>
+                    </div>
+                    <div>
+                        <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
+                        <Button className="ml-auto" onClick={exportProject}>Export</Button>
+                    </div>
                 </div>
             </div>
             <div style={mainStyle}>

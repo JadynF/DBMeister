@@ -34,14 +34,14 @@ export async function POST(req: Request) {
         returnData[1] = response;
     
         return new Response(JSON.stringify({response: "Fetched Groups", data: returnData}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
         return new Response(JSON.stringify({response: "Failed to Fetch Groups"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

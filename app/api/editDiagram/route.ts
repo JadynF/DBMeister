@@ -19,14 +19,14 @@ export async function POST(req: Request) {
         });
 
         return new Response(JSON.stringify({response: "Edit Successful"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
         return new Response(JSON.stringify({response: "Edit Error"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

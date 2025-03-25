@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const connection = createConnection();
     try {
         // Delete related records in user_group
-        await new Promise<any[]>((resolve, reject) => {
+        await new Promise<any>((resolve, reject) => {
             connection.query('DELETE FROM user_group WHERE group_id = ?', [groupId], (err, results) => {
                 if (err) reject(err);
                 else resolve(results);
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         });
 
         // Delete related records in group_owns
-        await new Promise<any[]>((resolve, reject) => {
+        await new Promise<any>((resolve, reject) => {
             connection.query('DELETE FROM group_owns WHERE group_id = ?', [groupId], (err, results) => {
                 if (err) reject(err);
                 else resolve(results);
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         });
 
         // Finally, delete the group itself
-        await new Promise<any[]>((resolve, reject) => {
+        await new Promise<any>((resolve, reject) => {
             connection.query('DELETE FROM `groups` WHERE id = ?', [groupId], (err, results) => {
                 if (err) reject(err);
                 else resolve(results);

@@ -53,6 +53,29 @@ export default async function authGroup(userId : string, groupId : string) : Pro
 
         data[1] = response;
 
+        response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('SELECT id, username, email FROM user_information WHERE id in (SELECT recvId FROM invite WHERE groupId = ?);', [groupId], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            })
+        })
+
+        data[2] = response;
+
+        response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('SELECT id, username, email FROM user_information WHERE id in (SELECT user_id FROM user_group WHERE group_id = ?);', [groupId], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            })
+        })
+
+        data[3] = response;
 
         console.log("authGroup:");
         console.log(data);

@@ -17,45 +17,34 @@ import { useState } from "react"
 import { useRouter } from 'next/navigation';
 import Router from "next/router";
 
-export default function LeaveGroupDialog({ groupId, userId } : {string, any}) {
+export default function GroupAdminDialog({ groupId, userId, setReload } : {string, string, any}) {
   const router = useRouter();
 
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const [open, setOpen] = useState(false);
 
-  const handleLeave = async (e: React.MouseEvent) => {
+  const handleAdmin = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     try {
-      const response = await fetch('/api/leaveGroup', {
+      const response = await fetch('/api/changeGroupAdmin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groupId: groupId, userId: userId }),
       });
 
-      console.log(response);
-
-      if (response.response == "Error" || response.status == 500) {
-        toast("Error when leaving group", {
-          action: {
-            label: "Close"
-          }
-        });
-      }
-      else {
-        toast("Successfully left group!", {
-          action: {
-            label: "Close"
-          }
-        });
-        router.push('/dashboard/groups');
-      }
-      // Optionally: refresh the page or update state
+      toast("Admin successfully changed!", {
+        action: {
+          label: "Close"
+        }
+      });
+      setReload(prev => !prev);
+      setOpen(false);
     } catch (error) {
       console.error(error);
-      toast("Error when leaving group", {
+      toast("Error when changing admin", {
         action: {
           label: "Close"
         }
@@ -66,17 +55,17 @@ export default function LeaveGroupDialog({ groupId, userId } : {string, any}) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="py-8 px-8 text-lg">Leave Group</Button>
+        <Button className="py-8 px-8 text-lg">Make Group Admin</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>
           <DialogDescription>
-            You are about to leave this group. You will lose access to all of its diagrams!
+            This can NOT be undone! You will no longer be the admin of this group!
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="destructive" onClick={handleLeave}>Leave Group</Button>
+          <Button variant="destructive" onClick={handleAdmin}>Make Group Admin</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

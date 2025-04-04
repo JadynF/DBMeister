@@ -24,6 +24,7 @@ import { group } from "console";
 import LeaveGroupDialog from "@/components/(dash)/(dashGroups)/groupLeaveDialog";
 import CreateInvitedCard from "@/components/(dash)/(dashGroups)/groupInvitedCard";
 import CreateMemberCard from "@/components/(dash)/(dashGroups)/groupMemberCard";
+import InviteComboBox from "@/components/(dash)/(dashGroups)/sendInviteDropdown";
 
 export default function Group() {
     const params = useParams();
@@ -159,6 +160,8 @@ export default function Group() {
               label: "Close"
             }
         });
+        setGroupName("");
+        setGroupDesc("");
         setReload(prev => !prev);
 
       } catch (error) {
@@ -323,7 +326,7 @@ export default function Group() {
                                 {Array.isArray(groupMembers) && groupMembers.length > 0 ? (
                                     groupMembers.map((member) => (
                                         <div key={member.id} className="transform transition duration-200 hover:scale-[1.02]">
-                                            <CreateMemberCard memberData={member} groupId={groupId} isAdmin={userId == groupData.admin_id} myId={userId} setReload={setReload} />
+                                            <CreateMemberCard memberData={member} groupId={groupId} adminId={groupData.admin_id} myId={userId} setReload={setReload} />
                                         </div>
                                     ))
                                 ) : (
@@ -378,6 +381,7 @@ export default function Group() {
                                         <Button 
                                             onClick={handleEdit}
                                             className="bg-blue-600 hover:bg-blue-700 text-white"
+                                            disabled={groupName == undefined || groupName.trim() == ""}
                                         >
                                             Update Group Information
                                         </Button>

@@ -19,9 +19,9 @@ import {
   import CreateEditDiagramDialog from '@/components/(dash)/(dashDiagram)/diagramEditDialog';
   import { useRouter } from 'next/navigation';
   import { toast } from "sonner";
-  import { acceptInvite, declineInvite } from "@/lib/handleInvite";
+  import GroupAdminDialog from "@/components/(dash)/(dashGroups)/groupAdminDialog";
 
-  export default function CreateMemberCard({ memberData, groupId, isAdmin, myId, setReload } : { any, any, any }) {
+  export default function CreateMemberCard({ memberData, groupId, adminId, myId, setReload } : { any, any, any }) {
     const router = useRouter();
 
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -63,15 +63,21 @@ import {
                         <CardTitle className='text-xl mb-3'>{memberData.email}</CardTitle>
                         <CardDescription>UserID: {memberData.id}</CardDescription>
                     </div>
-                    { isAdmin && memberData.id != myId ? (
-                        <div className="w-[20%] flex items-center justify-end">
-                            <Button className="ml-4" >Make Group Admin</Button>
-                            <Button className="ml-4" variant="destructive" onClick={kickMember}>Kick</Button>
-                        </div>
+                    { adminId == myId && memberData.id != myId ? (
+                      <div className="w-[20%] flex items-center justify-end">
+                        <GroupAdminDialog groupId={groupId} userId={memberData.id} setReload={setReload}/>
+                        <Button className="ml-4 py-8 px-8 text-lg" variant="destructive" onClick={kickMember}>Kick</Button>
+                      </div>
+                    ) : memberData.id == myId ? (
+                      <div className="w-[20%] flex items-center justify-end opacity-40">
+                        It's You!
+                      </div>
+                    ) : memberData.id == adminId ? (
+                      <div className="w-[20%] flex items-center justify-end opacity-40 color-red">
+                        Group Admin
+                      </div>
                     ) : (
-                        <div className="w-[20%] flex items-center justify-end opacity-40">
-                            It's You!
-                        </div>
+                      <></>
                     )}
                 </div>
             </CardHeader>

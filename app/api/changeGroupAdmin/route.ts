@@ -7,8 +7,10 @@ export async function POST(req: Request) {
 
     const connection = createConnection();
     try {
+        console.log(userId);
+        console.log(groupId);
         let response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('DELETE FROM user_group WHERE user_id = ? AND group_id = ? AND user_id NOT IN (SELECT admin_id FROM `groups` WHERE id = ?);', [userId, groupId, groupId], (err, results: any[]) => {
+            connection.query('UPDATE `groups` SET admin_id = ? WHERE id = ?;', [userId, groupId], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -17,18 +19,12 @@ export async function POST(req: Request) {
             });
         });
 
-        if (response.affectedRows > 0)
-            return new Response(JSON.stringify({ response: "Left group" }), {
-                headers: { "Content-Type": "application/json" },
-                status: 200
-            });
-        else
-            return new Response(JSON.stringify({ response: "Error" }), {
-                headers: { "Content-Type": "application/json" },
-                status: 500
-            });
+        return new Response(JSON.stringify({ response: "Changed group admin" }), {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+        });
     } catch (err) {
-        console.error("Group Leave error", err);
+        console.error("Error when changing admin", err);
         return new Response(JSON.stringify({ response: "Error" }), {
             headers: { "Content-Type": "application/json" },
             status: 500

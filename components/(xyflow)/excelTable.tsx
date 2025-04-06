@@ -43,32 +43,33 @@ const ExcelTableNode = ({data}: {data: ExcelTableType}) => {
     const tableID = data.id || `${data.tableData.length + 1}`;
 
     return (
-        <div style={{width: 450}}>
-            <Handle type="target" position={Position.Top} style={{top: '-4px'}}/>
-                <Table className='bg-green-100 rounded-xl border-rounded-xl text-left'>
-                    <TableHeader className="w-[300px]">
-                        <TableRow className="w-full">
-                            <TableHead>{tableHeader}</TableHead>
-                            <TableHead className='align-right text-right'>({tableID})</TableHead>
+        <div className='w-[400px] border-2 border-green-600 bg-emerald-300 rounded-xl border-rounded-xl'>
+            <Handle type="target" position={Position.Top} style={{top: '-4px', width: '8px', height: '8px'}}/>
+                <Table className='text-left w-full'>
+                    <TableHeader>
+                        <TableRow className="font-mono text-lg">
+                            <TableHead></TableHead> {/* Spacer. DO NOT REMOVE */}
+                            <TableHead className='text-white'>{tableHeader}</TableHead>
+                            <TableHead className='align-right text-right text-white'>ID: {tableID}</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody className='text-left'>
+                    <TableBody className='text-left w-full'>
                         {tableData.map((sheet) => (
-                        <TableRow key={sheet.sheetName} className="relative w-1/2">
+                        <TableRow key={sheet.sheetName} className="relative w-1/2 font-mono text-lg">
                             <td>
-                                <Handle type="target" position={Position.Left} id={`sheet-${sheet.sheetName}-t`} style={{position: 'absolute', left: '4px'}}/>
+                                <Handle type="target" position={Position.Left} id={`sheet-${sheet.sheetName}-t`} className='border-t border-b border-white' style={{position: 'absolute', left: '4px', width: '8px', height: '8px'}}/>
                             </td>
-                            <TableCell className="text-left w-1/2">{sheet.sheetName}</TableCell>
-                            <TableCell className="w-1/2 p-0">
+                            <TableCell className="text-left w-1/4 border-t border-b-2 border-white text-black">{sheet.sheetName}</TableCell>
+                            <TableCell className="p-0">
                                 <Table>
                                     <TableBody>
                                     {sheet.sheetData.map((field) => (
-                                        <TableRow key={field.fieldName} className="relative w-full">
-                                            <TableCell className="text-left">{field.fieldName}</TableCell>
-                                            <TableCell className="text-left">{field.fieldType}</TableCell>
-                                            <td>
-                                                <Handle type="source" position={Position.Right} id={`${sheet.sheetName}-row-${field.fieldName}-s`} style={{position: 'absolute', right: '4px'}}/>
-                                            </td>
+                                        <TableRow key={field.fieldName} className="relative w-full font-mono text-lg">
+                                            <TableCell className="text-left border-b border-white text-black">{field.fieldName}</TableCell>
+                                            <TableCell className="text-left border-b border-white text-black">{field.fieldType}</TableCell>
+                                            <TableCell className="text-left border-b border-white text-black">
+                                                <Handle type="source" position={Position.Right} id={`${sheet.sheetName}-row-${field.fieldName}-s`} className='border-b-4 border-white' style={{position: 'absolute', right: '4px', width: '8px', height: '8px'}}/>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                     </TableBody>
@@ -76,9 +77,9 @@ const ExcelTableNode = ({data}: {data: ExcelTableType}) => {
                             </TableCell>
                         </TableRow>
                         ))}
-                </TableBody>
+                    </TableBody>
                 </Table>
-            <Handle type="source" position={Position.Bottom} style={{bottom: '-4px'}}id="a" />
+            <Handle type="source" position={Position.Bottom} style={{bottom: '-4px', width: '8px', height: '8px'}}id="a" />
         </div>
     )
 }

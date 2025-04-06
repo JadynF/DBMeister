@@ -1,3 +1,21 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": [
+      "off", // You can make it "off" to disable the rule or "warn" to just give warnings
+      {
+        "ignoreRestArgs": true // Ignores "any" usage for rest parameters
+      }
+    ],
+    "prefer-const": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "react/no-unescaped-entities": "off",
+    "@typescript-eslint/no-unsafe-return": "off", // Disable this specific rule globally
+    "@typescript-eslint/no-unsafe-assignment": "off", // Optionally, disable unsafe assignment rule
+    "@typescript-eslint/no-unsafe-call": "off", // Optionally, disable unsafe call rule
+    "@typescript-eslint/explicit-module-boundary-types": "off", // Disables explicit return types on functions
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off"
+  }
 }

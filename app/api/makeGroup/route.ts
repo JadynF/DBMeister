@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
     const connection = createConnection()
     try {
-        let response = await new Promise<any[]>((resolve, reject) => {
+        let response = await new Promise<any>((resolve, reject) => {
             connection.query('INSERT INTO `groups` (name, admin_id, group_desc) VALUES (?, ?, ?);', [name, ownerId, description], (err, results: any[]) => {
                 if (err) {
                     reject(err);
@@ -32,14 +32,14 @@ export async function POST(req: Request) {
         })
 
         return new Response(JSON.stringify({response: "Creation Successful"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
         return new Response(JSON.stringify({response: "Creation Error"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

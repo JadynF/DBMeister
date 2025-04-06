@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-function newsfeed({ newsItems }: { newsItems: { id: number; imgSrc: string; alt: string, text: string }[] }) {
+export default function NewsFeed({ newsItems }: { newsItems: { id: number; imgSrc: string; alt: string, text: string }[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToNext = () => {
@@ -75,6 +75,4 @@ function newsfeed({ newsItems }: { newsItems: { id: number; imgSrc: string; alt:
       </div>
     </div>
   );
-}
-
-export default newsfeed;
+};

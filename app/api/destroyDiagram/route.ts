@@ -37,14 +37,14 @@ export async function POST(req: Request) {
         });
 
         return new Response(JSON.stringify({response: "Deletion Successful"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
         return new Response(JSON.stringify({response: "Deletion Error"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

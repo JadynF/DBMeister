@@ -1,5 +1,3 @@
-'use client';
-
 import React from "react";
 import authorization from '@/lib/authorization';
 import CreateDiagramDialog from '@/components/(dash)/(dashDiagram)/diagramDialog';

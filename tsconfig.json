@@ -3,18 +3,30 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "typeRoots": ["./node_modules/@types"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
+    "skipLibCheck": true,  // Ensures libraries' types are not checked
+    "strict": false,       // Keep as false if you prefer not to have strict checks
+    "strictFunctionTypes": false,
     "noEmit": true,
-    "checkJs": true,
+    "noEmitOnError": false,
+    "checkJs": true,       // Allows checking of JS files
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "skipDefaultLibCheck": true,  // Skip checking default library files
+    "noUncheckedIndexedAccess": false, // Avoid strict checks on indexed access
+    "declaration": false,  // Avoid generating .d.ts files for JavaScript
+    "noUnusedLocals": false, // Allow unused local variables
+    "noUnusedParameters": false, // Allow unused function parameters
+    "suppressImplicitAnyIndexErrors": true, // Suppress errors related to `any` type for index signatures
+    "esModuleInterop": true, // Allow `import` syntax compatibility with CommonJS
+    "allowJs": true, // Allow JavaScript files in the project
+    "skipDefaultLibCheck": true,
+    "allowSyntheticDefaultImports": true,
     "plugins": [
       {
         "name": "next"

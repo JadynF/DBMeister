@@ -2,14 +2,15 @@ import { createConnection } from '@/lib/db';
 
 export async function POST(req: Request) {
     const body = await req.json();
-    const id = body.id;
-    const name = body.name;
-    const description = body.description;
+    const userId = body.userId;
+    const groupId = body.groupId;
 
-    const connection = createConnection()
+    const connection = createConnection();
     try {
+        console.log(userId);
+        console.log(groupId);
         let response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('UPDATE diagrams SET name = ?, description = ? WHERE id = ?;', [name, description, id], (err, results: any[]) => {
+            connection.query('UPDATE `groups` SET admin_id = ? WHERE id = ?;', [userId, groupId], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -18,20 +19,17 @@ export async function POST(req: Request) {
             });
         });
 
-        return new Response(JSON.stringify({response: "Edit Successful"}), {
+        return new Response(JSON.stringify({ response: "Changed group admin" }), {
             headers: { "Content-Type": "application/json" },
             status: 200
         });
-    }
-    catch (err) {
-        console.log(err);
-        return new Response(JSON.stringify({response: "Edit Error"}), {
+    } catch (err) {
+        console.error("Error when changing admin", err);
+        return new Response(JSON.stringify({ response: "Error" }), {
             headers: { "Content-Type": "application/json" },
             status: 500
         });
-    }
-    finally {
+    } finally {
         connection.end();
     }
-
 }

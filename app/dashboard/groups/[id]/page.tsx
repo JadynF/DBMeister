@@ -16,7 +16,15 @@ import {
 } from "@/components/ui/tabs";
 import CreateDiagramDialog from '@/components/(dash)/(dashGroups)/diagramDialog';
 import CreateDiagramCard from '@/components/(dash)/(dashGroups)/diagramCard';
-import { Users, UserPlus, FileImage, Settings, Send } from "lucide-react";
+import { Users, UserPlus, FileImage, Settings, Send, Delete } from "lucide-react";
+import DeleteGroupDialog from '@/components/(dash)/(dashGroups)/groupDeleteDialog';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { group } from "console";
+import LeaveGroupDialog from "@/components/(dash)/(dashGroups)/groupLeaveDialog";
+import CreateInvitedCard from "@/components/(dash)/(dashGroups)/groupInvitedCard";
+import CreateMemberCard from "@/components/(dash)/(dashGroups)/groupMemberCard";
+import InviteComboBox from "@/components/(dash)/(dashGroups)/sendInviteDropdown";
 
 export default function Group() {
     const params = useParams();
@@ -28,6 +36,11 @@ export default function Group() {
     const [groupDiagramData, setGroupDiagramData] = useState<any>(null);
     const [reload, setReload] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    const [groupName, setGroupName] = useState<string | undefined>(undefined);
+    const [groupDesc, setGroupDesc] = useState<string | undefined>(undefined);
+    const [groupInvites, setGroupInvites] = useState<any>(undefined);
+    const [groupMembers, setGroupMembers] = useState<any>(undefined);
     
     const [invitedUser, setInvitedUser] = useState<string | undefined>(undefined);
 
@@ -55,6 +68,7 @@ export default function Group() {
                       label: "Close"
                     }
                 });
+                setReload(prev => !prev);
             }
             else if (inviteResponse.res == 'no user') {
                 console.log("user not found");
@@ -99,6 +113,10 @@ export default function Group() {
                 setIsAuth(gAuth[0].authorized);
                 setGroupData(gAuth[1][0]);
                 setGroupDiagramData(gAuth[1][1]);
+                setGroupInvites(gAuth[1][2]);
+                setGroupMembers(gAuth[1][3]);
+                //setGroupName(gAuth[1][0].name);
+                //setGroupDesc(gAuth[1][0].group_desc)
             }
         }
 
@@ -121,22 +139,75 @@ export default function Group() {
             </div>
         );
     }
+    
+    const handleEdit = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      try {
+        const response = await fetch('/api/editGroup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            groupId: groupId,
+            name: groupName,
+            description: groupDesc
+          }),
+        });
+
+        toast("Group edit successful!", {
+            action: {
+              label: "Close"
+            }
+        });
+        setGroupName("");
+        setGroupDesc("");
+        setReload(prev => !prev);
+
+      } catch (error) {
+        console.error(error);
+        toast("Group edit failed", {
+            action: {
+              label: "Close"
+            }
+        });
+      }
+    };
+
+    const handleGroupNameChange = (event: React.ChangeEvent<HTMLInputElement>) => setGroupName(event.target.value);
+    const handleGroupDescChange = (event: React.ChangeEvent<HTMLInputElement>) => setGroupDesc(event.target.value);
 
     return (
         <>
             {/* Modern Page Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center">
-                    <Users className="mr-3 h-8 w-8 text-blue-600 dark:text-blue-400" />
-                    {groupData.name}
-                </h1>
-                <p className="text-slate-600 dark:text-slate-300">
-                    Collaborate on diagrams and manage your group
-                </p>
+            <div className="mb-6 flex">
+                <div className="w-[80%]">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                        <Users className="mr-3 h-8 w-8 text-blue-600 dark:text-blue-400" />
+                        {groupData.name}
+                    </h1>
+                    {groupData.group_desc ? (
+                        <h2 className="mb-4 text-xl">
+                            {groupData.group_desc}
+                        </h2>
+                    ) : (
+                        <></>
+                    )}
+                </div>
+                <div className="w-[20%] flex justify-end">
+                    {groupData.admin_id != userId ? (
+                        <LeaveGroupDialog groupId={groupId} userId={userId}/>
+                    ) : (
+                        <></>
+                    )}
+                </div>
             </div>
 
             {/* Tabs Container */}
             <div className="bg-white dark:bg-slate-800 shadow-sm rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <p className="text-slate-600 dark:text-slate-300 m-2">
+                    Collaborate on diagrams and manage your group
+                </p>
                 <Tabs defaultValue="GroupDiagrams" className="w-full">
                     <div className="px-6 pt-6">
                         <TabsList className={"grid w-full " + (userId == groupData.admin_id ? "grid-cols-4" : "grid-cols-3")}>
@@ -155,7 +226,7 @@ export default function Group() {
                             {userId == groupData.admin_id && (
                                 <TabsTrigger value="ManageGroup" className="flex items-center">
                                     <Settings className="mr-2 h-4 w-4" />
-                                    Manage Group
+                                    Manage Group                     
                                 </TabsTrigger>
                             )}
                         </TabsList>
@@ -221,11 +292,19 @@ export default function Group() {
                                 <h3 className="text-md font-medium text-slate-800 dark:text-slate-200 mb-3">
                                     Pending invitations
                                 </h3>
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                                    <p className="text-slate-500 dark:text-slate-400 text-center py-4">
-                                        Will eventually see open invites listed here
-                                    </p>
-                                </div>
+                                {Array.isArray(groupInvites) && groupInvites.length > 0 ? (
+                                    groupInvites.map((invite) => (
+                                        <div key={invite.id} className="transform transition duration-200 hover:scale-[1.02]">
+                                            <CreateInvitedCard inviteData={invite} groupId={groupId} setReload={setReload} />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-3 flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                                        <FileImage className="h-12 w-12 text-slate-400 mb-4" />
+                                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No diagrams yet</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 mb-4">When you create group diagrams, they will appear here!</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </TabsContent>
@@ -242,14 +321,21 @@ export default function Group() {
                                     <h3 className="text-md font-medium text-slate-800 dark:text-slate-200">
                                         Members
                                     </h3>
-                                    <p className="text-sm text-slate-500">
-                                        Admin: {groupData.admin_id === userId ? 'You' : groupData.admin_id}
-                                    </p>
                                 </div>
                                 
-                                <p className="text-slate-500 dark:text-slate-400 text-center py-4">
-                                    Group member list will be displayed here
-                                </p>
+                                {Array.isArray(groupMembers) && groupMembers.length > 0 ? (
+                                    groupMembers.map((member) => (
+                                        <div key={member.id} className="transform transition duration-200 hover:scale-[1.02]">
+                                            <CreateMemberCard memberData={member} groupId={groupId} adminId={groupData.admin_id} myId={userId} setReload={setReload} />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-3 flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                                        <FileImage className="h-12 w-12 text-slate-400 mb-4" />
+                                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No diagrams yet</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 mb-4">When you create group diagrams, they will appear here!</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </TabsContent>
@@ -257,16 +343,52 @@ export default function Group() {
                     {/* Manage Group Tab */}
                     {userId == groupData.admin_id && (
                         <TabsContent value="ManageGroup" className="p-6">
-                            <div className="flex flex-col">
-                                <h2 className="text-lg font-medium text-slate-900 dark:text-white mb-6">
+                            <h2 className="text-lg font-medium text-slate-900 dark:text-white mb-6">
                                     Group administration
-                                </h2>
-                                
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                                    <p className="text-slate-500 dark:text-slate-400 text-center py-4">
-                                        Group management options will be available here
-                                    </p>
-                                </div>
+                            </h2>
+                            <div className="flex flex-col justify-center items-center">
+
+                                <Card className="border border-slate-200 dark:border-slate-700 w-[50%] mb-8">
+                                    <CardHeader className="bg-slate-50 dark:bg-slate-800/60">
+                                        <CardTitle className="text-md font-medium">Edit Group Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-4">
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col space-y-2">
+                                                <Label htmlFor="username" className="font-medium text-slate-800 dark:text-slate-200">New Group Name</Label>
+                                                <Input 
+                                                    id="groupName" 
+                                                    placeholder="Enter new group name"
+                                                    className="border-slate-200 dark:border-slate-700"
+                                                    value={groupName}
+                                                    onChange={handleGroupNameChange}
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col space-y-2">
+                                                <Label htmlFor="password" className="font-medium text-slate-800 dark:text-slate-200">New Group Description</Label>
+                                                <Input 
+                                                    id="groupDesc" 
+                                                    placeholder="Enter new group description"
+                                                    className="border-slate-200 dark:border-slate-700" 
+                                                    value={groupDesc}
+                                                    onChange={handleGroupDescChange}
+                                                />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-end border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 px-6 py-4">
+                                        <Button 
+                                            onClick={handleEdit}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                                            disabled={groupName == undefined || groupName.trim() == ""}
+                                        >
+                                            Update Group Information
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+
+                                <DeleteGroupDialog groupId={groupId}/>
                             </div>
                         </TabsContent>
                     )}

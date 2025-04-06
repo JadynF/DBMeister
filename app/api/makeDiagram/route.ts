@@ -8,8 +8,8 @@ export async function POST(req: Request) {
 
     const connection = createConnection()
     try {
-        let response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('INSERT INTO diagrams (name, description) VALUES(?, ?);', [name, description], (err, results: any[]) => {
+        let response = await new Promise<any>((resolve, reject) => {
+            connection.query('INSERT INTO diagrams (name, description) VALUES(?, ?);', [name, description], (err, results: any) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -31,14 +31,14 @@ export async function POST(req: Request) {
         })
 
         return new Response(JSON.stringify({response: "Creation Successful"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
         return new Response(JSON.stringify({response: "Creation Error"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

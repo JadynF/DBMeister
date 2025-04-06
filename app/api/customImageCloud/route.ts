@@ -1,4 +1,4 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from '@/lib/s3';
 
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         Key: newName as string,
         Body: buffer,
         ContentType: fileType as string,
-        ACL: 'public-read', // Allow public access
+        ACL: 'public-read' as any, // Allow public access
     };
     await s3Client.send(new PutObjectCommand(toUpload)); //Ignore this warning. Its stupid
     const fileUrl = `${process.env.CUSTOMIMG_SPACES_ENDPOINT}/${process.env.CUSTOMIMG_SPACES_BUCKETNAME}/${newName}`;

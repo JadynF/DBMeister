@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React, { useState, useEffect } from "react";
 import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -20,27 +20,33 @@ import {
 } from "@/components/ui/popover"
 import getUsersLike from "@/lib/getUsers";
 
-let frameworks = [];
-const getUsers = async () => {
-    let users = await getUsersLike();
-    console.log(users);
-    if (users.users != "None") {
-        users = users.users;
-        let newUsers = [];
-        for (let i in users) {
-            console.log(users[i]);
-            newUsers.push({value: users[i].id, label: users[i].username})
-        }
-        console.log(newUsers);
-        frameworks = newUsers;
-    }
-}
-
-getUsers();
-
-export default function InviteComboBox() {
+export default function InviteComboBox({ groupId, setSelectedId, reload } : { string, any, any }) {
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState("")
+  const [userList, setUserList] = React.useState([]);
+
+  useEffect(() => {
+    const getUsers = async () => {
+      console.log(groupId);
+      let users = await getUsersLike(groupId);
+      if (users.users != "None") {
+          users = users.users;
+          let newUsers = [];
+          for (let i in users) {
+              newUsers.push({value: "" + users[i].id, label: users[i].username})
+          }
+          setUserList(newUsers);
+      }
+    }
+
+    getUsers();
+    setValue("");
+  }, [reload])
+
+  useEffect(() => {
+    console.log(value);
+    setSelectedId(value);
+  }, [value])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,31 +58,35 @@ export default function InviteComboBox() {
           className="w-[200px] justify-between"
         >
           {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select framework..."}
+            ? userList.find((user) => user.value === value)?.label
+            : "Select user..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." className="h-9" />
+          <CommandInput placeholder="Search user..." className="h-9" />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>No user found.</CommandEmpty>
             <CommandGroup>
-              {frameworks.map((framework) => (
+              {userList.map((user) => (
                 <CommandItem
-                  key={framework.value}
-                  value={framework.value}
+                  key={user.value}
+                  value={user.label} // 👈 use label for searching
                   onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue)
-                    setOpen(false)
-                  }}
+                    const matched = userList.find((u) => u.label === currentValue);
+                    setValue(matched?.value ?? ""); // still store the ID in `value`
+                    setOpen(false);
+                }}
                 >
-                  {framework.label}
+                  <div className="flex flex-col">
+                    {user.label}
+                    <p className="opacity-50">Id: {user.value}</p>
+                  </div>
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === framework.value ? "opacity-100" : "opacity-0"
+                      value === user.value ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import React, { useState, useEffect } from "react";
 
 // Menu items
 const items = [
@@ -45,7 +46,19 @@ const items = [
 ]
 
 export function DashSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
+
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+          const storedTheme = localStorage.getItem("theme");
+          if (storedTheme === "dark") setDarkMode(true);
+  }, []);
+
+  useEffect(() => {
+          localStorage.setItem("theme", darkMode ? "dark" : "light");
+          document.documentElement.className = darkMode ? "dark" : "light";
+      }, [darkMode]);
   
   return (
     <Sidebar className="border-r border-slate-200 dark:border-slate-800">

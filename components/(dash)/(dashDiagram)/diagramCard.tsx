@@ -19,6 +19,7 @@ import {
   import CreateEditDiagramDialog from '@/components/(dash)/(dashDiagram)/diagramEditDialog';
   import { useRouter } from 'next/navigation';
   import { toast } from "sonner";
+  import React, { useState, useEffect, useCallback, useRef } from "react";
 
   export default function CreateDiagramCard({ diagramData } : any) {
     const router = useRouter();
@@ -55,8 +56,32 @@ import {
           }
     }
 
+    const [imageExists, setImageExists] = useState(true);
+
+    const imageUrl = "https://dbm-project-customiconimages.nyc3.digitaloceanspaces.com/testingUploads/" + diagramData.id + "--thumbnail"; // Example cloud URL
+    const fallbackImage = "/resources/ExampleDiagram.png"; // Fallback image
+  
+    useEffect(() => {
+      // Function to check if the image exists
+      console.log(imageUrl);
+      const checkImageExists = async () => {
+        try {
+          const response = await fetch(imageUrl, { method: 'HEAD' });
+          if (response.ok) {
+            setImageExists(true); // Image exists in cloud
+          } else {
+            setImageExists(false); // Image doesn't exist
+          }
+        } catch (error) {
+          setImageExists(false); // Error (image not accessible)
+        }
+      };
+  
+      checkImageExists();
+    }, [imageUrl]);
+
     return (
-        <Card className="w-[350px] h-auto m-5">
+        <Card className="w-[100%] h-auto m-5">
             <CardHeader>
                 <CardTitle>{diagramData.name}</CardTitle>
                 {diagramData.description.length < 80 ? (
@@ -76,15 +101,15 @@ import {
                 )}
             </CardHeader>
             <CardContent>
-                <div className="relative h-40 w-full">
+                <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                     <Image 
-                        src="/resources/ExampleDiagram.png"
-                        fill
-                        style={{objectFit: 'contain'}}
+                        src={imageExists ? imageUrl : fallbackImage}
+                        layout="fill"
+                        objectFit="contain"
                     />
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-around">
+            <CardFooter className="flex flex-wrap justify-around">
                 <Link href={"/projectEditor/" + diagramData.id}>
                     <Button>Open</Button>
                 </Link>

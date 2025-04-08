@@ -248,14 +248,14 @@ export default function Group() {
                                 <h2 className="text-lg font-medium text-slate-900 dark:text-white">
                                     Shared diagrams
                                 </h2>
-                                <CreateDiagramDialog groupId={groupData.id} setReload={setReload} />
+                                <CreateDiagramDialog groupId={groupData.id} setReload={setReload}/>
                             </div>
                             
                             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {Array.isArray(groupDiagramData) && groupDiagramData.length > 0 ? (
                                     groupDiagramData.map((diagram) => (
                                         <div key={diagram.id} className="transform transition duration-200 hover:scale-[1.02]">
-                                            <CreateDiagramCard diagramData={diagram} setReload={setReload} />
+                                            <CreateDiagramCard diagramData={diagram} setReload={setReload} isAdmin={userId == groupData.admin_id}/>
                                         </div>
                                     ))
                                 ) : (

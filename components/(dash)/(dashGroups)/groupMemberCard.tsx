@@ -21,7 +21,7 @@ import {
   import { toast } from "sonner";
   import GroupAdminDialog from "@/components/(dash)/(dashGroups)/groupAdminDialog";
 
-  export default function CreateMemberCard({ memberData, groupId, adminId, myId, setReload } : { any, any, any }) {
+  export default function CreateMemberCard({ memberData, groupId, adminId, myId, setReload } : { any, string, string, string, any }) {
     const router = useRouter();
 
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;

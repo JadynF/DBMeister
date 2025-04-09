@@ -1,39 +1,24 @@
 import LoginCanvas from "@/components/(authComponents)/loginCanvas";
 import LoginForm from "@/components/(authComponents)/loginForm";
 
-
 export default function Login() {
-    return (
-        <div style={containerStyle}>
-            <div style={leftHalfStyle}>
-                <LoginCanvas />
-            </div>
-            <div style={rightHalfStyle} >
-                <LoginForm />
-            </div>
-        </div> 
-    )
+  return (
+    <div className="flex min-h-screen w-full">
+      {/* Left side with canvas */}
+      <div className="hidden md:flex w-1/2 bg-indigo-600 overflow-hidden">
+        <LoginCanvas />
+      </div>
+      
+      {/* Right side with form */}
+      <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-b from-blue-50 to-indigo-50 px-6">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome back</h1>
+            <p className="text-gray-600">Sign in to continue to DBMeister</p>
+          </div>
+          <LoginForm />
+        </div>
+      </div>
+    </div>
+  );
 }
-
-// Inline styles
-const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    height: '100vh', /* Full viewport height */
-    width: '100vw' /* Full viewport width */
-};
-
-const leftHalfStyle: React.CSSProperties = {
-    flex: 1,
-    display: 'flex',
-    height: "100vh",
-    width: "100%",
-    overflow: "hidden"
-  };
-  
-const rightHalfStyle: React.CSSProperties = {
-    flex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: '#bfdbfe'
-};

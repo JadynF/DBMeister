@@ -18,13 +18,13 @@ export async function POST(req: Request) {
         });
     
         return new Response(JSON.stringify({response: "Fetched Diagrams", data: response}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         return new Response(JSON.stringify({response: "Failed to Fetch Diagrams"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

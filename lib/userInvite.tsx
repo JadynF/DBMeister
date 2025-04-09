@@ -1,0 +1,65 @@
+'use server';
+
+import { createConnection } from '@/lib/db';
+
+export default async function userInvite(userId : string, invitedUser : string, groupId : string) : Promise<{ invited: boolean }> {
+    const connection = createConnection();
+
+    console.log("here");
+
+    try {
+        let response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('SELECT id FROM user_information WHERE id = ?;', [invitedUser], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+
+        console.log(response);
+        if (response.length == 0) {
+            return ({invited: false, res: "no user"});
+        }
+
+        response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('SELECT * FROM user_group WHERE user_id = ? AND group_id = ?;', [invitedUser, groupId], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+
+        console.log(response);
+        if (response.length != 0) {
+            return ({invited: false, res: "in group"});
+        }
+
+        response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('INSERT INTO invite (sendId, recvId, groupId) VALUES (?, ?, ?);', [userId, invitedUser, groupId], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    
+        console.log(response);
+
+        if (response.length != 0)
+            return ({invited: true});
+
+        return ({invited: false});
+    }
+    catch (error) {
+        console.log(error);
+        return ({invited: false});
+    }
+    finally {
+        connection.end();
+    }
+}

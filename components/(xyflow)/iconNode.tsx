@@ -19,23 +19,24 @@ const IconNode = ({data}: {data: IconType}) => {
     const nodeImage = data.data.image || defaultIconNodeData.image;
 
     return (
-        <div className="max-w-[150px]">
-            <div className=" relative bg-white border border-black-900 p-1.5 rounded-md align-items">
+        <div className="max-w-[200px]">
+            <div className=" relative bg-white border-2 border-black p-1.5 rounded-md align-items">
                 <Handle type="target" position={Position.Top} style={{top: '-4px'}}/>
                 <div className="flex items-center justify-center">
                     <Image
                         src={nodeImage}
                         alt={nodeHeader}
-                        width={50}
-                        height={50}
+                        width={100}
+                        height={100}
                         fill={false}
                         quality={75}
                         priority={nodeImage === "/nodeIcons/alteryxIcon.png" ? true : false}
                         className="justify-center align-center"
+                        unoptimized
                     />
                 </div>
-                <div className="flex justify-center">
-                    <Label>{nodeHeader}</Label>
+                <div className="flex justify-center font-mono text-black pt-2">
+                    <Label className='text-xl'>{nodeHeader}</Label>
                 </div>
                 <Handle type="source" position={Position.Bottom} style={{bottom: '-4px'}}id="a" />
             </div>

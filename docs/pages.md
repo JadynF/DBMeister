@@ -70,6 +70,32 @@ Will, upon render, fetch /getDashDiagrams to get all of the current users diagra
 
 </blockquote>
 
+## Groups
+
+<blockquote>
+
+Part of the dashboard. A page that shows a users groups as well as incoming invites. Located in '@/app/dashboard/groups'
+
+Allows user to navigate to groups, and accept or decline incoming invitations.
+
+Will, upon render, fetch /getDashGroups to get all information concerning the users groups.
+
+</blockquote>
+
+## Groups/[id]
+
+<blockquote>
+
+A page that shows an invdividual group. Located in '@/app/dashboard/groups[id]'
+
+Contains multiple tabs for users.
+
+Non-admins will see a diagrams tab, an invite tab, and people tab. Admins will see these, and a management tab.
+
+The diagrams tab will let users create and access diagrams shared among the group, the invite tab will allow users to invite others to the group, the people tab will allow users to see who is in the group and give admins the option to promote or kick people, and the management tab will allow admins to change group details, or to delete a group entirely.
+
+</blockquote>
+
 ## ProjectEditor
 
 <blockquote>

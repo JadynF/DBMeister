@@ -2,6 +2,20 @@
 
 ---
 
+# /changeGroupAdmin
+
+<blockquote>
+
+Method(s): POST
+
+Body: {userId, groupId}
+
+Returns: json object { response : string }
+response = "Changed group admin" if admin was changed
+respones = "Error" otherwise
+
+</blockquote>
+
 # /destroyDiagram
 
 <blockquote>
@@ -28,6 +42,20 @@ Will edit diagram of id to save new name and description
 Returns: json object { response: string }
 response = "Edit Successful" if edited
 response = "Edit Error" otherwise
+
+</blockquote>
+
+# /leaveGroup
+
+<blockquote>
+
+Method(s): POST
+
+Body: { userId, groupId }
+
+Returns: json object { response : string }
+response = "Left group" if the user successfully left the group
+response = "Error" otherwise
 
 </blockquote>
 
@@ -61,6 +89,20 @@ response = "Failed to Fetch Diagrams" if fetch fails
 
 </blockquote>
 
+# /getDashGroups
+
+<blockquote>
+
+Method(s): POST
+
+Body: { id }
+
+Returns: json object {response: string, data: (json object)}
+response = "Fetched Groups", data = all groups where id is a member, as well as invite data
+response = "Failed to Fetch Groups" if fetch fails
+
+</blockquote>
+
 # /makeDiagram
 
 <blockquote>
@@ -74,6 +116,38 @@ response = "Creation Successful" if diagrams were inserted into the database
 response = "Creation Error" otherwise
 
 Will create entry in both diagrams and user_owns table with body parameters.
+
+</blockquote>
+
+# /makeGroup
+
+<blockquote>
+
+Method(s): POST
+
+Body: { ownerId, name, description }
+
+Returns: json object { response: string }
+response = "Creation Successful" if the group was inserted into the database
+response = "Creation Error" otherwise
+
+Will create entry in both group and user_group table with body parameters.
+
+</blockquote>
+
+# /makeGroupDiagram
+
+<blockquote>
+
+Method(s): POST
+
+Body: { group, name, description }
+
+Returns: json object { response: string }
+response = "Creation Successful" if the diagram was inserted into the database
+response = "Creation Error" otherwise
+
+Will create entry in both diagrams and group_owns table with body parameters.
 
 </blockquote>
 

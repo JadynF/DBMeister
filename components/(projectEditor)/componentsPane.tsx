@@ -20,7 +20,7 @@ type IconType = {
     data: IconData
 };
 
-type SQLTableDataType = {
+type ClassicTableDataType = {
     fieldName: string,
     fieldType: string,
     nullability: boolean,
@@ -30,39 +30,47 @@ type SQLTableDataType = {
     indexing: string | null,
     comments: string | null
 }
-type SQLTableType = {
+type ClassicTableType = {
     id: string,
     type: string,
     header: string,
-    tableData: SQLTableDataType[]
+    tableData: ClassicTableDataType[]
 }
 
-type ExcelField = {
+type NestedField = {
     fieldName: string,
     fieldType: string,
     check: string | null,
     sort: string | null,
     comments: string | null
 }
-type ExcelSheet = {
+type NestedSheet = {
     sheetName: string,
-    sheetData: ExcelField[]
+    sheetData: NestedField[]
 }
-type ExcelTableType = {
+type NestedTableType = {
     id: string,
     type: string,
     header: string,
-    tableData: ExcelSheet[]
+    tableData: NestedSheet[]
 }
 
+type ShapeData = {header: string, shape: string};
+type ShapeType = {
+    id: string,
+    type: string,
+    header: string,
+    data: ShapeData
+};
+
 type ComponentsPaneProps = {
-    createNode: (nodeData: BasicType | IconType | SQLTableType | ExcelTableType, position: Position) => void
+    createNode: (nodeData: BasicType | IconType | ClassicTableType | NestedTableType | ShapeType, position: Position) => void
 };
 
 const defaultNodeData: TestData = {header: "Welcome", color:  "#FFD700"};
 const defaultIconNodeData: IconData = {header: "New_Icon", image:  "/nodeIcons/alteryxIcon.png"};
-const defaultSQLTableData: SQLTableDataType[] = [{fieldName: 'field_name', fieldType: 'VARCHAR(55)', nullability: true, keyType: null, unique: true, check: null, indexing: null, comments: 'comment'}];
-const defaultExcelTableData: ExcelSheet[] = [
+const defaultClassicTableData: ClassicTableDataType[] = [{fieldName: 'field_name', fieldType: 'VARCHAR(55)', nullability: true, keyType: null, unique: true, check: null, indexing: null, comments: 'comment'}];
+const defaultNestedTableData: NestedSheet[] = [
     {sheetName: "Sheet 1", sheetData: [
         {fieldName: "Column 1", fieldType: "Text", check: null, sort: null, comments: "First Comment!"}, 
         {fieldName: "Column 2", fieldType: "Number", check: null, sort: null, comments: "Second Comment!"}]},
@@ -70,6 +78,7 @@ const defaultExcelTableData: ExcelSheet[] = [
         {fieldName: "Column 1", fieldType: "Currency", check: null, sort: null, comments: "Testing 1!"},
         {fieldName: "Column 2", fieldType: "Text", check: null, sort: null, comments: "Succeeding 1!"}]}   
 ];
+const defaultShapeData: ShapeData = {header: "New_Shape", shape: "square"};
 
 const icons = [
     {imageSrc: "/nodeIcons/alteryxIcon.png", imageLbl: "Alteryx Node"},
@@ -81,26 +90,37 @@ const icons = [
     {imageSrc: "/nodeIcons/tableauIcon.png", imageLbl: "Tableau Node"},
     {imageSrc: "/nodeIcons/lookerIcon.png", imageLbl: "Looker Node"}
 ]
+const tables = [
+    {imageSrc: "/resources/exampleBasicNode.PNG", imageLbl: "Basic Node", type: 'basic'},
+    {imageSrc: "/resources/exampleClassicTable.PNG", imageLbl: "Classic Table", type: 'classic'},
+    {imageSrc: "/resources/exampleNestedTable.PNG", imageLbl: "Nested Table", type: 'nested'}
+]
+const shapes = [
+    {shape: "diamond", shapeLabel: "Diamond", imageSrc: "/resources/exampleDiamond.PNG"},
+    {shape: "square", shapeLabel: "Square", imageSrc: "/resources/exampleSquare.PNG"},
+    {shape: "circle", shapeLabel: "Circle", imageSrc: "/resources/exampleCircle.PNG"},
+    {shape: "triangle", shapeLabel: "Triangle", imageSrc: "/resources/exampleTriangle.PNG"}
+]
 
 const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
     const handleClick = (type: string) => {
-        if(type==="sql"){
-            let sqlDataGuard = structuredClone(defaultSQLTableData);
-            const newNodeData: SQLTableType = {
-                id: 'new_sql_node',
+        if(type==="classic"){
+            let classicDataGuard = structuredClone(defaultClassicTableData);
+            const newNodeData: ClassicTableType = {
+                id: 'new_classic_node',
                 type: 'sql',
-                header: 'New_SQL_Table',
-                tableData: sqlDataGuard
+                header: 'New_Classic_Table',
+                tableData: classicDataGuard
             }
             const position: Position = {x: 100, y: 100};
             createNode(newNodeData, position); 
-        } else if(type==="excel"){
-            let excelDataGuard = structuredClone(defaultExcelTableData);
-            const newNodeData: ExcelTableType = {
-                id: 'new_excel_node',
+        } else if(type==="nested"){
+            let nestedDataGuard = structuredClone(defaultNestedTableData);
+            const newNodeData: NestedTableType = {
+                id: 'new_nested_node',
                 type: 'excel',
-                header: 'New_Excel_Table',
-                tableData: excelDataGuard
+                header: 'New_Nested_Table',
+                tableData: nestedDataGuard
             }
             const position: Position = {x: 100, y: 100};
             createNode(newNodeData, position);
@@ -120,10 +140,22 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
     const handleIconClick = (type: string, imageSrc: string) => {
         let iconDataGuard = structuredClone(defaultIconNodeData);
         const newNodeData: IconType = {
-            id: 'new_icon_node',
-            type: 'icon',
+            id: `new-${type}-node`,
+            type: type, //allows icon or customicon
             header: 'New_Icon',
             data: {header: iconDataGuard.header, image: imageSrc}
+        }
+        const position: Position = {x: 100, y: 100};
+        createNode(newNodeData, position);
+    }
+
+    const handleShapeClick = (inShape: string) => {
+        let shapeDataGuard = structuredClone(defaultShapeData);
+        const newNodeData: ShapeType = {
+            id: `new_${inShape}_node`,
+            type: 'shape',
+            header: 'New_Shape_Node',
+            data: {header: shapeDataGuard.header, shape: inShape}
         }
         const position: Position = {x: 100, y: 100};
         createNode(newNodeData, position);
@@ -152,46 +184,49 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
                         <span className="text-center text-sm font-medium">{icon.imageLbl}</span>
                     </div>
                 ))}
+                <div className="flex flex-col items-center border" onClick={() => handleIconClick("customicon", "/nodeIcons/custom.png")} style={{cursor: "pointer"}}>
+                    <Image
+                        src={"/nodeIcons/custom.png"}
+                        alt={"Custom Icon"}
+                        width={100}
+                        height={100}
+                        className="mb-2" />
+                    <span className="text-center text-sm font-medium">Custom Icon</span>
+                </div>
             </div>
             </TabsContent>
             <TabsContent value="Tables">
-                <div style={{ width: '100%', backgroundColor: '#f4f4f4', padding: '20px' }}>
-                    <div
-                        onClick={() => handleClick("basic")}
-                        style={{
-                            padding: '10px',
-                            backgroundColor: 'yellow',
-                            marginBottom: '10px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        New Basic Node
-                    </div>
-                    <div
-                        onClick={() => handleClick("sql")}
-                        style={{
-                            padding: '10px',
-                            backgroundColor: 'lightblue',
-                            marginBottom: '10px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        New SQL Table
-                    </div>
-                    <div
-                        onClick={() => handleClick("excel")}
-                        style={{
-                            padding: '10px',
-                            backgroundColor: 'lightgreen',
-                            marginBottom: '10px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        New Excel Table
-                    </div>
+                <div className='grid grid-cols-1 gap-4'>
+                    {tables.map((table, index) => (
+                        <div key={index} className='flex flex-col items-center border p-5 curser-pointer' onClick={() => handleClick(table.type)} style={{cursor: "pointer"}}>
+                            <Image
+                                src={table.imageSrc}
+                                alt={table.imageLbl}
+                                width={200}
+                                height={200}
+                                className="mb-2" 
+                            />
+                            <span className="text-center text-sm font-medium font-mono">{table.imageLbl}</span>
+                        </div>
+                    ))}
                 </div>
             </TabsContent>
-            <TabsContent value="Shapes">Insert Shape</TabsContent>
+            <TabsContent value="Shapes">
+                <div className="grid grid-cols-2 gap-4">
+                    {shapes.map((shape, index) => (
+                        <div key={index} className="flex flex-col items-center border" onClick={() => handleShapeClick(shape.shape)} style={{cursor: "pointer"}}>
+                            <Image
+                                src={shape.imageSrc}
+                                alt={shape.shapeLabel}
+                                width={200}
+                                height={200}
+                                className="mb-2" 
+                            />
+                            <span className="text-center text-sm font-medium">{shape.shapeLabel}</span>
+                        </div>
+                    ))}
+                </div>
+            </TabsContent>
         </Tabs>
         </>
     );

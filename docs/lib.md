@@ -2,6 +2,29 @@
 
 ---
 
+# authGroup
+
+<blockquote>
+
+## Server-side-rendered
+
+## authGroup(userId : string, groupId : string) : Promise<[{ authorized: boolean }, data: any]>
+
+<blockquote>
+
+Description: Will check whether the current user is authorized to view the group.
+
+Return:
+
+If the user is authorized: authorized: true
+data will also include all group data for the authorized group in index 0, all diagrams that are owned by the group in index 1, all the users that are currently invited to the group in index 2, and all the users that are currently in the group in index 3,
+
+Otherwise, authorized: false and the user will be redirected to /dashboard
+
+</blockquote>
+
+</blockquote>
+
 # authorization
 
 <blockquote>
@@ -72,6 +95,80 @@ Description: Will fetch the state of the diagram with given id.
 Return:
 
 JSON object with the state string, contains information on nodes and edges
+
+</blockquote>
+
+</blockquote>
+
+# getUsers
+
+<blockquote>
+
+## getUsersLike(groupId : string) : Promise<{ users : any }>
+
+<blockquote>
+
+Description: Will get all users that are not both in the group, or being invited to the group.
+
+Returns:
+
+users: a json object of each user
+users: "None" if no such users exist
+
+</blockquote>
+
+</blockquote>
+
+# handleInvite
+
+<blockquote>
+
+## acceptInvite(userId : string, groupId : string) : Promise<{ accepted: boolean }>
+
+<blockquote>
+
+Description: Will accept the invitation, and join the user to the group. The invitation will also be deleted.
+
+Returns: 
+
+accepted: true if the invitation was successfully accepted
+accepted: false otherwise
+
+</blockquote>
+
+## declineInvite(userId : string, groupId : string) : Promise<{ accepted: boolean }>
+
+<blockquote>
+
+Description: Will decline the invitation, and delete the invitation.
+
+Returns:
+
+declined: true if the invitation was successfully declined
+declined: false otherwise
+
+</blockquote>
+
+</blockquote>
+
+# userInvite
+
+<blockquote>
+
+## userInvite(userId : string, invitedUser : string, groupId : string) : Promise<{ invited: boolean, res: string }>
+
+<blockquote>
+
+Description: Will send an invitation to the invitedUser for the group.
+
+Returns: json object
+
+invited: true if the invitation was successfully sent
+
+invited: false otherwise
+
+res: "no user" if the user doesn't exist
+res: "in group" if the user is already in the group
 
 </blockquote>
 

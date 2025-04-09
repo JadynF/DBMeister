@@ -36,33 +36,35 @@ const SQLTableNode = ({data}: {data: SQLTableType}) => {
     const tableID = data.id || `${data.tableData.length + 1}`;
 
     return (
-      <div style={{width: 400}}>
-        <Handle type="target" position={Position.Top} style={{top: '-4px'}}/>
+      <div className="w-[400px] border-2 border-blue-700 bg-indigo-400 rounded-xl border-rounded-xl">
+        <Handle type="target" position={Position.Top} style={{top: '-4px', width: '8px', height: '8px'}}/>
         <div>
-            <Table className='bg-indigo-300 rounded-xl border-rounded-xl text-left'>
-                <TableHeader className="w-[300px]">
-                    {<TableRow>
-                        <TableHead>{tableHeader}</TableHead>
-                        <TableHead className='align-right text-right'>({tableID})</TableHead>
+            <Table className='text-left'>
+                <TableHeader>
+                    {<TableRow className="font-mono text-lg">
+                        <TableHead></TableHead> {/* Spacer. DO NOT REMOVE */}
+                        <TableHead className="text-white">{tableHeader}</TableHead>
+                        <TableHead className='align-right text-right text-white'>ID: {tableID}</TableHead>
+                        <TableHead></TableHead> {/* Spacer. DO NOT REMOVE */}
                     </TableRow>}
                 </TableHeader>
                 <TableBody className='text-left'>
                     {tableData.map((row) => (
-                    <TableRow key={row.fieldName} className="relative">
+                    <TableRow key={row.fieldName} className="relative font-mono text-lg">
                         <td>
-                            <Handle type="target" position={Position.Left} id={`row-${row.fieldName}-t`} style={{position: 'absolute', left: '4px'}}/>
+                            <Handle type="target" position={Position.Left} id={`row-${row.fieldName}-t`} className='border-t border-b border-white' style={{position: 'absolute', left: '8px', width: '8px', height: '8px'}}/>
                         </td>
-                        <TableCell className="text-left">{row.fieldName}</TableCell>
-                        <TableCell className="text-right gap-5px">{row.fieldType}</TableCell>
+                        <TableCell className="text-left pl-2 border-t border-b border-white text-black">{row.fieldName}</TableCell>
+                        <TableCell className="text-right text-black gap-5px">{row.fieldType}</TableCell>
                         <td>
-                            <Handle type="source" position={Position.Right} id={`row-${row.fieldName}-s`} style={{position: 'absolute', right: '4px'}}/>
+                            <Handle type="source" position={Position.Right} id={`row-${row.fieldName}-s`} className='border-t border-b border-white' style={{position: 'absolute', right: '8px', width: '8px', height: '8px'}}/>
                         </td>
                     </TableRow>
                     ))}
                 </TableBody>
             </Table>
         </div>
-        <Handle type="source" position={Position.Bottom} style={{bottom: '-4px'}}id="a" />
+        <Handle type="source" position={Position.Bottom} style={{bottom: '-4px', width: '8px', height: '8px'}}id="a" />
       </div>
     );
 }

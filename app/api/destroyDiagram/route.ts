@@ -17,6 +17,16 @@ export async function POST(req: Request) {
         });
 
         response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('DELETE FROM group_owns WHERE diagram_id = ?', [id], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+
+        response = await new Promise<any[]>((resolve, reject) => {
             connection.query('DELETE FROM diagrams WHERE id = ?', [id], (err, results: any[]) => {
                 if (err) {
                     reject(err);
@@ -27,14 +37,14 @@ export async function POST(req: Request) {
         });
 
         return new Response(JSON.stringify({response: "Deletion Successful"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 200
         });
     }
     catch (err) {
         console.log(err);
         return new Response(JSON.stringify({response: "Deletion Error"}), {
-            header: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" },
             status: 500
         });
     }

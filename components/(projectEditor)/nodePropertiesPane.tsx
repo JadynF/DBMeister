@@ -34,8 +34,14 @@ type IconType = {
     header: string,
     data: IconData
 };
+type CustomIconType = {
+    id: string,
+    type: string,
+    header: string,
+    data: IconData
+} //Subset for custom images
 
-type SQLTableDataType = {
+type ClassicTableDataType = {
     fieldName: string,
     fieldType: string,
     nullability: boolean,
@@ -45,52 +51,62 @@ type SQLTableDataType = {
     indexing: string | null,
     comments: string | null
 };
-type SQLTableType = {
+type ClassicTableType = {
     id: string,
     type: string,
     header: string,
-    tableData: SQLTableDataType[] //Array of type Record<string, __valueType__>
+    tableData: ClassicTableDataType[] //Array of type Record<string, __valueType__>
 };
 
-type ExcelField = {
+type NestedField = {
     fieldName: string,
     fieldType: string,
     check: string | null,
     sort: string | null,
     comments: string | null
 }
-type ExcelSheet = {
+type NestedSheet = {
     sheetName: string,
-    sheetData: ExcelField[]
+    sheetData: NestedField[]
 }
-type ExcelTableType = {
+type NestedTableType = {
     id: string,
     type: string,
     header: string,
-    tableData: ExcelSheet[]
+    tableData: NestedSheet[]
 }
 
-//Default New Field when appending to a SQLTableType Node
-const defaultSQLField: SQLTableDataType = {fieldName: "New Field", fieldType: 'VARCHAR(55)', nullability: false, keyType: null, unique: false, check: null, indexing: null, comments: ''};
-const defaultExcelField: ExcelField = {fieldName: "New Column", fieldType: "Text", check: null, sort: "Ascending", comments: null};
-const defaultExcelSheet: ExcelSheet = {sheetName: "New Sheet", sheetData: []};
+type ShapeData = {header: string, shape: string};
+type ShapeType = {
+    id: string,
+    type: string,
+    header: string,
+    data: ShapeData
+};
+
+
+//Default New Field when appending to a ClassicTableType Node
+const defaultClassicField: ClassicTableDataType = {fieldName: "New Field", fieldType: 'VARCHAR(55)', nullability: false, keyType: null, unique: false, check: null, indexing: null, comments: ''};
+const defaultNestedField: NestedField = {fieldName: "New Column", fieldType: "Text", check: null, sort: "Ascending", comments: null};
+const defaultNestedSheet: NestedSheet = {sheetName: "New Sheet", sheetData: []};
 
 //Function props definitions
 type NodePropertiesPaneProps = {
-    selectedNode: Node<BasicType | IconType | SQLTableType | ExcelTableType>;
+    projectID: string | undefined;
+    selectedNode: Node<BasicType | IconType | ClassicTableType | NestedTableType>;
     selectedStatus: boolean;
     setSelectedNodePosition: (position: Position) => void;
-    setSelectedNodeData: (nodeData: BasicType | IconType | SQLTableType | ExcelTableType) => void;
+    setSelectedNodeData: (nodeData: BasicType | IconType | ClassicTableType | NestedTableType) => void;
     deleteSelectedNode: (selectedNodeID: string) => void;
 };
 
-const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, selectedStatus, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode}) => {
+const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selectedNode, selectedStatus, setSelectedNodePosition, setSelectedNodeData, deleteSelectedNode}) => {
     const [nodePosition, setPosition] = useState<Position>(selectedNode.position);
     const [nodeStatus, setStatus] = useState(selectedStatus);
-    const [nodeData, setNodeData] = useState<BasicType | IconType | SQLTableType | ExcelTableType>(selectedNode.data);
+    const [nodeData, setNodeData] = useState<BasicType | IconType | ClassicTableType | NestedTableType>(selectedNode.data);
     //const [nodeStyle, setNodeStyle] = useState(selectedNode.style); //To be done later
-
     const [nodeHeader, setNodeHeader] = useState('');
+    const [customImgFile, setcustomImgFile] = useState<File | null>(null);
 
     //SQL Table Type TableData variable objects
     const [fieldNames, setFieldNames] = useState<Record<string, string>>({});
@@ -102,12 +118,12 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
     const [indexes, setIndexes] = useState<Record<string, string | null>>({});
     const [comments, setComments] = useState<Record<string, string | null>>({});
     //Excel Table Type TableData variable objects
-    const [eSheetNames, setESheetNames] = useState<Record<string, string>>({});
-    const [eFieldNames, setEFieldNames] = useState<Record<string, string>>({}); //keyname will be a combo of sheetName and fieldName
-    const [eFieldTypes, setEFieldTypes] = useState<Record<string, string>>({});
-    const [eChecks, setEChecks] = useState<Record<string, string | null>>({});
-    const [eSorts, setESorts] = useState<Record<string, string | null>>({});
-    const [eComments, setEComments] = useState<Record<string, string | null>>({});
+    const [nSheetNames, setNSheetNames] = useState<Record<string, string>>({});
+    const [nFieldNames, setNFieldNames] = useState<Record<string, string>>({}); //keyname will be a combo of sheetName and fieldName
+    const [nFieldTypes, setNFieldTypes] = useState<Record<string, string>>({});
+    const [nChecks, setNChecks] = useState<Record<string, string | null>>({});
+    const [nSorts, setNSorts] = useState<Record<string, string | null>>({});
+    const [nComments, setNComments] = useState<Record<string, string | null>>({});
 
     //Node Position Manipulation
     //Might want to replace these with useState variables and follow the style of SQL TableData variable objects?
@@ -139,8 +155,8 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
     }
     const updateHeader = () => {
         if (headerRef.current) { headerRef.current.value = ''; }
-        if(isSQLTableType(nodeData)){
-            const newNodeData: SQLTableType = {
+        if(isClassicTableType(nodeData)){
+            const newNodeData: ClassicTableType = {
                 id: nodeData.id,
                 type: nodeData.type,
                 header: nodeHeader,
@@ -148,8 +164,8 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
             };
             setNodeData(newNodeData);
             setSelectedNodeData(newNodeData);
-        } else if(isExcelTableType(nodeData)) {
-            const newNodeData: ExcelTableType = {
+        } else if(isNestedTableType(nodeData)) {
+            const newNodeData: NestedTableType = {
                 id: nodeData.id,
                 type: nodeData.type,
                 header: nodeHeader,
@@ -178,13 +194,13 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         }
     }
 
-    const deleteNode = () => {
+    const deleteNode = async () => {
         deleteSelectedNode(selectedNode.id);
         setStatus(false);
     }
 
     //Table Type Nodes - Data Manipulation
-    //SQLTableType Change Trackers
+    //ClassicTableType Change Trackers
     const handleFieldNameChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setFieldNames((prevNames) => ({...prevNames, [keyname]: event.target.value})); }
     const handleFieldTypeChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: event.target.value})); }
     const handleCheckChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setChecks((prevChecks) => ({...prevChecks, [keyname]: event.target.value})); }
@@ -194,20 +210,20 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
     const handleUniqueChange = (keyname: string, change: boolean) => { setUniques((prevUniques) => ({...prevUniques, [keyname]: change})); }
     const handleIndexChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: event.target.value})); }
 
-    //ExcelTableType Sheet Change Trackers
-    const handleESheetNameChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setESheetNames((prevSheetNames) => ({...prevSheetNames, [keyname]: event.target.value})); }
-    //ExcelTableType Field Change Trackers (keynames must be 'sheetName-fieldName' format)
-    const handleEFieldNameChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setEFieldNames((prevENames) => ({...prevENames, [keyname]: event.target.value})); }
-    const handleEFieldTypeChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setEFieldTypes((prevETypes) => ({...prevETypes, [keyname]: event.target.value})); }
-    const handleECheckChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setEChecks((prevEChecks) => ({...prevEChecks, [keyname]: event.target.value})); }
-    const handleECommentChange = (keyname: string, event: React.ChangeEvent<HTMLTextAreaElement>) => { setEComments((prevEComments) => ({...prevEComments, [keyname]: event.target.value})); }
-    const handleESortChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setESorts((prevESorts) => ({...prevESorts, [keyname]: event.target.value})); }
+    //NestedTableType Sheet Change Trackers
+    const handleNSheetNameChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setNSheetNames((prevSheetNames) => ({...prevSheetNames, [keyname]: event.target.value})); }
+    //NestedTableType Field Change Trackers (keynames must be 'sheetName-fieldName' format)
+    const handleNFieldNameChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setNFieldNames((prevENames) => ({...prevENames, [keyname]: event.target.value})); }
+    const handleNFieldTypeChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setNFieldTypes((prevETypes) => ({...prevETypes, [keyname]: event.target.value})); }
+    const handleNCheckChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setNChecks((prevNChecks) => ({...prevNChecks, [keyname]: event.target.value})); }
+    const handleNCommentChange = (keyname: string, event: React.ChangeEvent<HTMLTextAreaElement>) => { setNComments((prevNComments) => ({...prevNComments, [keyname]: event.target.value})); }
+    const handleNSortChange = (keyname: string, event: React.ChangeEvent<HTMLInputElement>) => { setNSorts((prevNSorts) => ({...prevNSorts, [keyname]: event.target.value})); }
 
-    //SQLTableType enact change functions
-    const addField = (nodeData: SQLTableType) => {
+    //ClassicTableType enact change functions
+    const addField = (nodeData: ClassicTableType) => {
         let newData = nodeData;
-        let newField = structuredClone(defaultSQLField); //Deep Copy, not reference
-        newField.fieldName = `${defaultSQLField.fieldName}-${newData.tableData.length + 1}`;
+        let newField = structuredClone(defaultClassicField); //Deep Copy, not reference
+        newField.fieldName = `${defaultClassicField.fieldName}-${newData.tableData.length + 1}`;
         //Used to ensure user cannot make two fields with the same keyname
         while(newData.tableData.some(field => field.fieldName === newField.fieldName)){
             let counter = 1;
@@ -218,22 +234,22 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         let keyname = `${newField.fieldName}`;
         //You have to set each of the SQL Table Type useState variables to include the new tuple fields because it won't auto-update. So stupid.
         setFieldNames((prevNames) => ({...prevNames, [keyname]: keyname}));
-        setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultSQLField.fieldType}));
-        setNullabilities((prevNulls) => ({...prevNulls, [keyname]: defaultSQLField.nullability}));
-        setKeyTypes((prevKeyTypes) => ({...prevKeyTypes, [keyname]: defaultSQLField.keyType}));
-        setUniques((prevUniques) => ({...prevUniques, [keyname]: defaultSQLField.unique}));
-        setChecks((prevChecks) => ({...prevChecks, [keyname]: defaultSQLField.check}));
-        setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: defaultSQLField.indexing}));
-        setComments((prevComments) => ({...prevComments, [keyname]: defaultSQLField.comments}));
+        setFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultClassicField.fieldType}));
+        setNullabilities((prevNulls) => ({...prevNulls, [keyname]: defaultClassicField.nullability}));
+        setKeyTypes((prevKeyTypes) => ({...prevKeyTypes, [keyname]: defaultClassicField.keyType}));
+        setUniques((prevUniques) => ({...prevUniques, [keyname]: defaultClassicField.unique}));
+        setChecks((prevChecks) => ({...prevChecks, [keyname]: defaultClassicField.check}));
+        setIndexes((prevIndexes) => ({...prevIndexes, [keyname]: defaultClassicField.indexing}));
+        setComments((prevComments) => ({...prevComments, [keyname]: defaultClassicField.comments}));
 
         setSelectedNodeData(newData);
         setNodeData(newData);
     }
 
-    const addESheet = (nodeData: ExcelTableType) => {
+    const addNSheet = (nodeData: NestedTableType) => {
         let newData = nodeData;
-        let newSheet = structuredClone(defaultExcelSheet);
-        newSheet.sheetName = `${defaultExcelSheet.sheetName}-${newData.tableData.length + 1}`;
+        let newSheet = structuredClone(defaultNestedSheet);
+        newSheet.sheetName = `${defaultNestedSheet.sheetName}-${newData.tableData.length + 1}`;
         //Used to ensure user cannot make two sheets with the same keyname
         while(newData.tableData.some(sheet => sheet.sheetName === newSheet.sheetName)){
             let counter = 1;
@@ -243,19 +259,19 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         newData.tableData.push(newSheet);
 
         let keyname = newSheet.sheetName;
-        setESheetNames((prevNames) => ({...prevNames, [keyname]: keyname}));
+        setNSheetNames((prevNames) => ({...prevNames, [keyname]: keyname}));
 
         setSelectedNodeData(newData);
         setNodeData(newData);
     }
 
-    const addEField = (nodeData: ExcelTableType, currSheet: ExcelSheet) => {
+    const addNField = (nodeData: NestedTableType, currSheet: NestedSheet) => {
         let newData = nodeData;
         let currSheetName = currSheet.sheetName;
         const index = newData.tableData.indexOf(currSheet);
 
-        let newField = structuredClone(defaultExcelField);
-        newField.fieldName = `${defaultExcelField.fieldName}-${currSheet.sheetData.length + 1}`;
+        let newField = structuredClone(defaultNestedField);
+        newField.fieldName = `${defaultNestedField.fieldName}-${currSheet.sheetData.length + 1}`;
         let counter = 1;
         while(newData.tableData[index].sheetData.some(field => field.fieldName === newField.fieldName)){
             newField.fieldName = `${newField.fieldName}-${counter}`;
@@ -264,45 +280,31 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         newData.tableData[index].sheetData.push(newField); //In newData, find the current sheet and append the newField to it
 
         let keyname = `${currSheetName}-${newField.fieldName}`;
-        setEFieldNames((prevNames) => ({ ...prevNames, [keyname]: newField.fieldName})); //Need to append to records for each sheet
-        setEFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultExcelField.fieldType}));
-        setEChecks((prevChecks) => ({...prevChecks, [keyname]: defaultExcelField.check}));
-        setESorts((prevSorts) => ({...prevSorts, [keyname]: defaultExcelField.sort}));
-        setEComments((prevComments) => ({...prevComments, [keyname]: defaultExcelField.comments}));
+        setNFieldNames((prevNames) => ({ ...prevNames, [keyname]: newField.fieldName})); //Need to append to records for each sheet
+        setNFieldTypes((prevTypes) => ({...prevTypes, [keyname]: defaultNestedField.fieldType}));
+        setNChecks((prevChecks) => ({...prevChecks, [keyname]: defaultNestedField.check}));
+        setNSorts((prevSorts) => ({...prevSorts, [keyname]: defaultNestedField.sort}));
+        setNComments((prevComments) => ({...prevComments, [keyname]: defaultNestedField.comments}));
 
         setSelectedNodeData(newData);
         setNodeData(newData);
     }
 
-    /* Used to see current state of excel table data
-    const printEData = () => {
-        console.log(eSheetNames);
-        console.log("Sheet Data :");
-        console.log(eSheetData);
-        console.log(": End Of Sheet Data");
-        console.log(eFieldNames);
-        console.log(eFieldTypes);
-        console.log(eChecks);
-        console.log(eSorts);
-        console.log(eComments);
-    }
-    */
-
-    const deleteField = (nodeData: SQLTableType, deleteFieldName: string) => {
+    const deleteField = (nodeData: ClassicTableType, deleteFieldName: string) => {
         let newTableData = nodeData.tableData.filter(field => field.fieldName !== deleteFieldName);
         let newData = {id: nodeData.id, type: nodeData.type, header: nodeData.header, tableData: newTableData}
         setNodeData(newData);
         setSelectedNodeData(newData);
     }
 
-    const deleteESheet = (nodeData: ExcelTableType, deleteSheetName: string) => {
+    const deleteNSheet = (nodeData: NestedTableType, deleteSheetName: string) => {
         let newTableData = nodeData.tableData.filter(sheet => sheet.sheetName !== deleteSheetName);
         let newData = {id: nodeData.id, type: nodeData.type, header: nodeData.header, tableData: newTableData};
         setNodeData(newData);
         setSelectedNodeData(newData);
     }
 
-    const deleteEField = (nodeData: ExcelTableType, currSheet: ExcelSheet, delFieldName: string) => {
+    const deleteNField = (nodeData: NestedTableType, currSheet: NestedSheet, delFieldName: string) => {
         const index = nodeData.tableData.indexOf(currSheet);
         let newSheetData = nodeData.tableData[index].sheetData.filter(field => field.fieldName !== delFieldName);
         let newTableData = nodeData.tableData.map(sheet =>
@@ -313,10 +315,72 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         setSelectedNodeData(newData);
     }
 
+    const browseImg = () => {
+        document.getElementById('image-file-upload')?.click();
+    };
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault(); // Allows the file to be dropped
+        event.dataTransfer.dropEffect = 'copy'; // Shows "copy" cursor
+    };
+    const handleImgChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedImg = event.target.files?.[0];
+        if(selectedImg){
+            setcustomImgFile(selectedImg);
+            displayImgName(selectedImg);
+        }
+    };
+    const handleImgDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const img = event.dataTransfer.files[0];
+        if (img) {
+            setcustomImgFile(img);
+            displayImgName(img);
+        }
+    };
+    const displayImgName = (img: any) => {
+        document.getElementById('image-name').textContent = `Selected image: ${img.name}`;
+    };
+    //Calls api route customImageCloud to upload the image locally in /tmp/uploads/ and assigns the url to the nodeData.data.image
+    const uploadImageToLocal = async () => {
+        if(!customImgFile){
+            return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(customImgFile);
+        reader.onloadend = async () => {
+            const base64File = reader.result;
+            const res = await fetch('/api/customImageLocal', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file: base64File,
+                    fileName: customImgFile.name
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                if(isCustomIconType(nodeData)){
+                    let newData = nodeData;
+                    newData.data = {...newData.data, image: data.url};
+                    console.log(newData.data);
+                    setNodeData(newData);
+                    setSelectedNodeData(newData);
+                }
+                return data.url;
+            } else {
+                console.error('Upload failed:', data.message);
+                return;
+            }
+        };
+    }
+
     //Create a new set of nodeData from all SQL Table Type useState variables and update the node
-    const updateData = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType) => {
-        if(isSQLTableType(nodeData)){
-            const newNodeData: SQLTableType = {
+    const updateData = (nodeData: BasicType | IconType | ClassicTableType | NestedTableType ) => {
+        if(isClassicTableType(nodeData)){
+            const newNodeData: ClassicTableType = {
                 id: nodeData.id,
                 type: nodeData.type,
                 header: nodeData.header,
@@ -338,31 +402,31 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
             }
             setNodeData(newNodeData);
             setSelectedNodeData(newNodeData);
-        } else if (isExcelTableType(nodeData)){
+        } else if (isNestedTableType(nodeData)){
             //All of nodeData. Contains entirety of the table.
-            const newNodeData: ExcelTableType = {
+            const newNodeData: NestedTableType = {
                 id: nodeData.id,
                 type: nodeData.type,
                 header: nodeData.header,
                 tableData: []
             };
             //Loop through each sheet in the table
-            for(const sKey in eSheetNames) {
+            for(const sKey in nSheetNames) {
                 //A sheet. Contains every field within the sheet.
-                let newSheetData: ExcelSheet = {
-                    sheetName: eSheetNames[sKey],
+                let newSheetData: NestedSheet = {
+                    sheetName: nSheetNames[sKey],
                     sheetData: []
                 }
                 //Loop through every field
-                for(const fKey in eFieldNames){
+                for(const fKey in nFieldNames){
                     //If the field key belong to the current sheet, create the field and push it to the sheet's data
                     if(fKey.includes(sKey)){
                         let tuple = {
-                            fieldName: eFieldNames[fKey],
-                            fieldType: eFieldTypes[fKey],
-                            check: eChecks[fKey],
-                            sort: eSorts[fKey],
-                            comments: eComments[fKey]
+                            fieldName: nFieldNames[fKey],
+                            fieldType: nFieldTypes[fKey],
+                            check: nChecks[fKey],
+                            sort: nSorts[fKey],
+                            comments: nComments[fKey]
                         }
                         newSheetData.sheetData.push(tuple);
                     }
@@ -392,13 +456,12 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
         }
     }
 
-
     //HELPER FUNCTIONS
-
     //Checks type of nodeData to determine data options in html
-    const isExcelTableType = (data: any): data is ExcelTableType => { return (data as ExcelTableType).type === "excel"; }
-    const isSQLTableType = (data: any): data is SQLTableType => { return (data as SQLTableType).type === "sql"; }
-    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon"; }
+    const isNestedTableType = (data: any): data is NestedTableType => { return (data as NestedTableType).type === "excel"; }
+    const isClassicTableType = (data: any): data is ClassicTableType => { return (data as ClassicTableType).type === "sql"; }
+    const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon" || (data as IconType).type === "customicon"; }
+    const isCustomIconType = (data: any): data is CustomIconType => {return (data as CustomIconType).type === "customicon"; }
     const isBasicType = (data: any): data is BasicType => { return (data as BasicType).type === "basic"; }
     //Functions to handle non-string values in html
     const printBool = (bool: boolean) => { if(bool) { return 'true';} else {return 'false';} }
@@ -414,7 +477,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
     //Set Node Name. Instantiate tableData variables to track user's changes to data.
     //Keys in each variable are the fieldName, values are the corresponding values to the field
     useEffect(() => {
-        if(isSQLTableType(nodeData)) {
+        if(isClassicTableType(nodeData)) {
             setNodeHeader(nodeData.header);
             const { initialNames, initialTypes, iNulls, iKeys, iUniques, iChecks, iIndexes, iComments } = nodeData.tableData.reduce((acc, field) => {
                 acc.initialNames[field.fieldName] = field.fieldName;
@@ -445,13 +508,13 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
             setChecks(iChecks);
             setIndexes(iIndexes);
             setComments(iComments);
-        } else if (isExcelTableType(nodeData)) {
-            setESheetNames({}); //Because the accumulators append to account for looping, must first clear
-            setEFieldNames({});
-            setEFieldTypes({});
-            setEChecks({});
-            setESorts({});
-            setEComments({});
+        } else if (isNestedTableType(nodeData)) {
+            setNSheetNames({}); //Because the accumulators append to account for looping, must first clear
+            setNFieldNames({});
+            setNFieldTypes({});
+            setNChecks({});
+            setNSorts({});
+            setNComments({});
             setNodeHeader(nodeData.header);
             const { iSheetNames, iSheetData } = nodeData.tableData.reduce((acc, sheet) => {
                 acc.iSheetNames[sheet.sheetName] = sheet.sheetName;
@@ -471,18 +534,18 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                     iSorts: {} as Record<string, string | null>,
                     iComments: {} as Record<string, string | null>,
                 });
-                setEFieldNames((prevNames) => ({ ...prevNames, ...iFieldNames })); //Need to append to records for each sheet
-                setEFieldTypes((prevTypes) => ({...prevTypes, ...iFieldTypes}));
-                setEChecks((prevChecks) => ({...prevChecks, ...iChecks}));
-                setESorts((prevSorts) => ({...prevSorts, ...iSorts}));
-                setEComments((prevComments) => ({...prevComments, ...iComments}));
+                setNFieldNames((prevNames) => ({ ...prevNames, ...iFieldNames })); //Need to append to records for each sheet
+                setNFieldTypes((prevTypes) => ({...prevTypes, ...iFieldTypes}));
+                setNChecks((prevChecks) => ({...prevChecks, ...iChecks}));
+                setNSorts((prevSorts) => ({...prevSorts, ...iSorts}));
+                setNComments((prevComments) => ({...prevComments, ...iComments}));
                 return acc;
             },
             {
                 iSheetNames: {} as Record<string, string>,
-                iSheetData: {} as Record<string, ExcelField[]>
+                iSheetData: {} as Record<string, NestedField[]>
             });
-            setESheetNames(iSheetNames);
+            setNSheetNames(iSheetNames);
         } else {
             setNodeHeader(nodeData.header);
         }
@@ -511,11 +574,11 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                         <Button onClick={() => updatePosition(nodePosition)}>Set Position</Button>
                     </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="nodeData" className={isSQLTableType(nodeData) ? "block" : "hidden"}>
+                <AccordionItem value="nodeData" className={isClassicTableType(nodeData) ? "block" : "hidden"}>
                     <AccordionTrigger>SQL Table Data</AccordionTrigger>
                     <AccordionContent>
                         {/*SQL Table Data Accordian */}
-                        {isSQLTableType(nodeData) && (
+                        {isClassicTableType(nodeData) && (
                         <div>
                             <ul>
                                 {nodeData.tableData.map((field, index) => (
@@ -576,11 +639,11 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                         )}
                     </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="nodeData" className={isExcelTableType(nodeData) ? "block" : "hidden"}>
+                <AccordionItem value="nodeData" className={isNestedTableType(nodeData) ? "block" : "hidden"}>
                     <AccordionTrigger>Excel Table Data</AccordionTrigger>
                     <AccordionContent>
                         {/*Excel Table Data Accordian */}
-                        {isExcelTableType(nodeData) && (
+                        {isNestedTableType(nodeData) && (
                             <div>
                                 <ul>
                                     {nodeData.tableData.map((sheet, index) => (
@@ -589,14 +652,14 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                                                 <AccordionItem value={`nodeData-${sheet.sheetName}`}>
                                                     <div className="flex items-center justify-between w-full">
                                                     <AccordionTrigger className="flex">{sheet.sheetName}</AccordionTrigger>
-                                                    <Button variant="destructive" className="flex justify-end" onClick={() => deleteESheet(nodeData, sheet.sheetName)}>
+                                                    <Button variant="destructive" className="flex justify-end" onClick={() => deleteNSheet(nodeData, sheet.sheetName)}>
                                                         <X />
                                                     </Button>
                                                     </div>
                                                     <AccordionContent className="space-y-5">
                                                         <div>
                                                             <Label htmlFor="sheetName">Sheet Name</Label>
-                                                            <Input id={sheet.sheetName} placeholder={sheet.sheetName} onChange={(event) => handleESheetNameChange(sheet.sheetName, event)} />
+                                                            <Input id={sheet.sheetName} placeholder={sheet.sheetName} onChange={(event) => handleNSheetNameChange(sheet.sheetName, event)} />
                                                         </div>
                                                         <ul>
                                                         {sheet.sheetData.map((field, indexS) => (
@@ -605,30 +668,30 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                                                                     <AccordionItem value={`${sheet.sheetName}-${field.fieldName}`}>
                                                                         <div className="flex items-center justify-between w-full">
                                                                         <AccordionTrigger className="flex">{field.fieldName}</AccordionTrigger>
-                                                                        <Button variant="destructive" className="flex justify-end" onClick={() => deleteEField(nodeData, sheet, field.fieldName)}>
+                                                                        <Button variant="destructive" className="flex justify-end" onClick={() => deleteNField(nodeData, sheet, field.fieldName)}>
                                                                             <X />
                                                                         </Button>
                                                                         </div>
                                                                         <AccordionContent className="space-y-5">
                                                                             <div>
                                                                                 <Label htmlFor="efieldName">Field Name</Label>
-                                                                                <Input id={field.fieldName} placeholder={field.fieldName} onChange={(event) => handleEFieldNameChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
+                                                                                <Input id={field.fieldName} placeholder={field.fieldName} onChange={(event) => handleNFieldNameChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
                                                                             </div>
                                                                             <div>
                                                                                 <Label htmlFor="efieldType">Field Format</Label>
-                                                                                <Input id={field.fieldType} placeholder={field.fieldType} onChange={(event) => handleEFieldTypeChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
+                                                                                <Input id={field.fieldType} placeholder={field.fieldType} onChange={(event) => handleNFieldTypeChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
                                                                             </div>
                                                                             <div>
                                                                                 <Label htmlFor="efieldDataValidation">Field Validation</Label>
-                                                                                <Input id={printStrOption(field.check)} placeholder={printStrOption(field.check)} onChange={(event) => handleECheckChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
+                                                                                <Input id={printStrOption(field.check)} placeholder={printStrOption(field.check)} onChange={(event) => handleNCheckChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
                                                                             </div>
                                                                             <div>
                                                                                 <Label htmlFor="efieldSort">Field Sort</Label>
-                                                                                <Input id={printStrOption(field.sort)} placeholder={printStrOption(field.sort)} onChange={(event) => handleESortChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
+                                                                                <Input id={printStrOption(field.sort)} placeholder={printStrOption(field.sort)} onChange={(event) => handleNSortChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
                                                                             </div>
                                                                             <div>
                                                                                 <Label htmlFor="efieldComments">Field Comments</Label>
-                                                                                <Textarea id={printStrOption(field.comments)} placeholder={printStrOption(field.comments)} onChange={(event) => handleECommentChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
+                                                                                <Textarea id={printStrOption(field.comments)} placeholder={printStrOption(field.comments)} onChange={(event) => handleNCommentChange(`${sheet.sheetName}-${field.fieldName}`, event)}/>
                                                                             </div>
                                                                         </AccordionContent>
                                                                     </AccordionItem>
@@ -637,7 +700,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                                                         ))}
                                                         </ul>
                                                         <div className="flex justify-end">
-                                                            <Button className="w-4/5 bg-green-600" onClick={() => addEField(nodeData, sheet)}>Add New Field</Button>
+                                                            <Button className="w-4/5 bg-green-600" onClick={() => addNField(nodeData, sheet)}>Add New Field</Button>
                                                         </div>
                                                     </AccordionContent>
                                                 </AccordionItem>
@@ -645,10 +708,32 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({selectedNode, se
                                         </li>
                                     ))}
                                 </ul>
-                                <Button className="w-1/2 bg-green-600" onClick={() => addESheet(nodeData)}>Add Sheet</Button>
+                                <Button className="w-1/2 bg-green-600" onClick={() => addNSheet(nodeData)}>Add Sheet</Button>
                                 <Button className="w-1/2 " onClick={() => updateData(nodeData)}>Update Data</Button>
                             </div>
                         )}
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="nodeData" className={nodeData.type==="customicon" ? "block" : "hidden"}>
+                    <AccordionTrigger>Custom Image Upload</AccordionTrigger>
+                    <AccordionContent>
+                    <div id="importCustomImage-popup-overlay" >
+                        <div className="bg-white p-6 rounded-lg shadow-lg w-30">
+                            <h2 className="text-xl font-bold mb-4">
+                                Upload a Custom Image
+                            </h2>
+                            <div id="import-drop-area"
+                                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
+                                onClick={browseImg}
+                                onDragOver={handleDragOver}
+                                onDrop={handleImgDrop}>
+                                <p className="text-gray-500">Drag & drop a file here or <span className="text-blue-500 font-semibold">click to browse</span></p>
+                                <input id="image-file-upload" type="file" accept="image/jpeg, image/jpg, image/png" className="hidden" onChange={handleImgChange} />
+                                <p id="image-name" className="mt-4 text-gray-700"></p>
+                            </div>
+                            <Button onClick={uploadImageToLocal}>Upload</Button>
+                        </div>
+                    </div>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodeStyling">

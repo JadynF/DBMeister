@@ -128,6 +128,18 @@ This component creates a button that, when clicked, will create a window prompti
 
 </blockquote>
 
+## groupAdminDialog
+
+<blockquote>
+
+CSR Component
+
+Props: { groupId, userId, setReload } : { string, string, any }
+
+setReload: a useState variable used to reload the parent component
+
+This component creates a button that, when clicked, will create a window prompting the user to confirm to change the Group admin, with a button to confirm.
+
 ## groupCard
 
 <blockquote>
@@ -152,6 +164,59 @@ This component creates a button that, when clicked, will create a popup promptin
 
 </blockquote>
 
+## groupDeleteDialog
+
+<blockquote>
+
+CSR Component
+
+Props: { groupId } : { string }
+
+This component creates a button that, when clicked, will create a popup prompting users to confirm in destroying the group. A button to confirm is also present and when clicked, will destroy the group.
+
+</blockquote>
+
+## groupInvitedCard
+
+<blockquote>
+
+CSR Component
+
+Props: { inviteData, groupId, setReload } : { any, any, any }
+
+setReload: a useState component that is used to update the parent component
+
+This component creates a card for a user that is invited to the group. The card will have the invited user's username and email on the card, as well as a button to cancel the invite.
+
+</blockquote>
+
+## groupLeaveDialog
+
+<blockquote>
+
+CSR Component
+
+Props: { groupId, userId } : { string, any }
+
+This component creates a button that only appears for non-admin users of the group. When clicked, a popup will appear confirming their intent to leave the group, as well as a button to confirm leaving the group. Is protected so that admins can't leave groups, even if this component is somehow shown to them.
+
+</blockquote>
+
+## groupMemberCard
+
+<blockquote>
+
+CSR Component
+
+Props: { memberData, groupId, adminId, myId, setReload } : { any, string, string, string, any }
+
+setReload : a useState variable used to update the parent component
+memberData : a json object with a single users data
+
+Will create a card for the input memberData in groupId, with adminId. This is rendered by a single user, identified by myId. This card will show the username, and email for members in the group. If myId == adminId, options will be given for the admin to either promote the selected user, or to kick the selected user. If memberData.id == myId, protections are put in place so that admins can't alter themselves.
+
+</blockquote>
+
 ## inviteCard
 
 <blockquote>
@@ -161,6 +226,22 @@ CSR Component
 Props: { inviteData } : json object
 
 This component will create a card for an any incoming invites for the user. Will show the group name, description, and the user that sent the invite. Also, buttons are present to either accept or decline the invitation, once done, a toast will appear alerting the user if the action was successful.
+
+</blockquote>
+
+## sendInviteDropdown
+
+<blockquote>
+
+CSR Component
+
+Props: { groupId, setSelectedId, reload } : { string, any, any }
+
+setSelectedId: a useState set method, used to set the selected user Id for parent components
+
+reload: a useState variable, used to reload thi sendInviteDropdown component
+
+This component will create a combo box dropdown/search component that allows group members to search for users to invite to the group, and select them.
 
 </blockquote>
 

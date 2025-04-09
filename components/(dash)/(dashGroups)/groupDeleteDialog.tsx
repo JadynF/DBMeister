@@ -17,7 +17,7 @@ import { useState } from "react"
 import { useRouter } from 'next/navigation';
 import Router from "next/router";
 
-export default function DeleteGroupDialog({ groupId } : {string, any}) {
+export default function DeleteGroupDialog({ groupId } : {string}) {
   const router = useRouter();
 
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;

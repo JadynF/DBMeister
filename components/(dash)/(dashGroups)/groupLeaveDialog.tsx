@@ -50,7 +50,7 @@ export default function LeaveGroupDialog({ groupId, userId } : {string, any}) {
             label: "Close"
           }
         });
-        router.push('/dashboard/groups');
+        router.push('/dashboard');
       }
       // Optionally: refresh the page or update state
     } catch (error) {

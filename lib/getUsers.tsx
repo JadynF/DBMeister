@@ -7,10 +7,11 @@ export default async function getUsersLike(groupId : string) : Promise<{ users :
     const connection = createConnection();
 
     console.log("getting users");
+    console.log(groupId);
 
     try {
         let response = await new Promise<any[]>((resolve, reject) => {
-            connection.query('SELECT username, id FROM user_information;', [groupId, groupId], (err, results: any[]) => {
+            connection.query('SELECT username, id FROM user_information WHERE id NOT IN (SELECT user_id FROM user_group WHERE group_id = ?) AND id NOT IN (SELECT recvId FROM invite WHERE groupId = ?);', [groupId, groupId], (err, results: any[]) => {
                 if (err) {
                     reject(err);
                 } else {

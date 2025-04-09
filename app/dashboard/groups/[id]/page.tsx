@@ -37,14 +37,12 @@ export default function Group() {
     const [reload, setReload] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    const [groupName, setGroupName] = useState<string | undefined>(undefined);
-    const [groupDesc, setGroupDesc] = useState<string | undefined>(undefined);
+    const [groupName, setGroupName] = useState<string | undefined>("");
+    const [groupDesc, setGroupDesc] = useState<string | undefined>("");
     const [groupInvites, setGroupInvites] = useState<any>(undefined);
     const [groupMembers, setGroupMembers] = useState<any>(undefined);
     
     const [invitedUser, setInvitedUser] = useState<string | undefined>(undefined);
-
-    const handleInvitedUserChange = (event: React.ChangeEvent<HTMLInputElement>) => {setInvitedUser(event.target.value);}
 
     const inviteUser = async () => {
         if (invitedUser != undefined && invitedUser != "") {
@@ -101,6 +99,7 @@ export default function Group() {
     useEffect(() => {
         if (params.id) {
             setGroupId(params.id);
+            console.log(params.id);
         }
         const checkAuth = async () => {
             const authResponse = await authorization();
@@ -143,6 +142,16 @@ export default function Group() {
     const handleEdit = async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+
+      let editName = groupName;
+      let editDesc = groupDesc;
+
+      if (editName.trim() == "") {
+        editName = groupData.name;
+        if (!groupData.name) {
+            editName = ""
+        }
+      }
       
       try {
         const response = await fetch('/api/editGroup', {
@@ -150,8 +159,8 @@ export default function Group() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             groupId: groupId,
-            name: groupName,
-            description: groupDesc
+            name: editName,
+            description: editDesc
           }),
         });
 
@@ -239,14 +248,14 @@ export default function Group() {
                                 <h2 className="text-lg font-medium text-slate-900 dark:text-white">
                                     Shared diagrams
                                 </h2>
-                                <CreateDiagramDialog groupId={groupData.id} setReload={setReload} />
+                                <CreateDiagramDialog groupId={groupData.id} setReload={setReload}/>
                             </div>
                             
                             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {Array.isArray(groupDiagramData) && groupDiagramData.length > 0 ? (
                                     groupDiagramData.map((diagram) => (
                                         <div key={diagram.id} className="transform transition duration-200 hover:scale-[1.02]">
-                                            <CreateDiagramCard diagramData={diagram} setReload={setReload} />
+                                            <CreateDiagramCard diagramData={diagram} setReload={setReload} isAdmin={userId == groupData.admin_id}/>
                                         </div>
                                     ))
                                 ) : (
@@ -272,12 +281,7 @@ export default function Group() {
                                     Add someone to the group
                                 </h3>
                                 <div className="flex gap-2">
-                                    <Input 
-                                        placeholder="Enter user ID" 
-                                        value={invitedUser} 
-                                        onChange={handleInvitedUserChange}
-                                        className="max-w-md"
-                                    />
+                                    <InviteComboBox groupId={groupId} setSelectedId={setInvitedUser} reload={reload}/>
                                     <Button 
                                         onClick={inviteUser}
                                         className="flex items-center gap-2"
@@ -381,7 +385,6 @@ export default function Group() {
                                         <Button 
                                             onClick={handleEdit}
                                             className="bg-blue-600 hover:bg-blue-700 text-white"
-                                            disabled={groupName == undefined || groupName.trim() == ""}
                                         >
                                             Update Group Information
                                         </Button>

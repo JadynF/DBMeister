@@ -17,7 +17,7 @@ Description: Will check whether the current user is authorized to view the group
 Return:
 
 If the user is authorized: authorized: true
-data will also include all group data for the authorized group in index 1, as well as all groups that are owned by the group in index 2
+data will also include all group data for the authorized group in index 0, all diagrams that are owned by the group in index 1, all the users that are currently invited to the group in index 2, and all the users that are currently in the group in index 3,
 
 Otherwise, authorized: false and the user will be redirected to /dashboard
 
@@ -95,6 +95,25 @@ Description: Will fetch the state of the diagram with given id.
 Return:
 
 JSON object with the state string, contains information on nodes and edges
+
+</blockquote>
+
+</blockquote>
+
+# getUsers
+
+<blockquote>
+
+## getUsersLike(groupId : string) : Promise<{ users : any }>
+
+<blockquote>
+
+Description: Will get all users that are not both in the group, or being invited to the group.
+
+Returns:
+
+users: a json object of each user
+users: "None" if no such users exist
 
 </blockquote>
 

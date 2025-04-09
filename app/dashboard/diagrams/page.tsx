@@ -48,7 +48,7 @@ export default async function Diagrams() {
                     <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {Array.isArray(diagramData) && diagramData.length > 0 ? (
                             diagramData.map((diagram) => (
-                                <div key={diagram.id} className="transform transition duration-200 hover:scale-[1.02]">
+                                <div key={diagram.id} className="transform transition duration-200 hover:scale-[1.02] w-[75%]">
                                     <CreateDiagramCard diagramData={diagram} />
                                 </div>
                             ))

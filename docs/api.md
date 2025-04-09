@@ -2,6 +2,20 @@
 
 ---
 
+# /changeGroupAdmin
+
+<blockquote>
+
+Method(s): POST
+
+Body: {userId, groupId}
+
+Returns: json object { response : string }
+response = "Changed group admin" if admin was changed
+respones = "Error" otherwise
+
+</blockquote>
+
 # /destroyDiagram
 
 <blockquote>
@@ -28,6 +42,20 @@ Will edit diagram of id to save new name and description
 Returns: json object { response: string }
 response = "Edit Successful" if edited
 response = "Edit Error" otherwise
+
+</blockquote>
+
+# /leaveGroup
+
+<blockquote>
+
+Method(s): POST
+
+Body: { userId, groupId }
+
+Returns: json object { response : string }
+response = "Left group" if the user successfully left the group
+response = "Error" otherwise
 
 </blockquote>
 

@@ -301,6 +301,35 @@ export default function Project() {
                 setImgsToDelete([]);
             }
 
+            const flowNode = document.querySelector('.react-flow') as HTMLElement;
+            if(flowNode) {
+                console.log("trying to thumbnail");
+                try {
+                    inlineAllStyles(flowNode);
+                    const base64File = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                    const res = await fetch('/api/customImageCloud', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            projectID: projectId as string,
+                            nodeID: "",
+                            file: base64File as string,
+                            fileName: "thumbnail",
+                            fileType: "data:image/png;base64,",
+                        })
+                    });
+                    const data = await res.json();
+                    console.log(data.url);
+                } catch (err) {
+                  console.error('Error saving thumbnail:', err);
+                }
+            } else {
+                console.log("no flowNode");
+                return;
+            }
+
             console.log(nodes);
             console.log(edges);
             const state = {"nodes": nodes, "edges": edges};

@@ -76,7 +76,11 @@ export default function Home() {
             </div>
             <div className="md:w-1/2">
               <div className="bg-gray-200 rounded-lg h-48 md:h-64 flex items-center justify-center">
-                <span className="text-gray-500">External Mapping Illustration</span>
+                <img 
+                  src="ETL-Tools.png" 
+                  alt="External Mapping" 
+                  className="object-cover h-full w-full"
+                />
               </div>
             </div>
           </div>
@@ -90,9 +94,13 @@ export default function Home() {
               </p>
             </div>
             <div className="md:w-1/2">
-              <div className="bg-gray-200 rounded-lg h-48 md:h-64 flex items-center justify-center">
-                <span className="text-gray-500">Collaboration Illustration</span>
-              </div>
+            <div className="bg-gray-200 rounded-lg h-48 md:h-64 flex items-center justify-center overflow-hidden">
+              <img 
+                src="Collaboration.jpg" 
+                alt="Collaboration" 
+                className="object-cover h-full w-full"
+              />
+            </div>
             </div>
           </div>
         </div>

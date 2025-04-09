@@ -97,7 +97,9 @@ const tables = [
 ]
 const shapes = [
     {shape: "diamond", shapeLabel: "Diamond", imageSrc: "/resources/exampleDiamond.PNG"},
-    {shape: "square", shapeLabel: "Square", imageSrc: "/resources/exampleSquare.PNG"}
+    {shape: "square", shapeLabel: "Square", imageSrc: "/resources/exampleSquare.PNG"},
+    {shape: "circle", shapeLabel: "Circle", imageSrc: "/resources/exampleCircle.PNG"},
+    {shape: "triangle", shapeLabel: "Triangle", imageSrc: "/resources/exampleTriangle.PNG"}
 ]
 
 const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {

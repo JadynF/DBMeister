@@ -23,7 +23,8 @@ import {
     ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { toPng } from 'html-to-image';
+import { toPng, toJpeg } from 'html-to-image';
+import jsPDF from 'jspdf';
 import ComponentsPane from "@/components/(projectEditor)/componentsPane";
 import NodePropertiesPane from "@/components/(projectEditor)/nodePropertiesPane";
 import EdgePropertiesPane from "@/components/(projectEditor)/edgePropertiesPane";
@@ -317,29 +318,9 @@ export default function Project() {
             }
         });
     }
-    const pngDownload = useCallback(async () => {
-        const flowNode = document.querySelector('.react-flow') as HTMLElement;
-        if(flowNode) {
-            try {
-                inlineAllStyles(flowNode);
-                const dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
-                const link = document.createElement('a');
-                link.download = 'dataflowproject.png';
-                link.href = dataUrl;
-                link.click();
-            } catch (err) {
-              console.error('Error generating image:', err);
-            }
-        } else {
-            console.log("no flowNode");
-            return;
-        }
-    }, [])
     const exportProject = async () => {
         if (userId && projectId) {
-            if(exportType==="png"){
-                pngDownload();
-            } else {
+            if(exportType==="dbmp"){
                 const state = {"nodes": nodes, "edges": edges};
                 const jsonString = JSON.stringify(state, null, 2);
                 // Create a Blob object from the JSON string
@@ -352,6 +333,38 @@ export default function Project() {
                 link.click();
                 // Clean up the object URL to avoid memory leaks
                 URL.revokeObjectURL(link.href);
+            } else {
+                const flowNode = document.querySelector('.react-flow') as HTMLElement;
+                if(flowNode) {
+                    try {
+                        inlineAllStyles(flowNode);
+                        if(exportType==="png"){
+                            let dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                            //toJpeg same process, but different function here. Make function (imageDownload) and make it the else condition
+                            let link = document.createElement('a');
+                            link.download = 'dataflowproject.png';
+                            link.href = dataUrl;
+                            link.click();
+                        }
+                        if(exportType==="jpeg"){
+                            let dataUrl = await toJpeg(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                            let link = document.createElement('a');
+                            link.download = 'dataflowproject.jpeg';
+                            link.href = dataUrl;
+                            link.click();
+                        } else if (exportType==="pdf"){
+                            let dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                            const pdf = new jsPDF("l", "mm", "a4");
+                            pdf.addImage(dataUrl, "PNG", 0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height);
+                            pdf.save('dataflowproject.pdf');
+                        }
+                    } catch (err) {
+                    console.error('Error generating image:', err);
+                    }
+                } else {
+                    console.log("no flowNode");
+                    return;
+                }
             }
         }
     }
@@ -598,7 +611,15 @@ export default function Project() {
                         </div>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="png" id="png-option" onClick={handleExportTypeChange} />
-                            <Label htmlFor="pngoption">PNG</Label>
+                            <Label htmlFor="png-option">PNG</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="jpeg" id="jpeg-option" onClick={handleExportTypeChange} />
+                            <Label htmlFor="jpeg-option">JPEG</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="pdf" id="pdf-option" onClick={handleExportTypeChange} />
+                            <Label htmlFor="pdf-option">PDF</Label>
                         </div>
                     </RadioGroup>
 

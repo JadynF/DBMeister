@@ -320,6 +320,15 @@ Includes one source and one target handle.
 
 </blockquote>
 
+## customIconNode
+
+<blockquote>
+  
+  Same as the iconNode, but allows custom image upload.
+  All changes are performed locally until the user saves their project to the cloud, at which point the images are saved to the cloud as well for future use.
+  
+</blockquote>
+
 ## sqlTable
 
 <blockquote>
@@ -347,4 +356,15 @@ Field: A single Excel field (or column). A sheet can have any number of fields w
 
 A target handle is attached to each sheet, as the most modular a program can write to excel is a sheet. However, a source handle is attached to each individual field for greater dataflow visibility.
 
+</blockquote>
+
+## shapeNode
+
+<blockquote>
+  
+  Custom Reactflow node type which takes a certain shape.
+
+  Currently available shapes: Square, Diamond, Triangle, Circle.
+  Additionally, each shape has a unique color.
+  
 </blockquote>

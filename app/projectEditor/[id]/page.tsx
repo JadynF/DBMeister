@@ -1,7 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from 'next/dynamic';
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, FileDown, Import, Save, House } from "lucide-react";
 import Link from "next/link";
 import {
@@ -11,35 +10,45 @@ import {
     applyEdgeChanges,
     Controls,
     Background,
+    Panel,
+    useReactFlow,
+    getNodesBounds,
+    getViewportForBounds,
     type Node,
     type Edge,
     type OnConnect,
     type OnNodesChange,
     type OnEdgesChange,
-    type OnNodeDrag
+    type OnNodeDrag,
+    ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { toPng, toJpeg } from 'html-to-image';
+import jsPDF from 'jspdf';
 import ComponentsPane from "@/components/(projectEditor)/componentsPane";
 import NodePropertiesPane from "@/components/(projectEditor)/nodePropertiesPane";
 import EdgePropertiesPane from "@/components/(projectEditor)/edgePropertiesPane";
 import { useParams } from 'next/navigation';
 import authorization from '@/lib/authorization';
 import authProject from '@/lib/authProjectEditor';
-import { Progress } from "@/components/ui/progress"
-
-
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
 const BasicNode = dynamic(() => import('@/components/(xyflow)/basicNode'), { ssr: false });
 const IconNode = dynamic(() => import('@/components/(xyflow)/iconNode'), {ssr: false});
+const ShapeNode = dynamic(() => import('@/components/(xyflow)/shapeNode'), {ssr: false});
 import { saveProject, getProject } from '@/lib/stateManager';
 
 const nodeTypes = {
     BasicNode: BasicNode,
     IconNode: IconNode,
     SQLTableNode: SQLTableNode,
-    ExcelTableNode: ExcelTableNode
+    ExcelTableNode: ExcelTableNode,
+    ShapeNode: ShapeNode
 };
 
 //New Node information types from Components Pane
@@ -101,10 +110,17 @@ type ExcelTableType = {
     tableData: ExcelSheet[]
 };
 
+type ShapeData = {header: string, shape: string};
+type ShapeType = {
+    id: string,
+    type: string,
+    header: string,
+    data: ShapeData
+};
 
 //Default Nodes and Edges for testing
 const loginNodes: Node[] = [
-    { id: "1", type: "BasicNode", position: { x: 250, y: -50 }, data: { header: "Welcome", color:  "#FFD700"} }
+    { id: "0", type: "BasicNode", position: { x: 250, y: -50 }, data: { header: "Welcome", color:  "#FFD700"} }
 ];
 const loginEdges: Edge[] = [];
 
@@ -127,11 +143,14 @@ export default function Project() {
     const [propPaneMini, setPropMini] = useState(true);
     const [importPop, setImPop] = useState(false);
     const [exportPop, setExPop] = useState(false);
-    const [nodeIDCounter, setIDCounter] = useState(4);
+    const [nodeIDCounter, setIDCounter] = useState<number>(1);
 
     const [loading, setIsLoading] = useState<boolean>(true);
     const [progress, setProgress] = useState(0);
 
+    const [exportType, setExportType] = useState("dbmp");
+
+    //Initial User Authorization
     useEffect(() => {
         setProgress(prevProgress => prevProgress + 10);
         if (params.id) {
@@ -152,6 +171,7 @@ export default function Project() {
         setProgress(prevProgress => prevProgress + 10);
     }, []);
 
+    //Project Loading
     useEffect(() => { // only run once the user has been authorized for the project
         setProgress(prevProgress => prevProgress + 10);
         if (isAuth) {
@@ -160,11 +180,10 @@ export default function Project() {
                 setProgress(prevProgress => prevProgress + 10);
                 if (savedState) {
                     nodes[0].data.header = "Loading your project...";
-                    console.log(savedState);
-                    let maxID = 0;
+                    let maxID: number = 0;
                     for (let i in savedState.nodes) { // get the maxID for the node index
                         if (savedState.nodes[i].id > maxID) {
-                            maxID = savedState.nodes[i].id;
+                            maxID = Number(savedState.nodes[i].id);
                         }
                     }
                     setProgress(prevProgress => prevProgress + 10);
@@ -172,7 +191,6 @@ export default function Project() {
                     setEdges(savedState.edges);
                     setProgress(prevProgress => prevProgress + 10);
             
-                    console.log("Max ID: " + maxID);
                     setIDCounter(maxID + 1);
                 }
                 else {
@@ -185,8 +203,8 @@ export default function Project() {
         }
     }, [isAuth]);
 
+    //Finish Loading
     useEffect(() => {
-        console.log(progress);
         if(progress == 100) { // strict mode will cause the page to mount twice, set to 100 if not set
             setIsLoading(false);
         }
@@ -283,6 +301,35 @@ export default function Project() {
                 setImgsToDelete([]);
             }
 
+            const flowNode = document.querySelector('.react-flow') as HTMLElement;
+            if(flowNode) {
+                console.log("trying to thumbnail");
+                try {
+                    inlineAllStyles(flowNode);
+                    const base64File = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                    const res = await fetch('/api/customImageCloud', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            projectID: projectId as string,
+                            nodeID: "",
+                            file: base64File as string,
+                            fileName: "thumbnail",
+                            fileType: "data:image/png;base64,",
+                        })
+                    });
+                    const data = await res.json();
+                    console.log(data.url);
+                } catch (err) {
+                  console.error('Error saving thumbnail:', err);
+                }
+            } else {
+                console.log("no flowNode");
+                return;
+            }
+
             console.log(nodes);
             console.log(edges);
             const state = {"nodes": nodes, "edges": edges};
@@ -291,29 +338,72 @@ export default function Project() {
         }
     }
 
+    function inlineAllStyles(node: HTMLElement) {
+        const allElements = node.querySelectorAll('*');
+        allElements.forEach((el) => {
+            const computed = getComputedStyle(el);
+            for (const key of computed) {
+                (el as HTMLElement).style.setProperty(key, computed.getPropertyValue(key));
+            }
+        });
+    }
     const exportProject = async () => {
         if (userId && projectId) {
-
-            const state = {"nodes": nodes, "edges": edges};
-            const jsonString = JSON.stringify(state, null, 2);
-
-            // Create a Blob object from the JSON string
-            const blob = new Blob([jsonString], { type: 'application/json' });
-
-            // Create a link element
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-
-            link.download = 'state.dbmp'; //custom file extension (.dbmp)
-            // Trigger the download
-            link.click();
-
-            // Clean up the object URL to avoid memory leaks
-            URL.revokeObjectURL(link.href);
+            if(exportType==="dbmp"){
+                const state = {"nodes": nodes, "edges": edges};
+                const jsonString = JSON.stringify(state, null, 2);
+                // Create a Blob object from the JSON string
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                // Create a link element
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'dataflowproject.dbmp'; //custom file extension (.dbmp)
+                // Trigger the download
+                link.click();
+                // Clean up the object URL to avoid memory leaks
+                URL.revokeObjectURL(link.href);
+            } else {
+                const flowNode = document.querySelector('.react-flow') as HTMLElement;
+                if(flowNode) {
+                    try {
+                        inlineAllStyles(flowNode);
+                        if(exportType==="png"){
+                            let dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                            //toJpeg same process, but different function here. Make function (imageDownload) and make it the else condition
+                            let link = document.createElement('a');
+                            link.download = 'dataflowproject.png';
+                            link.href = dataUrl;
+                            link.click();
+                        }
+                        if(exportType==="jpeg"){
+                            let dataUrl = await toJpeg(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                            let link = document.createElement('a');
+                            link.download = 'dataflowproject.jpeg';
+                            link.href = dataUrl;
+                            link.click();
+                        } else if (exportType==="pdf"){
+                            let dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                            const pdf = new jsPDF("l", "mm", "a4");
+                            pdf.addImage(dataUrl, "PNG", 0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height);
+                            pdf.save('dataflowproject.pdf');
+                        }
+                    } catch (err) {
+                    console.error('Error generating image:', err);
+                    }
+                } else {
+                    console.log("no flowNode");
+                    return;
+                }
+            }
         }
     }
 
-    const importProject = async () => {
+    const handleExportTypeChange = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setExportType(event.currentTarget.value);
+        console.log(exportType);
+    }
+
+    const importProject = () => {
         if(!importFile){
             return;
         }
@@ -373,7 +463,7 @@ export default function Project() {
     const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
 
-    const createNode = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType, position: Position) => {
+    const createNode = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType | ShapeType, position: Position) => {
         let newNode: Node = {
             id: `${nodeIDCounter}`,
             position: position,
@@ -385,16 +475,15 @@ export default function Project() {
             newNode = {...newNode, type: "IconNode", data: {...newNode.data, type: nodeData.type, header: nodeData.header, data: nodeData.data}};
         } else if(isSQLTableType(nodeData)){
             newNode = {...newNode, type: "SQLTableNode", data: {...newNode.data, type: "sql", header: nodeData.header, tableData: nodeData.tableData}};
-        } else {
+        } else if(isExcelTableType(nodeData)){
             newNode = {...newNode, type: "ExcelTableNode", data: {...newNode.data, type: "excel", header: nodeData.header, tableData: nodeData.tableData}};
+        } else {
+            newNode = {...newNode, type: "ShapeNode", data: {...newNode.data, type: "shape", header: nodeData.header, data: nodeData.data}};
         }
         setIDCounter(nodeIDCounter + 1);
         setNodes((nds) => nds.concat(newNode));
         setSelectedStatus(true);
         setSelectedObject(newNode);
-        if(!propPaneMini) {
-            handlePropPaneMini();
-        }
     }
 
     const setSelectedNodePosition = (position: Position) => {
@@ -405,7 +494,7 @@ export default function Project() {
             setNodes(updatedNodes);
         }
     }
-    const setSelectedNodeData = (nodeData: SQLTableType | ExcelTableType | IconType | BasicType) => {
+    const setSelectedNodeData = (nodeData: SQLTableType | ExcelTableType | IconType | BasicType | ShapeType) => {
         if(selectedIsNode(selectedObject)){
             let replacementNode: Node = {id: selectedObject.id, position: selectedObject.position, data: nodeData};
             if(isSQLTableType(nodeData)) {
@@ -414,8 +503,10 @@ export default function Project() {
                 replacementNode = {...replacementNode, type: "ExcelTableNode"};
             } else if(isIconType(nodeData)) {
                 replacementNode = {...replacementNode, type: "IconNode"};
-            } else {
+            } else if(isBasicType(nodeData)){
                 replacementNode = {...replacementNode, type: "BasicNode"};
+            } else {
+                replacementNode = {...replacementNode, type: "ShapeNode"};
             }
             const updatedNodes = nodes.map((node) => 
                 node.id === selectedObject.id ? replacementNode : node
@@ -427,7 +518,6 @@ export default function Project() {
     //Delete the selected node
     const deleteSelectedNode = (nodeId: string) => {
         if(selectedIsNode(selectedObject)){
-            console.log(isCustomIconType(selectedObject.data));
             if(isCustomIconType(selectedObject.data)){
                 let imgStr: string = selectedObject.data.data.image;
                 setImgsToDelete(prevImages => [...prevImages, imgStr]);
@@ -435,7 +525,6 @@ export default function Project() {
             setSelectedStatus(false);
             setNodes((nds) => nds.filter((node) => node.id !== nodeId)); // Remove the node
             setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)); // Remove edges connected to the node
-            console.log(cloudImgsToDelete);
         }
     }
 
@@ -542,25 +631,44 @@ export default function Project() {
                 className={exportPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
                 <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                     <h2 className="text-xl font-bold mb-4">
-                        Export this Project
+                        Export this project as...
                     </h2>
+                    <RadioGroup defaultValue="dbmp" className="p-5">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="dbmp" id="dbmp-option" onClick={handleExportTypeChange} />
+                            <Label htmlFor="dbmp-option">Project File (used for importing projects)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="png" id="png-option" onClick={handleExportTypeChange} />
+                            <Label htmlFor="png-option">PNG</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="jpeg" id="jpeg-option" onClick={handleExportTypeChange} />
+                            <Label htmlFor="jpeg-option">JPEG</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="pdf" id="pdf-option" onClick={handleExportTypeChange} />
+                            <Label htmlFor="pdf-option">PDF</Label>
+                        </div>
+                    </RadioGroup>
+
                     <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
                     <Button onClick={exportProject}>Export</Button>
                 </div>
             </div>
             <div style={mainStyle}>
-                    {compPaneMini && (
-                    <div className="flex sticky" style={compPaneStyle}>
-                        <Button variant="ghost" 
-                            className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
-                            onClick={handleCompPaneMini}
-                        >
-                            <ChevronLeft/>
-                        </Button>
-                        <div className="w-5/6 ml-auto p-5" style={{padding: "20px"}}>
-                                <ComponentsPane createNode={createNode} />
-                            </div>
+                {compPaneMini && (
+                <div className="flex sticky" style={compPaneStyle}>
+                    <Button variant="ghost" 
+                        className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                        onClick={handleCompPaneMini}
+                    >
+                        <ChevronLeft/>
+                    </Button>
+                    <div className="w-5/6 ml-auto p-5" style={{padding: "20px"}}>
+                            <ComponentsPane createNode={createNode} />
                         </div>
+                    </div>
                 )}
                 {!compPaneMini && (
                     <div style={sidepaneMinimizedStyle}>
@@ -572,23 +680,25 @@ export default function Project() {
                     </Button>
                     </div>
                 )}
-                <div style={{height: '100%', width: '100%' }}>
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            nodeTypes={nodeTypes}
-                            onNodeClick={onNodeClick}
-                            onEdgeClick={onEdgeClick}
-                            fitView
-                        >
-                            <Controls />
-                            <Background color="#aaa" gap={16} />
-                        </ReactFlow>
-                    </div>
-                    {propPaneMini && (
+                <div className="relative w-full h-full bg-white">
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        nodeTypes={nodeTypes}
+                        onNodeClick={onNodeClick}
+                        onEdgeClick={onEdgeClick}
+                        snapToGrid={true}
+                        snapGrid={[25, 25]}
+                        fitView
+                    >
+                        <Controls />
+                        <Background color="#aaa" gap={16} />
+                    </ReactFlow>
+                </div>
+                {propPaneMini && (
                     <div className="flex sticky justify-between" style={propPaneStyle}>
                             {selectedIsNode(selectedObject) && (
                                 <div className="w-5/6 p-5" style={{padding: "20px"}}>

@@ -17,9 +17,9 @@ const BasicNode = ({data}: {data: TestData}) => {
     const nodeBGColor = data.color || defaultNodeData.color;
 
     return (
-        <div className="w-[200px] h-[50px] border border-gray-200 p-1.5 rounded-md align-center" style={{backgroundColor: nodeBGColor}}>
+        <div className="w-[250px] h-[50px] border-2 bg-rose-400 border-black p-1.5 rounded-md align-center">
             <Handle type="target" position={Position.Top} style={{top: '-4px'}}/>
-            <Label className="flex items-center justify-center align-center ">{nodeHeader}</Label>
+            <Label className="flex items-center justify-center align-center font-mono text-lg text-black">{nodeHeader}</Label>
             <Handle type="source" position={Position.Bottom} style={{bottom: '-4px'}}id="a" />
         </div>
     )

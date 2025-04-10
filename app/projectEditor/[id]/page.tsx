@@ -157,7 +157,7 @@ export default function Project() {
     const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
 
     useEffect(() => {
-        const newSocket = io("https://dbmeister-webapp-h7aie.ondigitalocean.app/socket");
+        const newSocket = io(baseURL, { path: "/socket" });
         setSocket(newSocket);
         setProgress(prevProgress => prevProgress + 10);
         if (params.id) {

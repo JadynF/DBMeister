@@ -20,7 +20,7 @@ const createConnection = () => {
 const server = http.createServer();
 
 const io = new Server(server, {
-  path: "/diagramSocket",
+  path: "/",
   cors: {
     origin: "*",
   },

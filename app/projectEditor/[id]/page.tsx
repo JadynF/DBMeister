@@ -157,7 +157,7 @@ export default function Project() {
     const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
 
     useEffect(() => {
-        const newSocket = io(baseURL);
+        const newSocket = io(baseURL, { path: "/socket" });
         setSocket(newSocket);
         setProgress(prevProgress => prevProgress + 10);
         if (params.id) {

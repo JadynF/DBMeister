@@ -1,0 +1,12 @@
+{
+    "name": "socket-server",
+    "version": "1.0.0",
+    "main": "socket.js",
+    "dependencies": {
+        "socket-server": "file:",
+        "socket.io": "^4.0.0"
+    },
+    "scripts": {
+        "start": "node socket.js"
+    }
+}

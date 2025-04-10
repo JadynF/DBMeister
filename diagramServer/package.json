@@ -3,10 +3,14 @@
     "version": "1.0.0",
     "main": "socket.js",
     "dependencies": {
+        "mysql2": "^2.3.3",
         "socket-server": "file:",
         "socket.io": "^4.0.0"
     },
     "scripts": {
         "start": "node socket.js"
+    },
+    "engines": {
+        "node": "16.x"
     }
 }

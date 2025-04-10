@@ -35,6 +35,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { io } from "socket.io-client";
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
@@ -148,70 +149,82 @@ export default function Project() {
     const [loading, setIsLoading] = useState<boolean>(true);
     const [progress, setProgress] = useState(0);
 
+    const [socket, setSocket] = useState(undefined);
+    const [isJoined, setIsJoined] = useState(false);
+
     const [exportType, setExportType] = useState("dbmp");
 
-    //Initial User Authorization
+    const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
+
     useEffect(() => {
+        const newSocket = io(baseURL, { path: "/diagramSocket" });
+        setSocket(newSocket);
         setProgress(prevProgress => prevProgress + 10);
         if (params.id) {
             setProjectId(params.id);
         }
+        setProgress(prevProgress => prevProgress + 10);
+
+    }, []);
+
+    useEffect(() => {
         const checkAuth = async () => {
             const authResponse = await authorization();
             setProgress(prevProgress => prevProgress + 10);
             if (authResponse) {
                 setUserId(authResponse.userData.id);
-                let authProj = await authProject(authResponse.userData.id, params.id);
+                let authProj = await authProject(authResponse.userData.id, projectId);
                 setIsAuth(authProj);
             }
             setProgress(prevProgress => prevProgress + 10);
         }
         setProgress(prevProgress => prevProgress + 10);
-        checkAuth();
+        if (projectId)
+            checkAuth();
         setProgress(prevProgress => prevProgress + 10);
-    }, []);
+    }, [projectId]);
 
-    //Project Loading
     useEffect(() => { // only run once the user has been authorized for the project
-        setProgress(prevProgress => prevProgress + 10);
-        if (isAuth) {
-            const getState = async () => {
-                let savedState = await getProject(params.id);
-                setProgress(prevProgress => prevProgress + 10);
-                if (savedState) {
-                    nodes[0].data.header = "Loading your project...";
-                    let maxID: number = 0;
-                    for (let i in savedState.nodes) { // get the maxID for the node index
-                        if (savedState.nodes[i].id > maxID) {
-                            maxID = Number(savedState.nodes[i].id);
-                        }
-                    }
-                    setProgress(prevProgress => prevProgress + 10);
-                    setNodes(savedState.nodes);
-                    setEdges(savedState.edges);
-                    setProgress(prevProgress => prevProgress + 10);
-            
-                    setIDCounter(maxID + 1);
-                }
-                else {
-                    setProgress(100);
-                }
-            }
-            
+        if (projectId && isAuth) {
             setProgress(prevProgress => prevProgress + 10);
-            getState();
+            socket.emit('join-diagram', { diagramId: projectId });
+            setIsJoined(true);
+            setProgress(100);
         }
     }, [isAuth]);
 
-    //Finish Loading
     useEffect(() => {
-        if(progress == 100) { // strict mode will cause the page to mount twice, set to 100 if not set
-            setIsLoading(false);
+        if (socket) {
+            socket.on("receive-state-update", (data) => {
+                console.log("received socket update");
+                console.log(data);
+                setNodes(data.nodes);
+                setEdges(data.edges);
+                setIDCounter(data.idCounter);
+            });
+
+            return () => {
+                socket.off("receive-state-update");
+                socket.emit("leave-room", params.id);
+                socket.disconnect();
+            };
         }
-        else if (progress > 100) {
-            setProgress(100);
+    }, [socket]);
+
+    const updateSocketState = (newNodes, newEdges, newNodeIDCounter) => {
+        if (socket) {
+            const state = {"nodes": newNodes, "edges": newEdges, "idCounter": newNodeIDCounter};
+            socket.emit("send-state-update", {diagramId: params.id, data: state});
         }
-    }, [progress])
+    }
+
+    useEffect(() => {
+        if(progress >= 100 && isJoined && loading) { // strict mode will cause the page to mount twice, set to 100 if not set
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 1000);
+        }
+    }, [progress]);
 
     async function getFileFromPath(filePath: string) {
         const response = await fetch(filePath); // Fetch the file from local path
@@ -230,7 +243,12 @@ export default function Project() {
     }
 
     const saveState = async () => {
-        if (userId && projectId) { // protections from unauthorized saving states
+        console.log("saving state");
+        console.log(userId);
+        console.log(projectId);
+        console.log(isAuth);
+        console.log(!loading);
+        if (userId && projectId && isAuth.authorized && !loading) { // protections from unauthorized saving states
             //Upload all new images to the cloud
             for(let i = 0; i < nodes.length; i++){
                 let currNode = nodes[i];
@@ -238,7 +256,11 @@ export default function Project() {
                     if(!currNode.data.data.image.includes(process.env.CUSTOMIMG_SPACES_ENDPOINT as string)){
                         //Upload file to cloud and replace link in node's data
                         let localFilePath = currNode.data.data.image; //currently the local file path
-                        let imgFile: File = await getFileFromPath(localFilePath); //now the image file
+                        let imgFile = await getFileFromPath(localFilePath); //now the image file
+
+                        if (!imgFile)
+                            continue;
+
                         const base64File = await fileToBase64(imgFile); //imgFile is now a base64 string
                         const res = await fetch('/api/customImageCloud', {
                             method: 'POST',
@@ -301,37 +323,9 @@ export default function Project() {
                 setImgsToDelete([]);
             }
 
-            const flowNode = document.querySelector('.react-flow') as HTMLElement;
-            if(flowNode) {
-                console.log("trying to thumbnail");
-                try {
-                    inlineAllStyles(flowNode);
-                    const base64File = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
-                    const res = await fetch('/api/customImageCloud', {
-                        method: 'POST',
-                        headers: {
-                        'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            projectID: projectId as string,
-                            nodeID: "",
-                            file: base64File as string,
-                            fileName: "thumbnail",
-                            fileType: "data:image/png;base64,",
-                        })
-                    });
-                    const data = await res.json();
-                    console.log(data.url);
-                } catch (err) {
-                  console.error('Error saving thumbnail:', err);
-                }
-            } else {
-                console.log("no flowNode");
-                return;
-            }
-
             console.log(nodes);
             console.log(edges);
+            console.log("saving");
             const state = {"nodes": nodes, "edges": edges};
             const saved = await saveProject(state, projectId);
             // do something with saved to let user know the project has been saved
@@ -459,9 +453,23 @@ export default function Project() {
     const handleImPopChange = () => { setImPop(!importPop); }
     const handleExPopChange = () => { setExPop(!exportPop); }
 
-    const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
-    const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
-    const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
+    //const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+    const onNodesChange: OnNodesChange = useCallback((changes) => {
+        const updatedNodes = applyNodeChanges(changes, nodes); 
+        updateSocketState(updatedNodes, edges, nodeIDCounter, loading);
+    }, [nodes, edges, nodeIDCounter]);
+    
+    //const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+    const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+        const updatedEdges = applyEdgeChanges(changes, edges);
+        updateSocketState(nodes, updatedEdges, nodeIDCounter, loading);
+    }, [nodes, edges, nodeIDCounter]);
+
+    //const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), []);
+    const onConnect: OnConnect = useCallback((connection) => {
+        const updatedEdges = addEdge(connection, edges);
+        updateSocketState(nodes, updatedEdges, nodeIDCounter, loading);
+    }, [nodes, edges, nodeIDCounter]);
 
     const createNode = (nodeData: BasicType | IconType | SQLTableType | ExcelTableType | ShapeType, position: Position) => {
         let newNode: Node = {
@@ -480,7 +488,7 @@ export default function Project() {
         } else {
             newNode = {...newNode, type: "ShapeNode", data: {...newNode.data, type: "shape", header: nodeData.header, data: nodeData.data}};
         }
-        setIDCounter(nodeIDCounter + 1);
+        setIDCounter(parseInt(nodeIDCounter) + 1);
         setNodes((nds) => nds.concat(newNode));
         setSelectedStatus(true);
         setSelectedObject(newNode);
@@ -491,7 +499,7 @@ export default function Project() {
             const updatedNodes = nodes.map((node) =>
                 node.id === selectedObject.id ? { ...node, position: position } : node
             );
-            setNodes(updatedNodes);
+            updateSocketState(updatedNodes, edges, nodeIDCounter);
         }
     }
     const setSelectedNodeData = (nodeData: SQLTableType | ExcelTableType | IconType | BasicType | ShapeType) => {
@@ -511,7 +519,7 @@ export default function Project() {
             const updatedNodes = nodes.map((node) => 
                 node.id === selectedObject.id ? replacementNode : node
             );
-            setNodes(updatedNodes);
+            updateSocketState(updatedNodes, edges, nodeIDCounter);
         }
     }
 
@@ -523,15 +531,14 @@ export default function Project() {
                 setImgsToDelete(prevImages => [...prevImages, imgStr]);
             }
             setSelectedStatus(false);
-            setNodes((nds) => nds.filter((node) => node.id !== nodeId)); // Remove the node
-            setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)); // Remove edges connected to the node
+            updateSocketState(nodes.filter((node) => node.id !== nodeId), edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId), nodeIDCounter);
         }
     }
 
     const deletedSelectedEdge = (edgeId: string) => {
         if(selectedIsEdge(selectedObject)){
             setSelectedStatus(false);
-            setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
+            updateSocketState(nodes, edges.filter((edge) => edge.id !== edgeId), nodeIDCounter);
         }
     }
 
@@ -540,7 +547,7 @@ export default function Project() {
             let replacementEdge: Edge = {id: selectedObject.id, source: selectedObject.source, target: selectedObject.target, animated: aniVal};
             const updatedEdges = edges.map((edge) =>
             edge.id === selectedObject.id ? replacementEdge : edge);
-            setEdges(updatedEdges);
+            updateSocketState(nodes, updatedEdges, nodeIDCounter);
         }
     }
 

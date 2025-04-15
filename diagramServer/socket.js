@@ -28,9 +28,12 @@ const io = new Server(server, {
   pingInterval: 5000,
 });
 
-const diagramStates = {};
-const diagramUsers = {};
+let diagramStates = {};
+let diagramUsers = {};
 diagramUsersMap = new Map();
+
+let connectedUsers = {};
+socketUsernameMap = new Map();
 
 const getState = async (id) => {
 
@@ -84,11 +87,19 @@ const getState = async (id) => {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("join-diagram", async ({ diagramId }) => {
+  socket.on("join-diagram", async ({ diagramId, userData }) => {
     socket.join(diagramId);
     console.log(`User ${socket.id} joined diagram: ${diagramId}`);
 
     diagramUsersMap.set(socket.id, diagramId);
+    socketUsernameMap.set(socket.id, userData);
+
+    if (connectedUsers[diagramId] == undefined)
+      connectedUsers[diagramId] = [userData];
+    else
+      connectedUsers[diagramId].push(userData);
+    console.log("emitting receive-user-update");
+    io.to(diagramId).emit("receive-user-update", connectedUsers[diagramId]);
 
     if (diagramUsers[diagramId] == undefined) 
       diagramUsers[diagramId] = 1;
@@ -115,10 +126,15 @@ io.on("connection", (socket) => {
     console.log("leaving room: " + diagramId);
     diagramUsers[diagramId] -= 1;
     diagramUsersMap.delete(socket.id);
+
+    connectedUsers[diagramId] = connectedUsers[diagramId].filter(item => item != socketUsernameMap.get(socket.id));
+    io.to(diagramId).emit("receive-user-update", connectedUsers[diagramId]);
+    socketUsernameMap.delete(socket.id);
+
     if (diagramUsers[diagramId] == 0) {
       console.log("deleting state");
       delete diagramStates[diagramId];
-      
+      delete connectedUsers[diagramId];
     }
   })
 
@@ -129,8 +145,14 @@ io.on("connection", (socket) => {
     if(diagramId) {
       diagramUsers[diagramId] -= 1;
 
+      connectedUsers[diagramId] = connectedUsers[diagramId].filter(item => item != socketUsernameMap.get(socket.id));
+      io.to(diagramId).emit("receive-user-update", connectedUsers[diagramId]);
+
+      socketUsernameMap.delete(socket.id);
+
       if (diagramUsers[diagramId] == 0) {
         delete diagramStates[diagramId];
+        delete connectedUsers[diagramId];
         console.log("deleting state");
       }
       diagramUsersMap.delete(socket.id);

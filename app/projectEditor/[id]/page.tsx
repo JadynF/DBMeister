@@ -36,6 +36,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { io } from "socket.io-client";
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
@@ -154,6 +159,9 @@ export default function Project() {
 
     const [exportType, setExportType] = useState("dbmp");
 
+    const [username, setUsername] = useState(undefined);
+    const [connectedUsers, setConnectedUsers] = useState(undefined);
+
     const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
 
     useEffect(() => {
@@ -173,6 +181,7 @@ export default function Project() {
             setProgress(prevProgress => prevProgress + 10);
             if (authResponse) {
                 setUserId(authResponse.userData.id);
+                setUsername(authResponse.userData.username);
                 let authProj = await authProject(authResponse.userData.id, projectId);
                 setIsAuth(authProj);
             }
@@ -187,7 +196,7 @@ export default function Project() {
     useEffect(() => { // only run once the user has been authorized for the project
         if (projectId && isAuth) {
             setProgress(prevProgress => prevProgress + 10);
-            socket.emit('join-diagram', { diagramId: projectId });
+            socket.emit('join-diagram', { diagramId: projectId, userData: username });
             setIsJoined(true);
             setProgress(100);
         }
@@ -203,8 +212,14 @@ export default function Project() {
                 setIDCounter(data.idCounter);
             });
 
+            socket.on("receive-user-update", (data) => {
+                console.log("receive user update");
+                setConnectedUsers(data);
+            })
+
             return () => {
                 socket.off("receive-state-update");
+                socket.off("receive-user-update");
                 socket.emit("leave-room", params.id);
                 socket.disconnect();
             };
@@ -321,6 +336,35 @@ export default function Project() {
                     }
                 }
                 setImgsToDelete([]);
+            }
+
+            const flowNode = document.querySelector('.react-flow') as HTMLElement;
+            if(flowNode) {
+                console.log("trying to thumbnail");
+                try {
+                    inlineAllStyles(flowNode);
+                    const base64File = await toJpeg(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
+                    const res = await fetch('/api/customImageCloud', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            projectID: projectId as string,
+                            nodeID: "",
+                            file: base64File as string,
+                            fileName: "thumbnail",
+                            fileType: "data:image/jpeg;base64,",
+                        })
+                    });
+                    const data = await res.json();
+                    console.log(data.url);
+                } catch (err) {
+                  console.error('Error saving thumbnail:', err);
+                }
+            } else {
+                console.log("no flowNode");
+                return;
             }
 
             console.log(nodes);
@@ -609,7 +653,25 @@ export default function Project() {
                     <div>
                         Project {projectId}
                     </div>
-                    <div>
+                    <div className="flex">
+                        {Array.isArray(connectedUsers) && connectedUsers.length > 0 ? (
+                            connectedUsers.map((user) => (
+                                <HoverCard>
+                                    <HoverCardTrigger>
+                                        <div key={user} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold shadow ml-2 mr-2">
+                                            {user.charAt(0)}
+                                        </div>
+                                    </HoverCardTrigger>
+                                    <HoverCardContent>
+                                        <div>
+                                            {username}
+                                        </div>
+                                    </HoverCardContent>
+                                </HoverCard>
+                            ))
+                        ) : (
+                            <></>
+                        )}
                         <Link href="/dashboard">
                             <Button variant="ghost"><House/></Button>
                         </Link>

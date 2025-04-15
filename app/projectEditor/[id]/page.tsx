@@ -676,7 +676,7 @@ export default function Project() {
                                         </div>
                                     </HoverCardTrigger>
                                     <HoverCardContent>
-                                        <div>
+                                        <div key={user}>
                                             {user}
                                         </div>
                                     </HoverCardContent>

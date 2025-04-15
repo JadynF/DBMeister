@@ -669,14 +669,14 @@ export default function Project() {
                     <div className="flex">
                         {Array.isArray(connectedUsers) && connectedUsers.length > 0 ? (
                             connectedUsers.map((user) => (
-                                <HoverCard>
+                                <HoverCard key={user}>
                                     <HoverCardTrigger>
-                                        <div key={user} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold shadow ml-2 mr-2">
+                                        <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold shadow ml-2 mr-2">
                                             {user.charAt(0)}
                                         </div>
                                     </HoverCardTrigger>
                                     <HoverCardContent>
-                                        <div key={user}>
+                                        <div>
                                             {user}
                                         </div>
                                     </HoverCardContent>

@@ -274,7 +274,10 @@ export default function Project() {
             for(let i = 0; i < nodes.length; i++){
                 let currNode = nodes[i];
                 if(isCustomIconType(currNode.data)){
-                    if(!currNode.data.data.image.includes(process.env.CUSTOMIMG_SPACES_ENDPOINT as string)){
+                    console.log(currNode.data.data.image);
+                    console.log(!currNode.data.data.image.includes(process.env.NEXT_PUBLIC_API_CUSTOM_SPACES_ENDPOINT as string));
+                    console.log(process.env.NEXT_PUBLIC_API_CUSTOM_SPACES_ENDPOINT);
+                    if(!currNode.data.data.image.includes(process.env.NEXT_PUBLIC_API_CUSTOM_SPACES_ENDPOINT as string)){
                         //Upload file to cloud and replace link in node's data
                         let localFilePath = currNode.data.data.image; //currently the local file path
                         let imgFile = await getFileFromPath(localFilePath); //now the image file

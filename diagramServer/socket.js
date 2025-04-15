@@ -62,9 +62,9 @@ const getState = async (id) => {
 
   let maxID = 0;
   let returnState = {
-    "nodes" : [{ id: "1", type: "BasicNode", position: { x: 250, y: -50 }, data: { header: "Welcome", color:  "#FFD700"} }],
+    "nodes" : [],
     "edges" : [],
-    "idCounter" : 2
+    "idCounter" : 1
   };
   if (savedState) {
     for (let i in savedState.nodes) { // get the maxID for the node index
@@ -124,9 +124,6 @@ io.on("connection", (socket) => {
 
   socket.on("send-node-update", ({ diagramId, data }) => {
     console.log("node update received, emitting to all in " + diagramId);
-
-    console.log(data);
-    console.log(diagramStates[diagramId]["nodes"]);
 
     const newNodes = diagramStates[diagramId]["nodes"].map(node => {
         if (node.id == data[0].id) {

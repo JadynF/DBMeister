@@ -233,6 +233,12 @@ export default function Project() {
         }
     }
 
+    const updateNodeState = (changes) => {
+        if (socket) {
+            socket.emit("send-node-update", {diagramId: params.id, data: changes});
+        }
+    }
+
     useEffect(() => {
         if(progress >= 100 && isJoined && loading) { // strict mode will cause the page to mount twice, set to 100 if not set
             setTimeout(() => {
@@ -499,8 +505,15 @@ export default function Project() {
 
     //const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onNodesChange: OnNodesChange = useCallback((changes) => {
-        const updatedNodes = applyNodeChanges(changes, nodes); 
-        updateSocketState(updatedNodes, edges, nodeIDCounter, loading);
+        console.log(changes);
+        if (changes[0].type == "position") {
+            updateNodeState(changes);
+        }
+        else {
+            console.log("emitting");
+            const updatedNodes = applyNodeChanges(changes, nodes); 
+            updateSocketState(updatedNodes, edges, nodeIDCounter, loading);
+        }
     }, [nodes, edges, nodeIDCounter]);
     
     //const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -664,7 +677,7 @@ export default function Project() {
                                     </HoverCardTrigger>
                                     <HoverCardContent>
                                         <div>
-                                            {username}
+                                            {user}
                                         </div>
                                     </HoverCardContent>
                                 </HoverCard>

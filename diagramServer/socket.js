@@ -122,6 +122,24 @@ io.on("connection", (socket) => {
     io.to(diagramId).emit("receive-state-update", data);
   });
 
+  socket.on("send-node-update", ({ diagramId, data }) => {
+    console.log("node update received, emitting to all in " + diagramId);
+
+    console.log(data);
+    console.log(diagramStates[diagramId]["nodes"]);
+
+    const newNodes = diagramStates[diagramId]["nodes"].map(node => {
+        if (node.id == data[0].id) {
+          node.position = data[0].position;
+        }
+        return node;
+      }
+    )
+    const newState = {"nodes": newNodes, "edges":diagramStates[diagramId]["edges"], "idCounter":diagramStates[diagramId]["idCounter"]};
+    diagramStates[diagramId] = newState;
+    io.to(diagramId).emit("receive-state-update", newState);
+  });//
+
   socket.on("leave-room", (diagramId) => {
     console.log("leaving room: " + diagramId);
     diagramUsers[diagramId] -= 1;

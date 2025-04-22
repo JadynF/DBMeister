@@ -10,6 +10,18 @@ export default async function authProject(userId : string, diagramId : string) :
 
     try {
         let response = await new Promise<any[]>((resolve, reject) => {
+            connection.query('SELECT * FROM diagrams WHERE id = ?;', [diagramId], (err, results: any[]) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+
+        let diagramData = response;
+
+        response = await new Promise<any[]>((resolve, reject) => {
             connection.query('SELECT * FROM user_owns WHERE user_id = ? AND diagram_id = ?;', [userId, diagramId], (err, results: any[]) => {
                 if (err) {
                     reject(err);
@@ -22,7 +34,7 @@ export default async function authProject(userId : string, diagramId : string) :
         console.log(response);
 
         if (response.length != 0)
-            return ({authorized: true});
+            return ({authorized: true, diagramData: diagramData});
 
         response = await new Promise<any[]>((resolve, reject) => {
             connection.query('SELECT * FROM user_group WHERE user_id = ? AND group_id = (SELECT group_id FROM group_owns WHERE diagram_id = ?);', [userId, diagramId], (err, results: any[]) => {
@@ -35,7 +47,7 @@ export default async function authProject(userId : string, diagramId : string) :
         });
 
         if (response.length != 0)
-            return ({authorized: true});
+            return ({authorized: true, diagramData: diagramData});
 
         redirect('/dashboard');
         return ({authorized: false});

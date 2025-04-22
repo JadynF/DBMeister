@@ -29,6 +29,7 @@ const io = new Server(server, {
 });
 
 let diagramStates = {};
+let diagramSaved = {};
 let diagramUsers = {};
 diagramUsersMap = new Map();
 
@@ -106,24 +107,29 @@ io.on("connection", (socket) => {
     else
       diagramUsers[diagramId] += 1;
 
+    if (diagramSaved[diagramId] == undefined)
+      diagramSaved[diagramId] = true;
+
     if (diagramStates[diagramId] != undefined) {
-      socket.emit("receive-state-update", diagramStates[diagramId]);
+      socket.emit("receive-state-update", {recState: diagramStates[diagramId], saved: diagramSaved[diagramId]});
     }
     else {
       let newState = await getState(diagramId);
       diagramStates[diagramId] = newState;
-      socket.emit("receive-state-update", newState);
+      socket.emit("receive-state-update", {recState: newState, saved: true});
     }
   });
 
   socket.on("send-state-update", ({ diagramId, data }) => {
     console.log("update received, emitting to all in " + diagramId);
     diagramStates[diagramId] = data;
-    io.to(diagramId).emit("receive-state-update", data);
+    diagramSaved[diagramId] = false;
+    io.to(diagramId).emit("receive-state-update", {recState: data, saved: false});
   });
 
   socket.on("send-node-update", ({ diagramId, data }) => {
     console.log("node update received, emitting to all in " + diagramId);
+    diagramSaved[diagramId] = false;
 
     const newNodes = diagramStates[diagramId]["nodes"].map(node => {
         if (node.id == data[0].id) {
@@ -134,15 +140,24 @@ io.on("connection", (socket) => {
     )
     const newState = {"nodes": newNodes, "edges":diagramStates[diagramId]["edges"], "idCounter":diagramStates[diagramId]["idCounter"]};
     diagramStates[diagramId] = newState;
-    io.to(diagramId).emit("receive-state-update", newState);
+    io.to(diagramId).emit("receive-state-update", {recState: newState, saved: false});
   });//
+
+  socket.on("send-saved-update", (diagramId) => {
+    console.log(diagramId);
+    console.log(diagramStates[diagramId])
+    diagramSaved[diagramId] = true;
+    io.to(diagramId).emit("receive-state-update", {recState: diagramStates[diagramId], saved: true});
+  })
 
   socket.on("leave-room", (diagramId) => {
     console.log("leaving room: " + diagramId);
     diagramUsers[diagramId] -= 1;
     diagramUsersMap.delete(socket.id);
 
-    connectedUsers[diagramId] = connectedUsers[diagramId].filter(item => item != socketUsernameMap.get(socket.id));
+    if (connectedUsers[diagramId])
+      connectedUsers[diagramId] = connectedUsers[diagramId].filter(item => item != socketUsernameMap.get(socket.id));
+
     io.to(diagramId).emit("receive-user-update", connectedUsers[diagramId]);
     socketUsernameMap.delete(socket.id);
 
@@ -150,6 +165,7 @@ io.on("connection", (socket) => {
       console.log("deleting state");
       delete diagramStates[diagramId];
       delete connectedUsers[diagramId];
+      delete diagramSaved[diagramId];
     }
   })
 
@@ -160,7 +176,9 @@ io.on("connection", (socket) => {
     if(diagramId) {
       diagramUsers[diagramId] -= 1;
 
-      connectedUsers[diagramId] = connectedUsers[diagramId].filter(item => item != socketUsernameMap.get(socket.id));
+      if (connectedUsers[diagramId])
+        connectedUsers[diagramId] = connectedUsers[diagramId].filter(item => item != socketUsernameMap.get(socket.id));
+
       io.to(diagramId).emit("receive-user-update", connectedUsers[diagramId]);
 
       socketUsernameMap.delete(socket.id);
@@ -168,6 +186,7 @@ io.on("connection", (socket) => {
       if (diagramUsers[diagramId] == 0) {
         delete diagramStates[diagramId];
         delete connectedUsers[diagramId];
+        delete diagramSaved[diagramId];
         console.log("deleting state");
       }
       diagramUsersMap.delete(socket.id);

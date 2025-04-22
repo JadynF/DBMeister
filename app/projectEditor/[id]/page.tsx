@@ -41,6 +41,7 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { toast } from "sonner";
 
 const SQLTableNode = dynamic(() => import('@/components/(xyflow)/sqlTable'), { ssr: false });
 const ExcelTableNode = dynamic(() => import('@/components/(xyflow)/excelTable'), { ssr: false });
@@ -134,6 +135,8 @@ export default function Project() {
     const params = useParams();
 
     const [projectId, setProjectId] = useState<string | undefined>(undefined);
+    const [diagramData, setDiagramData] = useState(undefined);
+    const [diagramName, setDiagramName] = useState("");
     const [userId, setUserId] = useState<string | undefined>(undefined);
     const [isAuth, setIsAuth] = useState<boolean>(false);
 
@@ -161,6 +164,7 @@ export default function Project() {
 
     const [username, setUsername] = useState(undefined);
     const [connectedUsers, setConnectedUsers] = useState(undefined);
+    const [isSaved, setIsSaved] = useState(true);
 
     const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
 
@@ -183,7 +187,10 @@ export default function Project() {
                 setUserId(authResponse.userData.id);
                 setUsername(authResponse.userData.username);
                 let authProj = await authProject(authResponse.userData.id, projectId);
-                setIsAuth(authProj);
+                console.log(authProj);
+                setDiagramData(authProj.diagramData[0]);
+                setDiagramName(authProj.diagramData[0].name)
+                setIsAuth(authProj.authorized);
             }
             setProgress(prevProgress => prevProgress + 10);
         }
@@ -204,12 +211,14 @@ export default function Project() {
 
     useEffect(() => {
         if (socket) {
-            socket.on("receive-state-update", (data) => {
+            socket.on("receive-state-update", ({recState, saved}) => {
                 console.log("received socket update");
-                console.log(data);
-                setNodes(data.nodes);
-                setEdges(data.edges);
-                setIDCounter(data.idCounter);
+                console.log(recState);
+                console.log(saved);
+                setNodes(recState.nodes);
+                setEdges(recState.edges);
+                setIDCounter(recState.idCounter);
+                setIsSaved(saved);
             });
 
             socket.on("receive-user-update", (data) => {
@@ -264,12 +273,8 @@ export default function Project() {
     }
 
     const saveState = async () => {
-        console.log("saving state");
-        console.log(userId);
-        console.log(projectId);
         console.log(isAuth);
-        console.log(!loading);
-        if (userId && projectId && isAuth.authorized && !loading) { // protections from unauthorized saving states
+        if (userId && projectId && isAuth && !loading) { // protections from unauthorized saving states
             //Upload all new images to the cloud
             for(let i = 0; i < nodes.length; i++){
                 let currNode = nodes[i];
@@ -351,7 +356,6 @@ export default function Project() {
             if(flowNode) {
                 console.log("trying to thumbnail");
                 try {
-                    inlineAllStyles(flowNode);
                     const base64File = await toJpeg(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
                     const res = await fetch('/api/customImageCloud', {
                         method: 'POST',
@@ -376,12 +380,26 @@ export default function Project() {
                 return;
             }
 
-            console.log(nodes);
-            console.log(edges);
-            console.log("saving");
             const state = {"nodes": nodes, "edges": edges};
             const saved = await saveProject(state, projectId);
-            // do something with saved to let user know the project has been saved
+
+            if (saved.saved) {
+                socket.emit("send-saved-update", params.id);
+                console.log("saved");
+                toast("Diagram has been saved!", {
+                    action: {
+                      label: "Close"
+                    }
+                });
+            }
+            else {
+                console.log("failed to save");
+                toast("Failed to save diagram", {
+                            action: {
+                              label: "Close"
+                            }
+                });
+            }
         }
     }
 
@@ -413,7 +431,7 @@ export default function Project() {
                 const flowNode = document.querySelector('.react-flow') as HTMLElement;
                 if(flowNode) {
                     try {
-                        inlineAllStyles(flowNode);
+                        //inlineAllStyles(flowNode);
                         if(exportType==="png"){
                             let dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
                             //toJpeg same process, but different function here. Make function (imageDownload) and make it the else condition
@@ -661,13 +679,14 @@ export default function Project() {
             </div>
             <div style={contentStyle}>
                 <header style={taskbarStyle}>
-                    <div>
+                    <div className="flex">
                         <Button variant="ghost" onClick={saveState}><Save/></Button>
                     <Button variant="ghost" onClick={handleExPopChange}><FileDown/></Button>
                     <Button variant="ghost" onClick={handleImPopChange}><Import/></Button>
+                    {isSaved ? (<p>Saved</p>) : (<p>Not Saved</p>)}
                     </div>
                     <div>
-                        Project {projectId}
+                        {diagramName}
                     </div>
                     <div className="flex">
                         {Array.isArray(connectedUsers) && connectedUsers.length > 0 ? (

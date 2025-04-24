@@ -36,6 +36,8 @@ export default async function Dashboard() {
   let groupData = await groupRes.json();
   groupData = groupData.data.flat();
 
+  console.log(groupData);
+
   
   
 
@@ -58,9 +60,8 @@ export default async function Dashboard() {
         <div className="p-4 bg-white shadow rounded-lg">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Your Diagrams</h2>
-            <CreateDiagramDialog ownerId={response.userData.id} />
           </div>
-          <DashboardDiagrams diagramData={diagramData} />
+          <DashboardDiagrams diagramData={diagramData} isHomepage={true}/>
         </div>
         
         {/* Groups Cards Section */}

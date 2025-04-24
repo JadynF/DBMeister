@@ -22,14 +22,18 @@ const DashboardGroups = ({ groupData }: { groupData: any[] }) => {
       <div className="flex flex-wrap justify-center">
         {Array.isArray(visibleGroups) && visibleGroups.length > 0 ? (
           visibleGroups.map((group) => (
-            <div key={group.id} className="m-2">
-              {/* 🟢 Wrap the card in a Link that points to /dashboard/groups/[id] */}
-              <Link href={`/dashboard/groups/${group.id}`} passHref>
-                <div className="cursor-pointer">
-                  <CreateGroupCard groupData={group} />
-                </div>
-              </Link>
-            </div>
+            !group.sendId ? (
+              <div key={group.id} className="m-2">
+                {/* 🟢 Wrap the card in a Link that points to /dashboard/groups/[id] */}
+                <Link href={`/dashboard/groups/${group.id}`} passHref>
+                  <div className="cursor-pointer">
+                    <CreateGroupCard groupData={group} />
+                  </div>
+                </Link>
+              </div>
+            ) : (
+              <></>
+            )
           ))
         ) : (
           <h2 className="m-4 text-xl text-center">

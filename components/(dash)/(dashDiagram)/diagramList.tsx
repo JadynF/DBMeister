@@ -3,7 +3,7 @@
 import { useState } from "react";
 import CreateDiagramCard from "@/components/(dash)/(dashDiagram)/diagramCard";
 
-const DashboardDiagrams = ({ diagramData }: { diagramData: any[] }) => {
+const DashboardDiagrams = ({ diagramData, isHomepage }: { diagramData: any[], isHomepage: boolean }) => {
   // Only show 3 diagrams initially
   const [visibleDiagrams, setVisibleDiagrams] = useState(diagramData.slice(0, 3));
   const [showAll, setShowAll] = useState(false);
@@ -24,7 +24,7 @@ const DashboardDiagrams = ({ diagramData }: { diagramData: any[] }) => {
         {Array.isArray(visibleDiagrams) && visibleDiagrams.length > 0 ? (
           visibleDiagrams.map((diagram) => (
             <div key={diagram.id} className="m-2">
-              <CreateDiagramCard diagramData={diagram} />
+              <CreateDiagramCard diagramData={diagram} isHomepage={isHomepage} />
             </div>
           ))
         ) : (

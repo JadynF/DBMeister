@@ -21,7 +21,7 @@ import {
   import { toast } from "sonner";
   import React, { useState, useEffect, useCallback, useRef } from "react";
 
-  export default function CreateDiagramCard({ diagramData } : any) {
+  export default function CreateDiagramCard({ diagramData, isHomepage } : {any, boolean}) {
     const router = useRouter();
 
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -113,8 +113,14 @@ import {
                 <Link href={"/projectEditor/" + diagramData.id}>
                     <Button>Open</Button>
                 </Link>
-                <CreateEditDiagramDialog diagramId={diagramData.id} diagramName={diagramData.name} diagramDesc={diagramData.description}/>
-                <Button variant="destructive" onClick={destroyDiagram}>Destroy</Button>
+                {!isHomepage ? (
+                  <>
+                  <CreateEditDiagramDialog diagramId={diagramData.id} diagramName={diagramData.name} diagramDesc={diagramData.description}/>
+                  <Button variant="destructive" onClick={destroyDiagram}>Destroy</Button>
+                  </>
+                ) : (
+                  <></>
+                )}
             </CardFooter>
         </Card>
     )

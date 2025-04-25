@@ -67,7 +67,6 @@ type BasicType = {
     header: string,
     data: TestData
 };
-
 type IconData = { header: string; image: string};
 type IconType = {
     id: string,
@@ -81,7 +80,6 @@ type CustomIconType = {
     header: string,
     data: IconData
 };
-
 type SQLTableDataType = {
     fieldName: string,
     fieldType: string,
@@ -98,7 +96,6 @@ type SQLTableType = {
     header: string,
     tableData: SQLTableDataType[]
 };
-
 type ExcelField = {
     fieldName: string,
     fieldType: string,
@@ -116,7 +113,6 @@ type ExcelTableType = {
     header: string,
     tableData: ExcelSheet[]
 };
-
 type ShapeData = {header: string, shape: string};
 type ShapeType = {
     id: string,
@@ -764,23 +760,31 @@ export default function Project() {
                 {compPaneMini && (
                 <div className="flex sticky" style={compPaneStyle}>
                     <Button variant="ghost" 
-                        className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                        className="fixed top-1/2 transform -translate-y-1/2 flex justify-center items-center h-[85vh] bg-indigo-200 hover:bg-indigo-300"
+                        style={{ top: 'calc(50vh)'}} 
                         onClick={handleCompPaneMini}
                     >
-                        <ChevronLeft/>
+                        <div className="flex flex-col items-center relative">
+                            <div className="absolute -rotate-90 w-max"><Label>Elements</Label></div>
+                            <div className="mt-12"><ChevronLeft/></div>
+                        </div>
                     </Button>
                     <div className="w-5/6 ml-auto p-5" style={{padding: "20px"}}>
-                            <ComponentsPane createNode={createNode} />
-                        </div>
+                        <ComponentsPane createNode={createNode} />
                     </div>
+                </div>
                 )}
                 {!compPaneMini && (
                     <div style={sidepaneMinimizedStyle}>
                     <Button variant="ghost" 
-                        className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full mt-[50px] bg-indigo-200 hover:bg-indigo-300" 
+                        className="fixed top-1/2 transform -translate-y-1/2 flex justify-center items-center h-[85vh] bg-indigo-200 hover:bg-indigo-300" 
+                        style={{ top: 'calc(50vh)'}}
                         onClick={handleCompPaneMini}
                     >
-                        <ChevronRight/>
+                        <div className="flex flex-col items-center relative">
+                            <div className="absolute -rotate-90 w-max"><Label>Elements</Label></div>
+                            <div className="mt-12"><ChevronRight/></div>
+                        </div>
                     </Button>
                     </div>
                 )}
@@ -804,44 +808,52 @@ export default function Project() {
                 </div>
                 {propPaneMini && (
                     <div className="flex sticky justify-between" style={propPaneStyle}>
-                            {selectedIsNode(selectedObject) && (
-                                <div className="w-5/6 p-5" style={{padding: "20px"}}>
-                                <NodePropertiesPane 
-                                    projectID={projectId}
-                                    selectedNode={selectedObject} 
-                                    selectedStatus={selectedStatus}
-                                    setSelectedNodePosition={setSelectedNodePosition}
-                                    setSelectedNodeData={setSelectedNodeData}
-                                    deleteSelectedNode={deleteSelectedNode}
-                                    />
-                                </div>
+                        {selectedIsNode(selectedObject) && (
+                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
+                            <NodePropertiesPane 
+                                projectID={projectId}
+                                selectedNode={selectedObject} 
+                                selectedStatus={selectedStatus}
+                                setSelectedNodePosition={setSelectedNodePosition}
+                                setSelectedNodeData={setSelectedNodeData}
+                                deleteSelectedNode={deleteSelectedNode}
+                                />
+                            </div>
                         )}
-                            {selectedIsEdge(selectedObject) && (
-                                <div className="w-5/6 p-5" style={{padding: "20px"}}>
-                                <EdgePropertiesPane
-                                        selectedEdge={selectedObject}
-                                        selectedStatus={selectedStatus}
-                                        animateEdge={animateEdge}
-                                        deleteSelectedEdge={deletedSelectedEdge}
-                                    />
-                                </div>
+                        {selectedIsEdge(selectedObject) && (
+                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
+                            <EdgePropertiesPane
+                                    selectedEdge={selectedObject}
+                                    selectedStatus={selectedStatus}
+                                    animateEdge={animateEdge}
+                                    deleteSelectedEdge={deletedSelectedEdge}
+                                />
+                            </div>
                         )}
                         <Button variant="ghost" 
-                            className="ml-auto flex-grow top-1/2 transform -translate-y-1 justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
+                            className="fixed right-0 top-1/2 transform -translate-y-1 justify-center items-center h-[86vh] bg-indigo-200 hover:bg-indigo-300" 
+                            style={{ top: 'calc(10vh - 15px)'}}
                             onClick={handlePropPaneMini}
                         >
-                            <ChevronRight/>
+                            <div className="flex flex-col items-center relative">
+                                <div className="absolute rotate-90 w-max"><Label>Properties</Label></div>
+                                <div className="mt-12 -translate-x-1"><ChevronRight/></div>
+                            </div>
                         </Button>
                     </div>
                 )}
                 {!propPaneMini && (
                     <div style={sidepaneMinimizedStyle}>
-                    <Button variant="ghost" 
-                        className="flex top-1/2 transform -translate-y-1 flex justify-center items-center h-full bg-indigo-200 hover:bg-indigo-300" 
-                        onClick={handlePropPaneMini}
-                    >
-                        <ChevronLeft/>
-                    </Button>
+                        <Button variant="ghost" 
+                            className="fixed right-0 top-1/2 transform -translate-y-1 flex justify-center items-center h-[86vh] bg-indigo-200 hover:bg-indigo-300" 
+                            style={{ top: 'calc(10vh - 15px)'}}
+                            onClick={handlePropPaneMini}
+                        >
+                            <div className="flex flex-col items-center relative">
+                                <div className="absolute rotate-90 w-max"><Label>Properties</Label></div>
+                                <div className="mt-12 -translate-x-1"><ChevronLeft/></div>
+                            </div>
+                        </Button>
                     </div>
                     
                 )}
@@ -887,5 +899,5 @@ const propPaneStyle: React.CSSProperties = {
 
 const sidepaneMinimizedStyle: React.CSSProperties = {
     backgroundColor: '#f4f4f46b',
-    width: '4%'
+    width: '5%'
 }

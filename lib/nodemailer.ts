@@ -37,7 +37,7 @@ export const sendVerificationEmail = async (carrier: Carrier, email: string, vTo
         from: process.env.EMAIL_FROM as string,
         to: email,
         subject: 'Account Verification',
-        text: `Please verify your email by clicking this link: http://localhost:3000/verifyAccount?token=${vToken}`,
+        text: `Please verify your email by clicking this link: ${process.env.NEXT_PUBLIC_API_BASE_URL}/verifyAccount?token=${vToken}`,
         //Add dsn service to check gmail for bounced deliveries (not reliable, but may weed out some more errors)
         dsn: {
             id: 'verify' + email + timestamp as string,// Make a unique ID for tracking this email.

@@ -81,7 +81,7 @@ import {
     }, [imageUrl]);
 
     return (
-        <Card className="w-[100%] h-auto m-5">
+        <Card className="w-[100%] h-auto m-5 overflow-hidden">
             <CardHeader>
                 <CardTitle>{diagramData.name}</CardTitle>
                 {diagramData.description.length < 80 ? (

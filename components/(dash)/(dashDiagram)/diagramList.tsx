@@ -20,7 +20,7 @@ const DashboardDiagrams = ({ diagramData, isHomepage }: { diagramData: any[], is
 
   return (
     <div>
-      <div className="flex flex-wrap justify-center">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.isArray(visibleDiagrams) && visibleDiagrams.length > 0 ? (
           visibleDiagrams.map((diagram) => (
             <div key={diagram.id} className="m-2">

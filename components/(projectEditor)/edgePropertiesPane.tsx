@@ -56,11 +56,14 @@ const EdgePropertiesPane: React.FC<EdgePropertiesPaneProps> = ({selectedEdge, se
     }, [selectedEdge]);
 
     return (
-        <div className="space-y-10">
+        <div className="">
+            <div className="flex items-center justify-center w-full">
+                Properties
+            </div>
             <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="edgePath">
                     <AccordionTrigger>Edge Path</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md">
                         <div className="flex justify-center align-center">
                             <Input id="source-In" placeholder={edge.source} onChange={handleSourceChange} />
                             <p className="positionY-1/2">-</p>
@@ -70,9 +73,9 @@ const EdgePropertiesPane: React.FC<EdgePropertiesPaneProps> = ({selectedEdge, se
                 </AccordionItem>
                 <AccordionItem value="edgeAnimated">
                     <AccordionTrigger>Animation</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md flex items-center">
                         <Checkbox id="edgeAnimatedCheck" checked={animated} onCheckedChange={(change) => handleAnimationChange(change as boolean)} />
-                        <Label>  Animated?</Label>
+                        <Label className="ml-2">  Animated?</Label>
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

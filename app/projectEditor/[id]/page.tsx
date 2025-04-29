@@ -652,7 +652,7 @@ export default function Project() {
     const isCustomIconType = (data: any): data is CustomIconType => { return (data as CustomIconType).type === "customicon"; }
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col h-screen overflow-hidden">
           {/* Loading Screen */}
           <div className={`bg-white dark:bg-gray-900 absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center transition-opacity duration-500 ease-out ${loading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             <h1 className="text-4xl mb-4">Loading Your Project...</h1>
@@ -660,7 +660,7 @@ export default function Project() {
           </div>
       
           {/* Main Content */}
-          <div className={`${loading ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'} flex flex-col flex-1 transition-opacity duration-500 ease-in`}>
+          <div className={`${loading ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'} flex flex-col flex-1 transition-opacity duration-500 ease-in h-full`}>
             
             {/* Header / Taskbar */}
             <header className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white p-2 text-lg flex justify-between items-center z-10">
@@ -691,8 +691,10 @@ export default function Project() {
                         {user.charAt(0)}
                       </div>
                     </HoverCardTrigger>
-                    <HoverCardContent>
-                      <div>{user}</div>
+                    <HoverCardContent className="w-auto minw-0">
+                      <div className="flex w-auto h-auto">
+                        {user}
+                      </div>
                     </HoverCardContent>
                   </HoverCard>
                 ))}
@@ -708,7 +710,7 @@ export default function Project() {
               <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96">
                 <h2 className="text-xl font-bold mb-4">Import a Project</h2>
                 <div id="import-drop-area"
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100 mb-4"
                   onClick={browseFile}
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
@@ -717,8 +719,10 @@ export default function Project() {
                   <input id="file-input" type="file" accept=".dbmp" className="hidden" onChange={handleFileChange} />
                   <p id="file-name" className="mt-4 text-gray-700"></p>
                 </div>
-                <Button variant="destructive" onClick={handleImPopChange}>Close</Button>
-                <Button onClick={importProject}>Import</Button>
+                <div className="flex items-center justify-center">
+                    <Button variant="destructive" onClick={handleImPopChange} className="mr-4">Close</Button>
+                    <Button onClick={importProject}>Import</Button>
+                </div>
               </div>
             </div>
       
@@ -734,16 +738,18 @@ export default function Project() {
                     </div>
                   ))}
                 </RadioGroup>
-                <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
-                <Button onClick={exportProject}>Export</Button>
+                <div className="flex items-center justify-center">
+                    <Button variant="destructive" onClick={handleExPopChange} className="mr-4">Close</Button>
+                    <Button onClick={exportProject}>Export</Button>
+                </div>
               </div>
             </div>
       
             {/* Main Workspace */}
-            <div className="flex flex-1 overflow-hidden bg-gray-200 dark:bg-gray-800">
+            <div className="flex flex-1 h-full overflow-hidden bg-gray-200 dark:bg-gray-800">
               {/* Left Sidebar */}
               {compPaneMini ? (
-                <div className="flex relative w-[20%] min-w-fit overflow-y-auto">
+                <div className="flex relative w-[20%] min-w-fit">
                   <Button variant="ghost"
                     className="w-[15%] absolute top-1/2 transform -translate-y-1/2 flex flex-col justify-center items-center h-full bg-indigo-400 hover:bg-indigo-600"
                     onClick={handleCompPaneMini}
@@ -751,12 +757,12 @@ export default function Project() {
                     <div className="-rotate-90 w-max mb-5"><Label>Elements</Label></div>
                     <ChevronLeft />
                   </Button>
-                  <div className="w-5/6 ml-auto p-5">
+                  <div className="w-5/6 ml-auto p-5 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-track-gray-800">
                     <ComponentsPane createNode={createNode} />
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center w-[3%]">
+                <div className="flex items-center justify-center w-[3%] min-w-10">
                   <Button variant="ghost"
                     className="flex flex-col items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full w-full"
                     onClick={handleCompPaneMini}
@@ -790,8 +796,8 @@ export default function Project() {
       
               {/* Right Sidebar */}
               {propPaneMini ? (
-                <div className="flex relative bg-gray-200 dark:bg-gray-800 w-[20%] min-w-fit overflow-y-auto">
-                  <div className="w-5/6 p-5">
+                <div className="flex relative bg-gray-200 dark:bg-gray-800 w-[20%] min-w-fit h-full overflow-hidden">
+                  <div className="w-5/6 p-5 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-track-gray-800">
                     {selectedIsNode(selectedObject) && (
                       <NodePropertiesPane
                         projectID={projectId}
@@ -820,7 +826,7 @@ export default function Project() {
                   </Button>
                 </div>
               ) : (
-                <div className="bg-gray-100 flex items-center justify-center w-[3%]">
+                <div className="bg-gray-100 flex items-center justify-center w-[3%] min-w-10">
                   <Button variant="ghost"
                     className="flex flex-col items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full w-full"
                     onClick={handlePropPaneMini}

@@ -2,19 +2,8 @@ import RegisterForm from "@/components/(authComponents)/registerForm";
 
 export default function Register() {
     return (
-        <div style={containerStyle}>
+        <div className="flex h-[100vh] w-[100vw] justify-center align-center items-center bg-indigo-600">
             <RegisterForm />
         </div> 
     )
 }
-
-// Inline styles
-const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    height: '100vh', /* Full viewport height */
-    width: '100vw', /* Full viewport width */
-    justifyContent: 'center',
-    alignContent: 'center',
-    alignItems: 'center',
-    background: '#bfdbfe'
-};

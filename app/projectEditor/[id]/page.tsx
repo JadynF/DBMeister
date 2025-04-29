@@ -161,13 +161,15 @@ export default function Project() {
     const [username, setUsername] = useState(undefined);
     const [connectedUsers, setConnectedUsers] = useState(undefined);
     const [isSaved, setIsSaved] = useState(true);
-    const [isDarkmode, setIsDarkmode] = useState(false);
+    const [darkMode, setDarkMode] = useState(false);
 
     const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
 
     useEffect(() => {
-        if (localStorage.getItem('theme') == "dark")
-            setIsDarkmode(true); 
+        if (localStorage.getItem('theme') == "dark") {
+            setDarkMode(true); 
+            document.documentElement.className = "dark";
+        }
 
         const newSocket = io(baseURL, { path: "/socket" });
         setSocket(newSocket);
@@ -743,9 +745,10 @@ export default function Project() {
               {compPaneMini ? (
                 <div className="flex relative w-[20%] min-w-fit overflow-y-auto">
                   <Button variant="ghost"
-                    className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-400 hover:bg-indigo-600"
+                    className="w-[15%] absolute top-1/2 transform -translate-y-1/2 flex flex-col justify-center items-center h-full bg-indigo-400 hover:bg-indigo-600"
                     onClick={handleCompPaneMini}
                   >
+                    <div className="-rotate-90 w-max mb-5"><Label>Elements</Label></div>
                     <ChevronLeft />
                   </Button>
                   <div className="w-5/6 ml-auto p-5">
@@ -753,11 +756,12 @@ export default function Project() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center w-[3%]">
                   <Button variant="ghost"
-                    className="flex items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full"
+                    className="flex flex-col items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full w-full"
                     onClick={handleCompPaneMini}
                   >
+                    <div className="-rotate-90 w-max mb-5"><Label>Elements</Label></div>
                     <ChevronRight />
                   </Button>
                 </div>
@@ -777,7 +781,7 @@ export default function Project() {
                   snapToGrid={true}
                   snapGrid={[25, 25]}
                   fitView
-                  colorMode={isDarkmode ? "dark" : "light"}
+                  colorMode={darkMode ? "dark" : "light"}
                 >
                   <Controls />
                   <Background className="dark:bg-gray-900" color="#aaa" gap={16} />
@@ -808,18 +812,20 @@ export default function Project() {
                     )}
                   </div>
                   <Button variant="ghost"
-                    className="absolute top-1/2 right-0 transform -translate-y-1/2 flex items-center justify-center h-full bg-indigo-400 hover:bg-indigo-600"
+                    className="w-[15%] absolute top-1/2 right-0 transform -translate-y-1/2 flex flex-col items-center justify-center h-full bg-indigo-400 hover:bg-indigo-600"
                     onClick={handlePropPaneMini}
                   >
+                    <div className="mb-5 rotate-90 w-max"><Label>Properties</Label></div>
                     <ChevronRight />
                   </Button>
                 </div>
               ) : (
-                <div className="bg-gray-100 flex items-center justify-center">
+                <div className="bg-gray-100 flex items-center justify-center w-[3%]">
                   <Button variant="ghost"
-                    className="flex items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full"
+                    className="flex flex-col items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full w-full"
                     onClick={handlePropPaneMini}
                   >
+                    <div className="mb-5 rotate-90 w-max"><Label>Properties</Label></div>
                     <ChevronLeft />
                   </Button>
                 </div>

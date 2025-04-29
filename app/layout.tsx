@@ -48,15 +48,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-//<header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-//          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-//            <div className="font-medium text-lg">DBMeister</div>
-//          </div>
-//        </header>
-//
-//<footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-4">
-//<div className="container mx-auto px-4 text-center text-sm text-slate-600 dark:text-slate-400">
-//  <p>DBMeister © {new Date().getFullYear()}</p>
-//</div>
-//</footer>

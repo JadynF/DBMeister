@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from 'next/dynamic';
-import { ChevronLeft, ChevronRight, FileDown, Import, Save, House } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileDown, Import, Save, House, CircleAlert, CircleCheckBig } from "lucide-react";
 import Link from "next/link";
 import {
     ReactFlow,
@@ -161,10 +161,14 @@ export default function Project() {
     const [username, setUsername] = useState(undefined);
     const [connectedUsers, setConnectedUsers] = useState(undefined);
     const [isSaved, setIsSaved] = useState(true);
+    const [isDarkmode, setIsDarkmode] = useState(false);
 
     const baseURL = process.env.NEXT_PUBLIC_API_SOCKET_URL;
 
     useEffect(() => {
+        if (localStorage.getItem('theme') == "dark")
+            setIsDarkmode(true); 
+
         const newSocket = io(baseURL, { path: "/socket" });
         setSocket(newSocket);
         setProgress(prevProgress => prevProgress + 10);
@@ -645,259 +649,183 @@ export default function Project() {
     const isIconType = (data: any): data is IconType => { return (data as IconType).type === "icon" || (data as IconType).type === "customicon"; }
     const isCustomIconType = (data: any): data is CustomIconType => { return (data as CustomIconType).type === "customicon"; }
 
-    // Styles for fade in/out effects
-    const loadingStyle: React.CSSProperties = {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      opacity: loading ? 1 : 0, // fade out when loading is false
-      pointerEvents: loading ? 'auto' : 'none', // prevent interaction when hidden
-      transition: 'opacity 0.5s ease-out', // smooth fade-out transition
-    };
-
-    const contentStyle: React.CSSProperties = {
-      opacity: loading ? 0 : 1, // fade in once loading is complete
-      transition: 'opacity 0.5s ease-in', // smooth fade-in transition
-    };
-
     return (
-        <div>
-            <div style={loadingStyle}>
-                <h1 className="text-4xl mb-4">Loading Your Project...</h1>
-                <Progress value={progress} className="w-[60%]" />
-            </div>
-            <div style={contentStyle}>
-                <header style={taskbarStyle}>
-                    <div className="flex">
-                        <Button variant="ghost" onClick={saveState}><Save/></Button>
-                    <Button variant="ghost" onClick={handleExPopChange}><FileDown/></Button>
-                    <Button variant="ghost" onClick={handleImPopChange}><Import/></Button>
-                    {isSaved ? (<p>Saved</p>) : (<p>Not Saved</p>)}
+        <div className="flex flex-col min-h-screen">
+          {/* Loading Screen */}
+          <div className={`bg-white dark:bg-gray-900 absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center transition-opacity duration-500 ease-out ${loading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <h1 className="text-4xl mb-4">Loading Your Project...</h1>
+            <Progress value={progress} className="w-[60%]" />
+          </div>
+      
+          {/* Main Content */}
+          <div className={`${loading ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'} flex flex-col flex-1 transition-opacity duration-500 ease-in`}>
+            
+            {/* Header / Taskbar */}
+            <header className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white p-2 text-lg flex justify-between items-center z-10">
+              <div className="flex items-center w-[40%] justify-start items-center">
+                <Button variant="ghost" onClick={saveState}><Save />Save</Button>
+                <Button variant="ghost" onClick={handleExPopChange}><FileDown />Export</Button>
+                <Button variant="ghost" onClick={handleImPopChange}><Import />Import</Button>
+              </div>
+              <div className="text-2xl font-bold w-[20%] flex justify-center items-center">{diagramName}</div>
+              <div className="flex items-center w-[40%] justify-end items-center">
+                <div className="mr-6">
+                  {isSaved ? (
+                    <div className="flex items-center">
+                      <CircleCheckBig />
+                      <p className="ml-2">Saved</p>
                     </div>
-                    <div>
-                        {diagramName}
+                  ) : (
+                    <div className="flex items-center">
+                      <CircleAlert />
+                      <p className="ml-2">Not Saved</p>
                     </div>
-                    <div className="flex">
-                        {Array.isArray(connectedUsers) && connectedUsers.length > 0 ? (
-                            connectedUsers.map((user) => (
-                                <HoverCard key={user}>
-                                    <HoverCardTrigger>
-                                        <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold shadow ml-2 mr-2">
-                                            {user.charAt(0)}
-                                        </div>
-                                    </HoverCardTrigger>
-                                    <HoverCardContent>
-                                        <div>
-                                            {user}
-                                        </div>
-                                    </HoverCardContent>
-                                </HoverCard>
-                            ))
-                        ) : (
-                            <></>
-                        )}
-                        <Link href="/dashboard">
-                            <Button variant="ghost"><House/></Button>
-                        </Link>
-                    </div>
-                </header>
-                <div id="import-popup-overlay" 
-                className={importPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
-                <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                    <h2 className="text-xl font-bold mb-4">
-                        Import a Project
-                    </h2>
-                    <div id="import-drop-area"
-                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
-                        onClick={browseFile}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}>
-                        <p className="text-gray-500">Drag & drop a file here or <span className="text-blue-500 font-semibold">click to browse</span></p>
-                        <input id="file-input" type="file" accept=".dbmp" className="hidden" onChange={handleFileChange} />
-                        <p id="file-name" className="mt-4 text-gray-700"></p>
-                    </div>
-                    <Button variant="destructive" onClick={handleImPopChange}>Close</Button>
-                    <Button onClick={importProject}>Import</Button>
+                  )}
                 </div>
-            </div>
-            <div id="export-popup-overlay" 
-                className={exportPop ? "fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-auto" : "hidden"}>
-                <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                    <h2 className="text-xl font-bold mb-4">
-                        Export this project as...
-                    </h2>
-                    <RadioGroup defaultValue="dbmp" className="p-5">
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="dbmp" id="dbmp-option" onClick={handleExportTypeChange} />
-                            <Label htmlFor="dbmp-option">Project File (used for importing projects)</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="png" id="png-option" onClick={handleExportTypeChange} />
-                            <Label htmlFor="png-option">PNG</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="jpeg" id="jpeg-option" onClick={handleExportTypeChange} />
-                            <Label htmlFor="jpeg-option">JPEG</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="pdf" id="pdf-option" onClick={handleExportTypeChange} />
-                            <Label htmlFor="pdf-option">PDF</Label>
-                        </div>
-                    </RadioGroup>
-
-                    <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
-                    <Button onClick={exportProject}>Export</Button>
+                {Array.isArray(connectedUsers) && connectedUsers.length > 0 && connectedUsers.map((user) => (
+                  <HoverCard key={user}>
+                    <HoverCardTrigger>
+                      <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold shadow mx-2">
+                        {user.charAt(0)}
+                      </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent>
+                      <div>{user}</div>
+                    </HoverCardContent>
+                  </HoverCard>
+                ))}
+                <Link href="/dashboard">
+                  <Button variant="ghost"><House /></Button>
+                </Link>
+              </div>
+            </header>
+      
+            {/* Popups */}
+            {/* Import Popup */}
+            <div id="import-popup-overlay" className={`${importPop ? 'fixed flex' : 'hidden'} top-0 left-0 w-full h-full bg-black bg-opacity-50 items-center justify-center z-50`}>
+              <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Import a Project</h2>
+                <div id="import-drop-area"
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
+                  onClick={browseFile}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                >
+                  <p className="text-gray-500">Drag & drop a file here or <span className="text-blue-500 font-semibold">click to browse</span></p>
+                  <input id="file-input" type="file" accept=".dbmp" className="hidden" onChange={handleFileChange} />
+                  <p id="file-name" className="mt-4 text-gray-700"></p>
                 </div>
+                <Button variant="destructive" onClick={handleImPopChange}>Close</Button>
+                <Button onClick={importProject}>Import</Button>
+              </div>
             </div>
-            <div style={mainStyle}>
-                {compPaneMini && (
-                <div className="flex sticky" style={compPaneStyle}>
-                    <Button variant="ghost" 
-                        className="fixed top-1/2 transform -translate-y-1/2 flex justify-center items-center h-[85vh] bg-indigo-200 hover:bg-indigo-300"
-                        style={{ top: 'calc(50vh)'}} 
-                        onClick={handleCompPaneMini}
-                    >
-                        <div className="flex flex-col items-center relative">
-                            <div className="absolute -rotate-90 w-max"><Label>Elements</Label></div>
-                            <div className="mt-12"><ChevronLeft/></div>
-                        </div>
-                    </Button>
-                    <div className="w-5/6 ml-auto p-5" style={{padding: "20px"}}>
-                        <ComponentsPane createNode={createNode} />
+      
+            {/* Export Popup */}
+            <div id="export-popup-overlay" className={`${exportPop ? 'fixed flex' : 'hidden'} top-0 left-0 w-full h-full bg-black bg-opacity-50 items-center justify-center z-50`}>
+              <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Export this project as...</h2>
+                <RadioGroup defaultValue="dbmp" className="p-5">
+                  {['dbmp', 'png', 'jpeg', 'pdf'].map(type => (
+                    <div key={type} className="flex items-center space-x-2">
+                      <RadioGroupItem value={type} id={`${type}-option`} onClick={handleExportTypeChange} />
+                      <Label htmlFor={`${type}-option`}>{type.toUpperCase()}</Label>
                     </div>
-                </div>
-                )}
-                {!compPaneMini && (
-                    <div style={sidepaneMinimizedStyle}>
-                    <Button variant="ghost" 
-                        className="fixed top-1/2 transform -translate-y-1/2 flex justify-center items-center h-[85vh] bg-indigo-200 hover:bg-indigo-300" 
-                        style={{ top: 'calc(50vh)'}}
-                        onClick={handleCompPaneMini}
-                    >
-                        <div className="flex flex-col items-center relative">
-                            <div className="absolute -rotate-90 w-max"><Label>Elements</Label></div>
-                            <div className="mt-12"><ChevronRight/></div>
-                        </div>
-                    </Button>
-                    </div>
-                )}
-                <div className="relative w-full h-full bg-white">
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        nodeTypes={nodeTypes}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
-                        snapToGrid={true}
-                        snapGrid={[25, 25]}
-                        fitView
-                    >
-                        <Controls />
-                        <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-                </div>
-                {propPaneMini && (
-                    <div className="flex sticky justify-between" style={propPaneStyle}>
-                        {selectedIsNode(selectedObject) && (
-                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
-                            <NodePropertiesPane 
-                                projectID={projectId}
-                                selectedNode={selectedObject} 
-                                selectedStatus={selectedStatus}
-                                setSelectedNodePosition={setSelectedNodePosition}
-                                setSelectedNodeData={setSelectedNodeData}
-                                deleteSelectedNode={deleteSelectedNode}
-                                />
-                            </div>
-                        )}
-                        {selectedIsEdge(selectedObject) && (
-                            <div className="w-5/6 p-5" style={{padding: "20px"}}>
-                            <EdgePropertiesPane
-                                    selectedEdge={selectedObject}
-                                    selectedStatus={selectedStatus}
-                                    animateEdge={animateEdge}
-                                    deleteSelectedEdge={deletedSelectedEdge}
-                                />
-                            </div>
-                        )}
-                        <Button variant="ghost" 
-                            className="fixed right-0 top-1/2 transform -translate-y-1 justify-center items-center h-[86vh] bg-indigo-200 hover:bg-indigo-300" 
-                            style={{ top: 'calc(10vh - 15px)'}}
-                            onClick={handlePropPaneMini}
-                        >
-                            <div className="flex flex-col items-center relative">
-                                <div className="absolute rotate-90 w-max"><Label>Properties</Label></div>
-                                <div className="mt-12 -translate-x-1"><ChevronRight/></div>
-                            </div>
-                        </Button>
-                    </div>
-                )}
-                {!propPaneMini && (
-                    <div style={sidepaneMinimizedStyle}>
-                        <Button variant="ghost" 
-                            className="fixed right-0 top-1/2 transform -translate-y-1 flex justify-center items-center h-[86vh] bg-indigo-200 hover:bg-indigo-300" 
-                            style={{ top: 'calc(10vh - 15px)'}}
-                            onClick={handlePropPaneMini}
-                        >
-                            <div className="flex flex-col items-center relative">
-                                <div className="absolute rotate-90 w-max"><Label>Properties</Label></div>
-                                <div className="mt-12 -translate-x-1"><ChevronLeft/></div>
-                            </div>
-                        </Button>
-                    </div>
-                    
-                )}
+                  ))}
+                </RadioGroup>
+                <Button variant="destructive" onClick={handleExPopChange}>Close</Button>
+                <Button onClick={exportProject}>Export</Button>
+              </div>
             </div>
+      
+            {/* Main Workspace */}
+            <div className="flex flex-1 overflow-hidden bg-gray-200 dark:bg-gray-800">
+              {/* Left Sidebar */}
+              {compPaneMini ? (
+                <div className="flex relative w-[20%] min-w-fit overflow-y-auto">
+                  <Button variant="ghost"
+                    className="absolute top-1/2 transform -translate-y-1/2 flex justify-center items-center h-full bg-indigo-400 hover:bg-indigo-600"
+                    onClick={handleCompPaneMini}
+                  >
+                    <ChevronLeft />
+                  </Button>
+                  <div className="w-5/6 ml-auto p-5">
+                    <ComponentsPane createNode={createNode} />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center">
+                  <Button variant="ghost"
+                    className="flex items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full"
+                    onClick={handleCompPaneMini}
+                  >
+                    <ChevronRight />
+                  </Button>
+                </div>
+              )}
+      
+              {/* Main Canvas */}
+              <div className="relative flex-1 bg-white">
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={onConnect}
+                  nodeTypes={nodeTypes}
+                  onNodeClick={onNodeClick}
+                  onEdgeClick={onEdgeClick}
+                  snapToGrid={true}
+                  snapGrid={[25, 25]}
+                  fitView
+                  colorMode={isDarkmode ? "dark" : "light"}
+                >
+                  <Controls />
+                  <Background className="dark:bg-gray-900" color="#aaa" gap={16} />
+                </ReactFlow>
+              </div>
+      
+              {/* Right Sidebar */}
+              {propPaneMini ? (
+                <div className="flex relative bg-gray-200 dark:bg-gray-800 w-[20%] min-w-fit overflow-y-auto">
+                  <div className="w-5/6 p-5">
+                    {selectedIsNode(selectedObject) && (
+                      <NodePropertiesPane
+                        projectID={projectId}
+                        selectedNode={selectedObject}
+                        selectedStatus={selectedStatus}
+                        setSelectedNodePosition={setSelectedNodePosition}
+                        setSelectedNodeData={setSelectedNodeData}
+                        deleteSelectedNode={deleteSelectedNode}
+                      />
+                    )}
+                    {selectedIsEdge(selectedObject) && (
+                      <EdgePropertiesPane
+                        selectedEdge={selectedObject}
+                        selectedStatus={selectedStatus}
+                        animateEdge={animateEdge}
+                        deleteSelectedEdge={deletedSelectedEdge}
+                      />
+                    )}
+                  </div>
+                  <Button variant="ghost"
+                    className="absolute top-1/2 right-0 transform -translate-y-1/2 flex items-center justify-center h-full bg-indigo-400 hover:bg-indigo-600"
+                    onClick={handlePropPaneMini}
+                  >
+                    <ChevronRight />
+                  </Button>
+                </div>
+              ) : (
+                <div className="bg-gray-100 flex items-center justify-center">
+                  <Button variant="ghost"
+                    className="flex items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full"
+                    onClick={handlePropPaneMini}
+                  >
+                    <ChevronLeft />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        </div>
-    )
-}
-
-//Styles
-const taskbarStyle: React.CSSProperties = {
-    backgroundColor: '#4169E1',
-    color: 'white',
-    padding: '10px',
-    textAlign: 'center',
-    fontSize: '18px',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 0,
-    display: 'flex',
-    justifyContent: 'space-between'
-}
-
-const mainStyle: React.CSSProperties = {
-    display: 'flex',
-    marginTop: '5px',
-    height: 'calc(85vh)'
-}
-
-/* Left and Right Sidebars */
-const compPaneStyle: React.CSSProperties = {
-    backgroundColor: '#f4f4f46b',
-    width: '35%',
-    overflowY: 'auto'
-}
-const propPaneStyle: React.CSSProperties = {
-    backgroundColor: '#f4f4f46b',
-    width: '35%',
-    overflowY: 'auto'
-}
-
-const sidepaneMinimizedStyle: React.CSSProperties = {
-    backgroundColor: '#f4f4f46b',
-    width: '5%'
+      );
 }

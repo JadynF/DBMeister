@@ -55,7 +55,7 @@ export default function DeleteGroupDialog({ groupId } : {string}) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="py-8 px-8 text-lg w-[25%]">Delete Group</Button>
+        <Button variant="destructive" className="py-8 px-8 text-lg w-min-[25%] w-max-full">Delete Group</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>

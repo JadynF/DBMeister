@@ -64,9 +64,9 @@ import {
                         <CardDescription>UserID: {memberData.id}</CardDescription>
                     </div>
                     { adminId == myId && memberData.id != myId ? (
-                      <div className="w-[20%] flex items-center justify-end">
+                      <div className="w-[20%] flex items-center justify-end flex-wrap">
                         <GroupAdminDialog groupId={groupId} userId={memberData.id} setReload={setReload}/>
-                        <Button className="ml-4 py-8 px-8 text-lg" variant="destructive" onClick={kickMember}>Kick</Button>
+                        <Button className="ml-4 text-lg" variant="destructive" onClick={kickMember}>Kick</Button>
                       </div>
                     ) : memberData.id == myId ? (
                       <div className="w-[20%] flex items-center justify-end opacity-40">

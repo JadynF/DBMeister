@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Settings, LogOut, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const SettingsPage = () => {
 
@@ -37,7 +38,7 @@ const SettingsPage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem("token");
-        router.push("/login");
+        router.push("/");
     };
 
     const handleDeleteAccount = async () => {
@@ -48,14 +49,26 @@ const SettingsPage = () => {
             });
             if (res.ok) {
                 localStorage.clear();
-                alert("Account deleted successfully.");
-                router.push("/signup");
+                toast("Account deleted successfully", {
+                    action: {
+                        label: "Close"
+                    }
+                });
+                router.push("/");
             } else {
-                alert("Failed to delete account. Please try again.");
+                toast("Failed to delete account", {
+                    action: {
+                        label: "Close"
+                    }
+                });
             }
         } catch (error) {
             console.error("Error deleting account:", error);
-            alert("An error occurred. Please try again later.");
+            toast("Error when deleting account", {
+                action: {
+                    label: "Close"
+                }
+            });
         }
     };
 
@@ -85,13 +98,25 @@ const SettingsPage = () => {
                 body: JSON.stringify(reqBody),
             });
             if (res.ok) {
-                alert("Account updated successfully.");
+                toast("Account updated successfully!", {
+                    action: {
+                        label: "Close"
+                    }
+                });
             } else {
-                alert("Failed to update account. Please try again.");
+                toast("Failed to update account", {
+                    action: {
+                        label: "Close"
+                    }
+                });
             }
         } catch (error) {
             console.error("Error updating account:", error);
-            alert("An error occurred. Please try again later.");
+            toast("Error when updating account", {
+                action: {
+                    label: "Close"
+                }
+            });
         }
     };
 

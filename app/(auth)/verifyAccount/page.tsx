@@ -41,7 +41,7 @@ export default function VerifyAccount() {
     }
 
     return (
-        <div style={containerStyle}>
+        <div className="flex w-[100vw] h-[100vh] justify-center items-center align-center bg-indigo-600">
             <Card className="w-[350px] bg-blue-100">
                 <CardHeader>
                     <CardTitle className=' flex justify-center'>Verify your Account</CardTitle>

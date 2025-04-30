@@ -10,9 +10,12 @@ import { useRouter } from "next/navigation";
 import { Settings, LogOut, Trash2 } from "lucide-react";
 
 const SettingsPage = () => {
+
     const [darkMode, setDarkMode] = useState(false);
-    const [fontSize, setFontSize] = useState("medium");
+    const [currUser, setCurrUser] = useState("");
+    const [currPass, setCurrPass] = useState("");
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const router = useRouter();
@@ -23,16 +26,14 @@ const SettingsPage = () => {
         const storedFontSize = localStorage.getItem("fontSize");
         const storedUsername = localStorage.getItem("username");
         if (storedTheme === "dark") setDarkMode(true);
-        if (storedFontSize) setFontSize(storedFontSize);
         if (storedUsername) setUsername(storedUsername);
     }, []);
 
     // Save settings to local storage
     useEffect(() => {
         localStorage.setItem("theme", darkMode ? "dark" : "light");
-        localStorage.setItem("fontSize", fontSize);
         document.documentElement.className = darkMode ? "dark" : "light";
-    }, [darkMode, fontSize]);
+    }, [darkMode]);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -58,7 +59,10 @@ const SettingsPage = () => {
         }
     };
 
+    const handleCurrUserChange = (event: React.ChangeEvent<HTMLInputElement>) => setCurrUser(event.target.value);
+    const handleCurrPassChange = (event: React.ChangeEvent<HTMLInputElement>) => setCurrPass(event.target.value);
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => setUsername(event.target.value);
+    const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value);
     const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value);
     const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(event.target.value);
 
@@ -67,11 +71,18 @@ const SettingsPage = () => {
             alert("Passwords do not match!");
             return;
         }
+        const reqBody = {
+            currUsername: currUser,
+            currPassword: currPass,
+            username: username,
+            email: email,
+            password: password
+        };
         try {
             const res = await fetch("/api/update-account", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify(reqBody),
             });
             if (res.ok) {
                 alert("Account updated successfully.");
@@ -122,20 +133,6 @@ const SettingsPage = () => {
                                             className="data-[state=checked]:bg-blue-600"
                                         />
                                     </div>
-
-                                    <div className="flex flex-col space-y-2">
-                                        <Label htmlFor="font-size" className="font-medium text-slate-800 dark:text-slate-200">Font Size</Label>
-                                        <Select value={fontSize} onValueChange={setFontSize}>
-                                            <SelectTrigger id="font-size" className="border-slate-200 dark:border-slate-700">
-                                                <SelectValue placeholder="Select Font Size" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="small">Small</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="large">Large</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -143,12 +140,43 @@ const SettingsPage = () => {
                         {/* Account Section */}
                         <Card className="border border-slate-200 dark:border-slate-700">
                             <CardHeader className="bg-slate-50 dark:bg-slate-800/60">
-                                <CardTitle className="text-md font-medium">User Information</CardTitle>
+                                <CardTitle className="text-md font-medium">Change User Information</CardTitle>
                             </CardHeader>
                             <CardContent className="pt-4">
                                 <div className="space-y-4">
                                     <div className="flex flex-col space-y-2">
-                                        <Label htmlFor="username" className="font-medium text-slate-800 dark:text-slate-200">Username</Label>
+                                        <Label htmlFor="currUsername" className="font-medium text-slate-800 dark:text-slate-200">Current Username</Label>
+                                        <Input 
+                                            id="currUsername" 
+                                            value={currUser} 
+                                            onChange={handleCurrUserChange} 
+                                            placeholder="Enter your current username"
+                                            className="border-slate-200 dark:border-slate-700" 
+                                        />
+                                    </div>
+                                    <div className="flex flex-col space-y-2">
+                                        <Label htmlFor="currPassword" className="font-medium text-slate-800 dark:text-slate-200">Current Password</Label>
+                                        <Input 
+                                            id="currPassword" 
+                                            value={currPass} 
+                                            onChange={handleCurrPassChange} 
+                                            placeholder="Enter your current password"
+                                            className="border-slate-200 dark:border-slate-700" 
+                                        />
+                                    </div>
+                                    <div className="flex flex-col space-y-2"></div>
+                                    <div className="flex flex-col space-y-2">
+                                        <Label htmlFor="email" className="font-medium text-slate-800 dark:text-slate-200"> New Email Address</Label>
+                                        <Input 
+                                            id="email" 
+                                            value={email} 
+                                            onChange={handleEmailChange} 
+                                            placeholder="Enter new email address"
+                                            className="border-slate-200 dark:border-slate-700" 
+                                        />
+                                    </div>
+                                    <div className="flex flex-col space-y-2">
+                                        <Label htmlFor="username" className="font-medium text-slate-800 dark:text-slate-200">New Username</Label>
                                         <Input 
                                             id="username" 
                                             value={username} 

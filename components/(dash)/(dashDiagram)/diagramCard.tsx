@@ -1,127 +1,129 @@
 "use client";
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card"
-  import { Button } from "@/components/ui/button"
-  import Image from 'next/image';
-  import Link from "next/link";
-  import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
-  } from "@/components/ui/hover-card"
-  import CreateEditDiagramDialog from '@/components/(dash)/(dashDiagram)/diagramEditDialog';
-  import { useRouter } from 'next/navigation';
-  import { toast } from "sonner";
-  import React, { useState, useEffect, useCallback, useRef } from "react";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import CreateEditDiagramDialog from "@/components/(dash)/(dashDiagram)/diagramEditDialog";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import React, { useState, useEffect } from "react";
 
-  export default function CreateDiagramCard({ diagramData, isHomepage } : {any, boolean}) {
-    const router = useRouter();
+export default function CreateDiagramCard({
+  diagramData,
+  isHomepage,
+}: {
+  diagramData: any;
+  isHomepage: boolean;
+}) {
+  const router = useRouter();
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
-    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const [imageExists, setImageExists] = useState(true);
+  const imageUrl =
+    "https://dbm-project-customiconimages.nyc3.digitaloceanspaces.com/testingUploads/" +
+    diagramData.id +
+    "--thumbnail";
+  const fallbackImage = "/resources/ExampleDiagram.png";
 
-    const destroyDiagram = async () => {
-        let payload = {
-            id: diagramData.id,
-          };
-      
-          let res = await fetch(baseURL + '/api/destroyDiagram', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-      
-          const data = await res.json();
+  useEffect(() => {
+    const checkImageExists = async () => {
+      try {
+        const res = await fetch(imageUrl, { method: "HEAD" });
+        setImageExists(res.ok);
+      } catch {
+        setImageExists(false);
+      }
+    };
+    checkImageExists();
+  }, [imageUrl]);
 
-          if (data.response == "Deletion Successful") {
-                toast("Diagram has been destroyed!", {
-                action: {
-                  label: "Close"
-                }
-                });
-                router.refresh();
-          }
-          else {
-            toast("Error when destroying diagram", {
-                action: {
-                  label: "Close"
-                }
-              });
-          }
+  const destroyDiagram = async () => {
+    const res = await fetch(`${baseURL}/api/destroyDiagram`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: diagramData.id }),
+    });
+    const data = await res.json();
+    if (data.response === "Deletion Successful") {
+      toast.success("Diagram has been destroyed!");
+      router.refresh();
+    } else {
+      toast.error("Error when destroying diagram");
     }
+  };
 
-    const [imageExists, setImageExists] = useState(true);
+  return (
+    <Card className="group w-full max-w-sm m-4 overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-lg transition-shadow hover:shadow-2xl">
+      {/* Image Preview */}
+      <div className="relative w-full pb-[56.25%]">
+        <Image
+          src={imageExists ? imageUrl : fallbackImage}
+          alt={diagramData.name}
+          fill
+          className="object-cover rounded-t-2xl"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <h3 className="absolute bottom-3 left-4 text-white font-semibold text-lg drop-shadow opacity-0 group-hover:opacity-100 transition-opacity">
+          {diagramData.name}
+        </h3>
+      </div>
 
-    const imageUrl = "https://dbm-project-customiconimages.nyc3.digitaloceanspaces.com/testingUploads/" + diagramData.id + "--thumbnail"; // Example cloud URL
-    const fallbackImage = "/resources/ExampleDiagram.png"; // Fallback image
-  
-    useEffect(() => {
-      // Function to check if the image exists
-      console.log(imageUrl);
-      const checkImageExists = async () => {
-        try {
-          const response = await fetch(imageUrl, { method: 'HEAD' });
-          if (response.ok) {
-            setImageExists(true); // Image exists in cloud
-          } else {
-            setImageExists(false); // Image doesn't exist
-          }
-        } catch (error) {
-          setImageExists(false); // Error (image not accessible)
-        }
-      };
-  
-      checkImageExists();
-    }, [imageUrl]);
+      {/* Description */}
+      <CardContent className="pt-4 pb-2">
+        {diagramData.description.length < 80 ? (
+          <CardDescription className="text-gray-700 dark:text-slate-300">
+            {diagramData.description}
+          </CardDescription>
+        ) : (
+          <HoverCard>
+            <HoverCardTrigger>
+              <CardDescription className="text-gray-700 dark:text-slate-300 cursor-pointer hover:underline">
+                {diagramData.description.slice(0, 80) + "..."}
+              </CardDescription>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-64">
+              <div className="text-gray-800 dark:text-slate-200 whitespace-pre-wrap">
+                {diagramData.description}
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+        )}
+      </CardContent>
 
-    return (
-        <Card className="w-[100%] h-auto m-5 overflow-hidden">
-            <CardHeader>
-                <CardTitle>{diagramData.name}</CardTitle>
-                {diagramData.description.length < 80 ? (
-                    <CardDescription>{diagramData.description}</CardDescription>
-                ) : (
-                    <HoverCard>
-                        <HoverCardTrigger>
-                            <CardDescription className="hover:cursor-pointer">{diagramData.description.slice(0, 80) + "..."}</CardDescription>
-                        </HoverCardTrigger>
-                        <HoverCardContent>
-                            <h2 className="text-xl font-bold">Description</h2>
-                            <div>
-                                {diagramData.description}
-                            </div>
-                        </HoverCardContent>
-                    </HoverCard>
-                )}
-            </CardHeader>
-            <CardContent>
-                <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
-                    <Image 
-                        src={imageExists ? imageUrl : fallbackImage}
-                        layout="fill"
-                        objectFit="contain"
-                    />
-                </div>
-            </CardContent>
-            <CardFooter className="flex flex-wrap justify-around">
-                <Link href={"/projectEditor/" + diagramData.id}>
-                    <Button>Open</Button>
-                </Link>
-                {!isHomepage ? (
-                  <>
-                  <CreateEditDiagramDialog diagramId={diagramData.id} diagramName={diagramData.name} diagramDesc={diagramData.description}/>
-                  <Button variant="destructive" onClick={destroyDiagram}>Destroy</Button>
-                  </>
-                ) : (
-                  <></>
-                )}
-            </CardFooter>
-        </Card>
-    )
-  }
+      {/* Actions */}
+      <CardFooter className="flex flex-wrap justify-between gap-2 px-4 py-3">
+        <Link href={`/projectEditor/${diagramData.id}`} className="flex-1">
+          <Button className="w-full">Open</Button>
+        </Link>
+
+        {!isHomepage && (
+          <>
+            <CreateEditDiagramDialog
+              diagramId={diagramData.id}
+              diagramName={diagramData.name}
+              diagramDesc={diagramData.description}
+            />
+            <Button
+              variant="destructive"
+              onClick={destroyDiagram}
+              className="w-full"
+            >
+              Destroy
+            </Button>
+          </>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}

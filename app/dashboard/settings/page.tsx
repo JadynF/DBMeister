@@ -12,7 +12,6 @@ import { Settings, LogOut, Trash2 } from "lucide-react";
 const SettingsPage = () => {
 
     const [darkMode, setDarkMode] = useState(false);
-    const [fontSize, setFontSize] = useState("medium");
     const [currUser, setCurrUser] = useState("");
     const [currPass, setCurrPass] = useState("");
     const [username, setUsername] = useState("");
@@ -27,16 +26,14 @@ const SettingsPage = () => {
         const storedFontSize = localStorage.getItem("fontSize");
         const storedUsername = localStorage.getItem("username");
         if (storedTheme === "dark") setDarkMode(true);
-        if (storedFontSize) setFontSize(storedFontSize);
         if (storedUsername) setUsername(storedUsername);
     }, []);
 
     // Save settings to local storage
     useEffect(() => {
         localStorage.setItem("theme", darkMode ? "dark" : "light");
-        localStorage.setItem("fontSize", fontSize);
         document.documentElement.className = darkMode ? "dark" : "light";
-    }, [darkMode, fontSize]);
+    }, [darkMode]);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -135,20 +132,6 @@ const SettingsPage = () => {
                                             onCheckedChange={setDarkMode} 
                                             className="data-[state=checked]:bg-blue-600"
                                         />
-                                    </div>
-
-                                    <div className="flex flex-col space-y-2">
-                                        <Label htmlFor="font-size" className="font-medium text-slate-800 dark:text-slate-200">Font Size</Label>
-                                        <Select value={fontSize} onValueChange={setFontSize}>
-                                            <SelectTrigger id="font-size" className="border-slate-200 dark:border-slate-700">
-                                                <SelectValue placeholder="Select Font Size" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="small">Small</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="large">Large</SelectItem>
-                                            </SelectContent>
-                                        </Select>
                                     </div>
                                 </div>
                             </CardContent>

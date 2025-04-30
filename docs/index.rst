@@ -19,7 +19,7 @@ Target Audience
 Any development team working with data that needs an effective way to represent their project.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: “Quick Links”
 
    installandusage

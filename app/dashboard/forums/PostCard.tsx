@@ -1,10 +1,33 @@
-'use client';
+// app/forums/PostCard.tsx
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Send, Trash2 } from 'lucide-react';
-import CommentItem from './CommentItem';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import { Trash2 } from "lucide-react";
+
+type Reply = {
+  id: number;
+  user: string;
+  content: string;
+  user_id: number;
+  date_made: string;
+};
+
+type Comment = {
+  id: number;
+  user: string;
+  content: string;
+  user_id: number;
+  date_made: string;
+  replies: Reply[];
+};
 
 type Post = {
   id: number;
@@ -16,28 +39,17 @@ type Post = {
   comments: Comment[];
 };
 
-type Comment = {
-  id: number;
-  user: string;
-  content: string;
-  user_id: number;
-  replies: Reply[];
-};
-
-type Reply = {
-  id: number;
-  user: string;
-  content: string;
-  user_id: number;
-};
-
 interface PostCardProps {
   post: Post;
-  onCommentSubmit: (postId: number, commentContent: string) => void;
-  onReplySubmit: (postId: number, commentId: number, replyContent: string) => void;
-  onDeletePost: (postId: number) => void;
-  onDeleteComment: (commentId: number) => void;
-  onDeleteReply: (replyId: number) => void;
+  onCommentSubmit: (postId: number, content: string) => Promise<void>;
+  onReplySubmit: (
+    postId: number,
+    commentId: number,
+    content: string
+  ) => Promise<void>;
+  onDeletePost: (postId: number) => Promise<void>;
+  onDeleteComment: (commentId: number) => Promise<void>;
+  onDeleteReply: (replyId: number) => Promise<void>;
   currentUserId: number;
 }
 
@@ -50,80 +62,152 @@ export default function PostCard({
   onDeleteReply,
   currentUserId,
 }: PostCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [commentContent, setCommentContent] = useState('');
+  const [commentContent, setCommentContent] = useState("");
+  const [replyContents, setReplyContents] = useState<Record<number, string>>(
+    {}
+  );
 
-  const handleSubmitComment = (e: React.FormEvent) => {
+  const handleComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (commentContent.trim()) {
-      onCommentSubmit(post.id, commentContent);
-      setCommentContent('');
-      setIsExpanded(true);
-    }
+    if (!commentContent) return;
+    await onCommentSubmit(post.id, commentContent);
+    setCommentContent("");
+  };
+
+  const handleReply = async (e: React.FormEvent, cid: number) => {
+    e.preventDefault();
+    const c = replyContents[cid] || "";
+    if (!c) return;
+    await onReplySubmit(post.id, cid, c);
+    setReplyContents((prev) => ({ ...prev, [cid]: "" }));
   };
 
   return (
-    <div className="border rounded-lg p-4 dark:bg-slate-800 bg-white">
-      <div className="flex justify-between mb-2">
+    <article className="p-6 bg-white dark:bg-slate-800 shadow rounded-lg space-y-4">
+      {/* Post header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold">{post.title}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="text-lg font-semibold dark:text-white">
+            {post.title}
+          </h2>
+          <p className="text-xs text-gray-400">
             {post.user} • {post.date_made}
           </p>
         </div>
         {post.user_id === currentUserId && (
-          <Button
-            size="icon"
-            variant="ghost"
+          <button
             onClick={() => onDeletePost(post.id)}
+            aria-label="Delete post"
           >
-            <Trash2 className="h-5 w-5 text-red-500" />
-          </Button>
+            <Trash2 className="w-5 h-5 text-red-600" />
+          </button>
         )}
       </div>
 
-      <div className="mb-4 text-slate-700 dark:text-slate-300">
+      {/* Body */}
+      <p className="text-sm text-gray-700 dark:text-slate-300">
         {post.text}
-      </div>
+      </p>
 
-      <div className="border-t pt-4">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="mb-4 text-slate-600 dark:text-slate-400"
-        >
-          {isExpanded ? 'Hide Comments' : 'Show Comments'}
-        </Button>
-
-        {isExpanded && (
-          <div className="space-y-4 mb-4">
+      {/* Comments */}
+      <Accordion type="single" collapsible>
+        <AccordionItem value={`comments-${post.id}`}>
+          <AccordionTrigger className="font-medium">
+            Comments ({post.comments.length})
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4">
             {post.comments.map((comment) => (
-              <CommentItem
+              <div
                 key={comment.id}
-                comment={comment}
-                postId={post.id}
-                currentUserId={currentUserId}
-                onReplySubmit={onReplySubmit}
-                onDeleteComment={onDeleteComment}
-                onDeleteReply={onDeleteReply}
-              />
-            ))}
-          </div>
-        )}
+                className="pl-4 border-l border-gray-200 dark:border-slate-700 space-y-2"
+              >
+                {/* Single comment */}
+                <div className="flex justify-between">
+                  <div>
+                    <p className="text-sm dark:text-white">
+                      <span className="font-semibold">{comment.user}</span>{" "}
+                      {comment.content}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {comment.date_made}
+                    </p>
+                  </div>
+                  {comment.user_id === currentUserId && (
+                    <button
+                      onClick={() => onDeleteComment(comment.id)}
+                      aria-label="Delete comment"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </button>
+                  )}
+                </div>
 
-        {/* Comment form */}
-        <form onSubmit={handleSubmitComment} className="flex gap-2">
-          <Input
-            value={commentContent}
-            onChange={(e) => setCommentContent(e.target.value)}
-            placeholder="Write a comment..."
-          />
-          <Button type="submit" size="sm" disabled={!commentContent.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </div>
-    </div>
+                {/* Replies */}
+                {comment.replies.map((reply) => (
+                  <div key={reply.id} className="pl-4 space-y-1">
+                    <div className="flex justify-between">
+                      <p className="text-sm dark:text-white">
+                        <span className="font-semibold">{reply.user}</span>{" "}
+                        {reply.content}
+                      </p>
+                      {reply.user_id === currentUserId && (
+                        <button
+                          onClick={() => onDeleteReply(reply.id)}
+                          aria-label="Delete reply"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {reply.date_made}
+                    </p>
+                  </div>
+                ))}
+
+                {/* Reply form */}
+                <form
+                  onSubmit={(e) => handleReply(e, comment.id)}
+                  className="flex items-center space-x-2"
+                >
+                  <Textarea
+                    className="flex-1 h-12"
+                    placeholder="Write a reply…"
+                    value={replyContents[comment.id] || ""}
+                    onChange={(e) =>
+                      setReplyContents((prev) => ({
+                        ...prev,
+                        [comment.id]: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                  <Button type="submit" size="sm">
+                    Reply
+                  </Button>
+                </form>
+              </div>
+            ))}
+
+            {/* New comment form */}
+            <form
+              onSubmit={handleComment}
+              className="flex items-center space-x-2"
+            >
+              <Textarea
+                className="flex-1 h-12"
+                placeholder="Write a comment…"
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                required
+              />
+              <Button type="submit" size="sm">
+                Comment
+              </Button>
+            </form>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </article>
   );
 }

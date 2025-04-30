@@ -18,7 +18,13 @@ export default function Home() {
               </a>
             </nav>
           </div>
-
+          <img
+              src="/MEISTERLOGO.png"
+              alt="DBMeister Logo"
+              width="72"
+              height="72"
+              className="object-contain"
+            />
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
             <Link href="/login">

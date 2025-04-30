@@ -33,3 +33,15 @@ Any development team working with data, that needs to have a way to effectively 
 ## [Components Documentation](components.md)
 
 ## [State Server Documentation](stateserver.md)
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+   installandusage
+   api
+   lib
+   pages
+   components
+   stateserver
+```

@@ -73,9 +73,8 @@ export default async function Dashboard() {
         <div className="p-6 bg-white dark:bg-slate-800 shadow-lg rounded-xl mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Your Diagrams</h2>
-            <CreateDiagramDialog ownerId={response.userData.id} />
           </div>
-          <DashboardDiagrams diagramData={diagramData} />
+          <DashboardDiagrams diagramData={diagramData} isHomepage={true}/>
         </div>
         
         {/* Groups Cards Section - Improved Layout */}

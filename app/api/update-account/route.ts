@@ -1,30 +1,75 @@
 import { NextResponse } from "next/server";
-//import bcrypt from "bcryptjs"; // Hash Passwords Securley
-import pool from "@/lib/db"; 
+import { hashPassword, comparePasswords } from '@/lib/bcrypt'
+import { createConnection } from '@/lib/db';
 
 export async function POST(req: Request) {
+
+    const connection = createConnection();
     try {
-        const { username, password } = await req.json();
+        const { currUsername, currPassword, username, email, password } = await req.json();
+        console.log("Inputted params: ", currUsername, currPassword, username, email, password);
 
-        // Input validation
-        if (!username || !password) {
-            return NextResponse.json({ message: "Username and password are required." }, { status: 400 });
+        const getUser = await new Promise<any[]>((resolve, reject) => {
+            connection.query("SELECT * FROM user_information WHERE username=?", [currUsername], (err, results: any[]) => {
+                if (err) {
+                    reject(err); // Reject if there's an error
+                } else {
+                    resolve(results); // Resolve promise with results
+                }
+            });
+        });
+        console.log(getUser[0]);
+        console.log(getUser[0].password);
+        const passwordsMatched = await comparePasswords(currPassword, getUser[0].password);
+        if(passwordsMatched){
+            console.log("good to go");
+            if(password){
+                console.log("username empty");
+                const hashedPass = await hashPassword(password);
+                const updatePassword = await new Promise<any[]>((resolve, reject) => {
+                    connection.query('UPDATE user_information SET password=? WHERE username=?', [hashedPass, currUsername], (err, results: any[]) => {
+                        if (err) {
+                            reject(err); // Reject if there's an error
+                        } else {
+                            resolve(results); // Resolve promise with results
+                        }
+                    });
+                });
+            }
+            if(email){
+                const updateEmail = await new Promise<any[]>((resolve, reject) => {
+                    connection.query('UPDATE user_information SET email=? WHERE username=?', [email, currUsername], (err, results: any[]) => {
+                        if (err) {
+                            reject(err); // Reject if there's an error
+                        } else {
+                            resolve(results); // Resolve promise with results
+                        }
+                    });
+                });
+            }
+            if(username){
+                console.log("password empty");
+                const updateUsername = await new Promise<any[]>((resolve, reject) => {
+                    connection.query('UPDATE user_information SET username=? WHERE username=?', [username, currUsername], (err, results: any[]) => {
+                        if (err) {
+                            reject(err); // Reject if there's an error
+                        } else {
+                            resolve(results); // Resolve promise with results
+                        }
+                    });
+                });
+            }
+            return new Response(JSON.stringify({response: "Account updated successfully!"}), {
+                headers: { "Content-Type": "application/json" },
+                status: 200
+            });
+        } else {
+            console.log("you retard");
+            return new Response(JSON.stringify({response: "Account update failed!"}), {
+                headers: { "Content-Type": "application/json" },
+                status: 400
+            });
         }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Update user in the database (replace 'users' with actual table name)
-        const query = "UPDATE users SET username = ?, password = ? WHERE ide = ?";
-        const values = [username, hashedPassword, 1];
-
-        const [result] = await pool.execute(query, values);
-
-        if ((result as any).affectedRows === 0) {
-            return NextResponse.json({ message: "User not found or no changes made."}, { status: 404 });
-        }
-
-        return NextResponse.json({ message: "Account updated successfully." }, { status: 200 });
     } catch (error) {
         console.error("Update error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });

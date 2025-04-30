@@ -352,7 +352,7 @@ export default function Group() {
                             </h2>
                             <div className="flex flex-col justify-center items-center">
 
-                                <Card className="border border-slate-200 dark:border-slate-700 w-[50%] mb-8">
+                                <Card className="border border-slate-200 dark:border-slate-700 min-w-[50%] max-w-full mb-8">
                                     <CardHeader className="bg-slate-50 dark:bg-slate-800/60">
                                         <CardTitle className="text-md font-medium">Edit Group Information</CardTitle>
                                     </CardHeader>

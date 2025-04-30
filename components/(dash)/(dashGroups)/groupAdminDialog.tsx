@@ -55,7 +55,7 @@ export default function GroupAdminDialog({ groupId, userId, setReload } : {strin
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="py-8 px-8 text-lg">Make Group Admin</Button>
+        <Button className="text-lg">Make Group Admin</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>

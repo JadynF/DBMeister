@@ -553,30 +553,33 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
 
     if(nodeStatus) {
         return (
-            <div className="space-y-10">
+            <div>
+            <div className="flex items-center justify-center w-full">
+                Properties
+            </div>
             <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="tableHeader">
                     <AccordionTrigger>Node Name</AccordionTrigger>
                     <AccordionContent>
-                        <div>
+                        <div className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md">
                             <Input id="tableHeader-In" ref={headerRef} placeholder={nodeData.header} onChange={handleNameChange} />
-                            <Button onClick={updateHeader}>Update Node Name</Button>
+                            <Button onClick={updateHeader} className="mt-4">Update Node Name</Button>
                         </div>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodePosition">
                     <AccordionTrigger>Position</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md">
                         <Label htmlFor="positionY">X position</Label>
-                        <Input id="positionX-In" ref={positionXRef} placeholder={nodePosition.x as unknown as string} onChange={handlePositionXChange} />
+                        <Input className="mt-2 mb-6" id="positionX-In" ref={positionXRef} placeholder={nodePosition.x as unknown as string} onChange={handlePositionXChange} />
                         <Label htmlFor="positionX">Y position</Label>
-                        <Input id="positionY-In" ref={positionYRef} placeholder={nodePosition.y as unknown as string} onChange={handlePositionYChange} />
+                        <Input className="mt-2 mb-4" id="positionY-In" ref={positionYRef} placeholder={nodePosition.y as unknown as string} onChange={handlePositionYChange} />
                         <Button onClick={() => updatePosition(nodePosition)}>Set Position</Button>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodeData" className={isClassicTableType(nodeData) ? "block" : "hidden"}>
                     <AccordionTrigger>Classic Table Data</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md">
                         {/*SQL Table Data Accordian */}
                         {isClassicTableType(nodeData) && (
                         <div>
@@ -596,44 +599,46 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                                                 <AccordionContent className='space-y-5'>
                                                     <div>
                                                         <Label htmlFor="fieldName">Field Name</Label>
-                                                        <Input id={field.fieldName} placeholder={field.fieldName} onChange={(event) => handleFieldNameChange(field.fieldName, event)} />
+                                                        <Input className="mt-2 mb-6" id={field.fieldName} placeholder={field.fieldName} onChange={(event) => handleFieldNameChange(field.fieldName, event)} />
                                                     </div>
                                                     <div>
                                                         <Label htmlFor="fieldType">Field Type</Label>
-                                                        <Input id={field.fieldType} placeholder={field.fieldType} onChange={(event) => handleFieldTypeChange(field.fieldName, event)} />
+                                                        <Input className="mt-2 mb-6" id={field.fieldType} placeholder={field.fieldType} onChange={(event) => handleFieldTypeChange(field.fieldName, event)} />
                                                     </div>
-                                                    <div>
+                                                    <div className="flex align-center">
                                                         <Checkbox id={`null-${printBool(field.nullability)}`} checked={nullabilities[field.fieldName]} onCheckedChange={(change) => handleNullChange(field.fieldName, change as boolean)} />
-                                                        <Label htmlFor="nullability">Can Be Null<br></br></Label>
+                                                        <Label className="ml-2" htmlFor="nullability">Can Be Null<br></br></Label>
                                                     </div>
-                                                    <div>
+                                                    <div className="flex align-center">
                                                         <Checkbox id={`unique-${printBool(field.unique)}`} checked={uniques[field.fieldName]} onCheckedChange={(change) => handleUniqueChange(field.fieldName, change as boolean)} />
-                                                        <Label htmlFor="uniques">Is Unique<br></br></Label>
+                                                        <Label className="ml-2" htmlFor="uniques">Is Unique<br></br></Label>
                                                     </div>
                                                     <div>
                                                         {/*Do I want to put in the effort to make a shadcn combobox for this component? Not really */}
                                                         <Label htmlFor="keyTypes">Key Type</Label>
-                                                        <Input id={printStrOption(field.keyType)} placeholder={printStrOption(field.keyType)} onChange={(event) => handleKeyTypeChange(field.fieldName, event)} />
+                                                        <Input className="mt-2 mb-6" id={printStrOption(field.keyType)} placeholder={printStrOption(field.keyType)} onChange={(event) => handleKeyTypeChange(field.fieldName, event)} />
                                                     </div>
                                                     <div>
                                                         <Label htmlFor="fieldChecks">Field Checks</Label>
-                                                        <Input id={printStrOption(field.check)} placeholder={printStrOption(field.check)} onChange={(event) => handleCheckChange(field.fieldName, event)} />
+                                                        <Input className="mt-2 mb-6" id={printStrOption(field.check)} placeholder={printStrOption(field.check)} onChange={(event) => handleCheckChange(field.fieldName, event)} />
                                                     </div>
                                                     <div>
                                                         <Label htmlFor="fieldIndexes">Field Indexes</Label>
-                                                        <Input id={printStrOption(field.indexing)} placeholder={printStrOption(field.indexing)} onChange={(event) => handleIndexChange(field.fieldName, event)} />
+                                                        <Input className="mt-2 mb-6" id={printStrOption(field.indexing)} placeholder={printStrOption(field.indexing)} onChange={(event) => handleIndexChange(field.fieldName, event)} />
                                                     </div>
                                                     <div>
                                                         <Label htmlFor="fieldComments">Field Comments</Label>
-                                                        <Textarea id={printStrOption(field.comments)} placeholder={printStrOption(field.comments)} onChange={(event) => handleCommentChange(field.fieldName, event)} />
+                                                        <Textarea className="mt-2 mb-6" id={printStrOption(field.comments)} placeholder={printStrOption(field.comments)} onChange={(event) => handleCommentChange(field.fieldName, event)} />
                                                     </div>
                                                 </AccordionContent>
                                             </AccordionItem>
                                         </Accordion>
                                     </li>
                                 ))}
-                                <Button className=" w-1/2 bg-green-600" onClick={() => addField(nodeData)}> Add New Field</Button>
-                                <Button className="w-1/2" onClick={() => updateData(nodeData)}>Update Table</Button>
+                                <div className="flex">
+                                    <Button className="bg-green-600 m-2" onClick={() => addField(nodeData)}> Add New Field</Button>
+                                    <Button className="m-2" onClick={() => updateData(nodeData)}>Update Table</Button>
+                                </div>
                             </ul>
                         </div>
                         )}
@@ -641,7 +646,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                 </AccordionItem>
                 <AccordionItem value="nodeData" className={isNestedTableType(nodeData) ? "block" : "hidden"}>
                     <AccordionTrigger>Nested Table Data</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md">
                         {/*Excel Table Data Accordian */}
                         {isNestedTableType(nodeData) && (
                             <div>
@@ -708,22 +713,24 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                                         </li>
                                     ))}
                                 </ul>
-                                <Button className="w-1/2 bg-green-600" onClick={() => addNSheet(nodeData)}>Add Sheet</Button>
-                                <Button className="w-1/2 " onClick={() => updateData(nodeData)}>Update Data</Button>
+                                <div className="flex items-center justify-center">
+                                    <Button className="m-2 bg-green-600" onClick={() => addNSheet(nodeData)}>Add Sheet</Button>
+                                    <Button className="m-2 " onClick={() => updateData(nodeData)}>Update Data</Button>
+                                </div>
                             </div>
                         )}
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodeData" className={nodeData.type==="customicon" ? "block" : "hidden"}>
                     <AccordionTrigger>Custom Image Upload</AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-gray-300 dark:bg-gray-900 p-2 rounded-md">
                     <div id="importCustomImage-popup-overlay" >
-                        <div className="bg-white p-6 rounded-lg shadow-lg w-30">
+                        <div className="p-6 rounded-lg shadow-lg w-30">
                             <h2 className="text-xl font-bold mb-4">
                                 Upload a Custom Image
                             </h2>
                             <div id="import-drop-area"
-                                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100"
+                                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition hover:bg-gray-100 dark:hover:bg-gray-700 mb-4"
                                 onClick={browseImg}
                                 onDragOver={handleDragOver}
                                 onDrop={handleImgDrop}>

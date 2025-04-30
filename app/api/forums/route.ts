@@ -1,263 +1,347 @@
-import { createConnection } from '@/lib/db';
+// app/api/forums/route.ts
+import { createConnection } from "@/lib/db";
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  const connection = await createConnection();
-
-  try {
-    if (body.type === 'post') {
-      const { userId, title, text } = body;
-      const date_made = new Date().toISOString().split('T')[0];
-
-      await new Promise((resolve, reject) => {
-        connection.query(
-          'INSERT INTO forum_question (user_id, title, text, date_made, solved) VALUES (?, ?, ?, ?, 0);',
-          [userId, title, text, date_made],
-          (err) => (err ? reject(err) : resolve(null))
-        );
-      });
-
-      return new Response(JSON.stringify({ response: "Post Created" }), { status: 200 });
-    }
-
-    if (body.type === 'comment') {
-      const { postId, userId, content } = body;
-      const date_made = new Date().toISOString().split('T')[0];
-
-      const result: any = await new Promise((resolve, reject) => {
-        connection.query(
-          'INSERT INTO forum_response (text, date_made, question_id) VALUES (?, ?, ?);',
-          [content, date_made, postId],
-          (err, results) => (err ? reject(err) : resolve(results))
-        );
-      });
-
-      const commentId = result.insertId;
-
-      await new Promise((resolve, reject) => {
-        connection.query(
-          'INSERT INTO posted_response (user_id, response_id) VALUES (?, ?);',
-          [userId, commentId],
-          (err) => (err ? reject(err) : resolve(null))
-        );
-      });
-
-      return new Response(JSON.stringify({ response: "Comment Created" }), { status: 200 });
-    }
-
-    if (body.type === 'reply') {
-      const { postId, commentId, userId, content } = body;
-      const date_made = new Date().toISOString().split('T')[0];
-
-      const result: any = await new Promise((resolve, reject) => {
-        connection.query(
-          'INSERT INTO forum_response (text, date_made, question_id) VALUES (?, ?, ?);',
-          [content, date_made, postId],
-          (err, results) => (err ? reject(err) : resolve(results))
-        );
-      });
-
-      const replyId = result.insertId;
-
-      await new Promise((resolve, reject) => {
-        connection.query(
-          'INSERT INTO posted_response (user_id, response_id) VALUES (?, ?);',
-          [userId, replyId],
-          (err) => (err ? reject(err) : resolve(null))
-        );
-      });
-
-      await new Promise((resolve, reject) => {
-        connection.query(
-          'INSERT INTO r_response (parent_response_id, child_response_id) VALUES (?, ?);',
-          [commentId, replyId],
-          (err) => (err ? reject(err) : resolve(null))
-        );
-      });
-
-      return new Response(JSON.stringify({ response: "Reply Created" }), { status: 200 });
-    }
-
-    return new Response(JSON.stringify({ response: "Invalid request type" }), { status: 400 });
-
-  } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ response: "Error creating forum content" }), { status: 500 });
-  } finally {
-    connection.end();
-  }
-}
-
+// GET: fetch posts with nested comments and replies
 export async function GET(req: Request) {
   const connection = await createConnection();
-
   try {
-    const posts = await new Promise<any[]>((resolve, reject) => {
-      connection.query(`
-        SELECT 
-          fq.id AS post_id, fq.title, fq.text AS post_text, fq.date_made AS post_date, fq.user_id, ui.firstName, ui.lastName
+    // 1) Fetch posts
+    const posts: any[] = await new Promise((resolve, reject) => {
+      connection.query(
+        `
+        SELECT
+          fq.id         AS post_id,
+          fq.title      AS title,
+          fq.text       AS post_text,
+          fq.date_made  AS post_date,
+          fq.user_id    AS user_id,
+          ui.firstName  AS firstName,
+          ui.lastName   AS lastName
         FROM forum_question fq
-        JOIN user_information ui ON fq.user_id = ui.id
+        JOIN user_information ui
+          ON fq.user_id = ui.id
         ORDER BY fq.date_made DESC;
-      `, (err, results) => (err ? reject(err) : resolve(results)));
+        `,
+        (err, results) => (err ? reject(err) : resolve(results))
+      );
     });
 
-    const comments = await new Promise<any[]>((resolve, reject) => {
-      connection.query(`
-        SELECT 
-          fr.id AS comment_id, fr.text AS comment_text, fr.question_id, pr.user_id, ui.firstName, ui.lastName
+    // 2) Fetch top-level comments (exclude replies)
+    const comments: any[] = await new Promise((resolve, reject) => {
+      connection.query(
+        `
+        SELECT
+          fr.id           AS comment_id,
+          fr.text         AS comment_text,
+          fr.date_made    AS comment_date,
+          fr.question_id  AS post_id,
+          pr.user_id      AS user_id,
+          ui.firstName    AS firstName,
+          ui.lastName     AS lastName
         FROM forum_response fr
-        JOIN posted_response pr ON fr.id = pr.response_id
-        JOIN user_information ui ON pr.user_id = ui.id;
-      `, (err, results) => (err ? reject(err) : resolve(results)));
+        JOIN posted_response pr
+          ON fr.id = pr.response_id
+        JOIN user_information ui
+          ON pr.user_id = ui.id
+        LEFT JOIN r_response rr
+          ON fr.id = rr.child_response_id
+        WHERE rr.child_response_id IS NULL
+        ORDER BY fr.date_made ASC;
+        `,
+        (err, results) => (err ? reject(err) : resolve(results))
+      );
     });
 
-    const replies = await new Promise<any[]>((resolve, reject) => {
-      connection.query(`
-        SELECT 
-          child.id AS reply_id, child.text AS reply_text, r.parent_response_id, pr.user_id, ui.firstName, ui.lastName
+    // 3) Fetch replies
+    const replies: any[] = await new Promise((resolve, reject) => {
+      connection.query(
+        `
+        SELECT
+          child.id               AS reply_id,
+          child.text             AS reply_text,
+          child.date_made        AS reply_date,
+          r.parent_response_id   AS parent_comment_id,
+          pr.user_id             AS user_id,
+          ui.firstName           AS firstName,
+          ui.lastName            AS lastName
         FROM r_response r
-        JOIN forum_response child ON r.child_response_id = child.id
-        JOIN posted_response pr ON child.id = pr.response_id
-        JOIN user_information ui ON pr.user_id = ui.id;
-      `, (err, results) => (err ? reject(err) : resolve(results)));
+        JOIN forum_response child
+          ON r.child_response_id = child.id
+        JOIN posted_response pr
+          ON child.id = pr.response_id
+        JOIN user_information ui
+          ON pr.user_id = ui.id
+        ORDER BY child.date_made ASC;
+        `,
+        (err, results) => (err ? reject(err) : resolve(results))
+      );
     });
 
-    const structuredPosts = posts.map(post => ({
-      id: post.post_id,
-      title: post.title,
-      text: post.post_text,
-      user: `${post.firstName} ${post.lastName}`,
-      user_id: post.user_id,
-      date_made: post.post_date,
+    // 4) Nest comments and replies under each post
+    const structured = posts.map(p => ({
+      id: p.post_id,
+      title: p.title,
+      text: p.post_text,
+      user: `${p.firstName} ${p.lastName}`,
+      user_id: p.user_id,
+      date_made: p.post_date,
       comments: comments
-        .filter(comment => comment.question_id === post.post_id)
-        .map(comment => ({
-          id: comment.comment_id,
-          user: `${comment.firstName} ${comment.lastName}`,
-          content: comment.comment_text,
-          user_id: comment.user_id,
+        .filter(c => c.post_id === p.post_id)
+        .map(c => ({
+          id: c.comment_id,
+          user: `${c.firstName} ${c.lastName}`,
+          content: c.comment_text,
+          user_id: c.user_id,
+          date_made: c.comment_date,
           replies: replies
-            .filter(reply => reply.parent_response_id === comment.comment_id)
-            .map(reply => ({
-              id: reply.reply_id,
-              user: `${reply.firstName} ${reply.lastName}`,
-              content: reply.reply_text,
-              user_id: reply.user_id,
+            .filter(r => r.parent_comment_id === c.comment_id)
+            .map(r => ({
+              id: r.reply_id,
+              user: `${r.firstName} ${r.lastName}`,
+              content: r.reply_text,
+              user_id: r.user_id,
+              date_made: r.reply_date,
             })),
         })),
     }));
 
-    return new Response(JSON.stringify({ posts: structuredPosts }), {
-      headers: { "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ posts: structured }), {
       status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: "Failed to fetch posts" }), { status: 500 });
+    console.error("Forums GET error:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to fetch posts" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   } finally {
     connection.end();
   }
 }
 
-export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    },
-  });
+// POST: create a post, comment, or reply, using NOW() for full DATETIME
+export async function POST(req: Request) {
+  const { type, userId, title, text, postId, commentId, content } = await req.json();
+  const connection = await createConnection();
+
+  try {
+    if (type === "post") {
+      await new Promise((resolve, reject) => {
+        connection.query(
+          `INSERT INTO forum_question
+             (user_id, title, text, date_made, solved)
+           VALUES (?, ?, ?, NOW(), 0);`,
+          [userId, title, text],
+          (err) => (err ? reject(err) : resolve(null))
+        );
+      });
+      return new Response(JSON.stringify({ response: "Post Created" }), { status: 200 });
+    }
+
+    if (type === "comment") {
+      const result: any = await new Promise((resolve, reject) => {
+        connection.query(
+          `INSERT INTO forum_response
+             (text, date_made, question_id)
+           VALUES (?, NOW(), ?);`,
+          [content, postId],
+          (err, results) => (err ? reject(err) : resolve(results))
+        );
+      });
+      await new Promise((resolve, reject) => {
+        connection.query(
+          `INSERT INTO posted_response
+             (user_id, response_id)
+           VALUES (?, ?);`,
+          [userId, result.insertId],
+          (err) => (err ? reject(err) : resolve(null))
+        );
+      });
+      return new Response(JSON.stringify({ response: "Comment Created" }), { status: 200 });
+    }
+
+    if (type === "reply") {
+      const result: any = await new Promise((resolve, reject) => {
+        connection.query(
+          `INSERT INTO forum_response
+             (text, date_made, question_id)
+           VALUES (?, NOW(), ?);`,
+          [content, postId],
+          (err, results) => (err ? reject(err) : resolve(results))
+        );
+      });
+      const rid = result.insertId;
+      await new Promise((resolve, reject) => {
+        connection.query(
+          `INSERT INTO posted_response
+             (user_id, response_id)
+           VALUES (?, ?);`,
+          [userId, rid],
+          (err) => (err ? reject(err) : resolve(null))
+        );
+      });
+      await new Promise((resolve, reject) => {
+        connection.query(
+          `INSERT INTO r_response
+             (parent_response_id, child_response_id)
+           VALUES (?, ?);`,
+          [commentId, rid],
+          (err) => (err ? reject(err) : resolve(null))
+        );
+      });
+      return new Response(JSON.stringify({ response: "Reply Created" }), { status: 200 });
+    }
+
+    return new Response(
+      JSON.stringify({ response: "Invalid request type" }),
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error("Forums POST error:", error);
+    return new Response(
+      JSON.stringify({ response: "Error creating forum content" }),
+      { status: 500 }
+    );
+  } finally {
+    connection.end();
+  }
 }
 
+// DELETE: remove a post, comment, or reply and return in every branch
 export async function DELETE(req: Request) {
   const { type, id } = await req.json();
   const connection = await createConnection();
 
   try {
-    if (type === 'post') {
-      // Step 1: Delete r_response links (replies) linked to post comments
-      await new Promise((resolve, reject) => {
-        connection.query(`
-          DELETE r FROM r_response r
-          JOIN forum_response child ON r.child_response_id = child.id
-          WHERE child.question_id = ?;
-        `, [id], (err) => (err ? reject(err) : resolve(null)));
-      });
-
-      // Step 2: Delete posted_response entries
-      await new Promise((resolve, reject) => {
-        connection.query(`
-          DELETE pr FROM posted_response pr
-          JOIN forum_response fr ON pr.response_id = fr.id
-          WHERE fr.question_id = ?;
-        `, [id], (err) => (err ? reject(err) : resolve(null)));
-      });
-
-      // Step 3: Delete forum_response (comments + replies)
+    if (type === "post") {
+      // delete replies linked to post
       await new Promise((resolve, reject) => {
         connection.query(
-          'DELETE FROM forum_response WHERE question_id = ?;',
+          `DELETE r FROM r_response r
+           JOIN forum_response fr
+             ON r.child_response_id = fr.id
+           WHERE fr.question_id = ?;`,
           [id],
           (err) => (err ? reject(err) : resolve(null))
         );
       });
-
-      // Step 4: Delete the forum_question (post)
+      // delete posted_response for those responses
       await new Promise((resolve, reject) => {
         connection.query(
-          'DELETE FROM forum_question WHERE id = ?;',
+          `DELETE pr FROM posted_response pr
+           JOIN forum_response fr
+             ON pr.response_id = fr.id
+           WHERE fr.question_id = ?;`,
           [id],
           (err) => (err ? reject(err) : resolve(null))
         );
       });
-
-      return new Response(JSON.stringify({ response: "Post Deletion Successful" }), { status: 200 });
+      // delete all responses
+      await new Promise((resolve, reject) => {
+        connection.query(
+          `DELETE FROM forum_response WHERE question_id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
+      });
+      // delete the question
+      await new Promise((resolve, reject) => {
+        connection.query(
+          `DELETE FROM forum_question WHERE id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
+      });
+      return new Response(
+        JSON.stringify({ response: "Post Deletion Successful" }),
+        { status: 200 }
+      );
     }
 
-    if (type === 'comment') {
-      // Delete reply links to this comment
+    if (type === "comment") {
+      // delete child replies
       await new Promise((resolve, reject) => {
-        connection.query('DELETE FROM r_response WHERE parent_response_id = ?;', [id], (err) => (err ? reject(err) : resolve(null)));
+        connection.query(
+          `DELETE FROM r_response WHERE parent_response_id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
       });
-
-      // Delete user ownership
+      // delete posted_response
       await new Promise((resolve, reject) => {
-        connection.query('DELETE FROM posted_response WHERE response_id = ?;', [id], (err) => (err ? reject(err) : resolve(null)));
+        connection.query(
+          `DELETE FROM posted_response WHERE response_id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
       });
-
-      // Delete the comment itself
+      // delete the comment itself
       await new Promise((resolve, reject) => {
-        connection.query('DELETE FROM forum_response WHERE id = ?;', [id], (err) => (err ? reject(err) : resolve(null)));
+        connection.query(
+          `DELETE FROM forum_response WHERE id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
       });
-
-      return new Response(JSON.stringify({ response: "Comment Deletion Successful" }), { status: 200 });
+      return new Response(
+        JSON.stringify({ response: "Comment Deletion Successful" }),
+        { status: 200 }
+      );
     }
 
-    if (type === 'reply') {
-      // Delete reply link
+    if (type === "reply") {
+      // delete reply link
       await new Promise((resolve, reject) => {
-        connection.query('DELETE FROM r_response WHERE child_response_id = ?;', [id], (err) => (err ? reject(err) : resolve(null)));
+        connection.query(
+          `DELETE FROM r_response WHERE child_response_id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
       });
-
-      // Delete user ownership
+      // delete posted_response
       await new Promise((resolve, reject) => {
-        connection.query('DELETE FROM posted_response WHERE response_id = ?;', [id], (err) => (err ? reject(err) : resolve(null)));
+        connection.query(
+          `DELETE FROM posted_response WHERE response_id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
       });
-
-      // Delete reply itself
+      // delete the reply
       await new Promise((resolve, reject) => {
-        connection.query('DELETE FROM forum_response WHERE id = ?;', [id], (err) => (err ? reject(err) : resolve(null)));
+        connection.query(
+          `DELETE FROM forum_response WHERE id = ?;`,
+          [id],
+          (err) => (err ? reject(err) : resolve(null))
+        );
       });
-
-      return new Response(JSON.stringify({ response: "Reply Deletion Successful" }), { status: 200 });
+      return new Response(
+        JSON.stringify({ response: "Reply Deletion Successful" }),
+        { status: 200 }
+      );
     }
 
-    return new Response(JSON.stringify({ response: "Invalid delete type" }), { status: 400 });
-
+    return new Response(
+      JSON.stringify({ response: "Invalid delete type" }),
+      { status: 400 }
+    );
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ response: "Deletion Error" }), { status: 500 });
+    console.error("Forums DELETE error:", error);
+    return new Response(
+      JSON.stringify({ response: "Deletion Error" }),
+      { status: 500 }
+    );
   } finally {
     connection.end();
   }
+}
+
+// OPTIONS: enable CORS preflight
+export async function OPTIONS() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 }

@@ -694,7 +694,7 @@ export default function Project() {
                                         </div>
                                     </HoverCardTrigger>
                                     <HoverCardContent>
-                                        <div>
+                                        <div className="relative z-100">
                                             {user}
                                         </div>
                                     </HoverCardContent>

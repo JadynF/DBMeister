@@ -575,7 +575,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodeData" className={isClassicTableType(nodeData) ? "block" : "hidden"}>
-                    <AccordionTrigger>SQL Table Data</AccordionTrigger>
+                    <AccordionTrigger>Classic Table Data</AccordionTrigger>
                     <AccordionContent>
                         {/*SQL Table Data Accordian */}
                         {isClassicTableType(nodeData) && (
@@ -640,7 +640,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="nodeData" className={isNestedTableType(nodeData) ? "block" : "hidden"}>
-                    <AccordionTrigger>Excel Table Data</AccordionTrigger>
+                    <AccordionTrigger>Nested Table Data</AccordionTrigger>
                     <AccordionContent>
                         {/*Excel Table Data Accordian */}
                         {isNestedTableType(nodeData) && (

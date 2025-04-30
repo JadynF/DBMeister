@@ -50,7 +50,7 @@ export default function Home() {
           <p className="text-lg text-gray-600 mb-8">
             Speed up production and boost understanding in your project by creating a detailed schema. DBMeister allows you to show not only internal data flow, but external as well. The ultimate tool to minimize confusion in your database project.
           </p>
-          <Link href="/projectEditor">
+          <Link href="/login">
             <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-lg shadow-md transition-colors inline-flex items-center">
               Create Diagram
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">

@@ -6,7 +6,9 @@ import DashboardDiagrams from "@/components/(dash)/(dashDiagram)/diagramList";
 import DashboardGroups from "@/components/(dash)/(dashGroups)/groupList";
 
 export default async function Dashboard() {
+  console.log("On dashboard");
   const response = await authorization();
+  console.log("Finished authorization");
 
   const newsItems = [
     { 

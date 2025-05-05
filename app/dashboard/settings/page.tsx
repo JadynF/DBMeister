@@ -37,8 +37,9 @@ const SettingsPage = () => {
     }, [darkMode]);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        router.push("/");
+        localStorage.setItem("theme", "light");
+        document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        window.location.replace('/');
     };
 
     const handleDeleteAccount = async () => {
@@ -48,13 +49,14 @@ const SettingsPage = () => {
                 headers: { "Content-Type": "application/json" },
             });
             if (res.ok) {
+                document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
                 localStorage.clear();
                 toast("Account deleted successfully", {
                     action: {
                         label: "Close"
                     }
                 });
-                router.push("/");
+                router.refresh();
             } else {
                 toast("Failed to delete account", {
                     action: {

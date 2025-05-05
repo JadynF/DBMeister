@@ -163,7 +163,7 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
 
     return (
         <>
-        <h3 className="text-center mb-2">Components</h3>
+        <h3 className="text-center mb-2">Elements</h3>
         <Tabs defaultValue="Icons" className="w-auto">
             <TabsList>
                 <TabsTrigger value="Icons">Icons</TabsTrigger>

@@ -14,9 +14,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
 
-import { Home, Users, Shapes, MessageCircleQuestion, Settings } from "lucide-react"
+import { Home, Users, Shapes, MessageCircleQuestion, Settings, UserRound} from "lucide-react"
 
 // Menu items
 const items = [
@@ -27,7 +28,7 @@ const items = [
   { title: "Settings",  url: "/dashboard/settings", icon: Settings },
 ]
 
-export function DashSidebar() {
+export function DashSidebar({userData} : {any}) {
   const pathname = usePathname()
   const [darkMode, setDarkMode] = useState(false)
 
@@ -101,6 +102,19 @@ export function DashSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <div className="flex justify-center align-center mb-2">
+          <UserRound className="h-auto w-11 h-11 mr-4"/>
+          <div className="flex flex-col w-[50%]">
+            <p className="text-xl font-bold">
+              {userData.username}
+            </p>
+            <p className="text-xs opacity-70">
+              User ID: {userData.id}
+            </p>
+          </div>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }

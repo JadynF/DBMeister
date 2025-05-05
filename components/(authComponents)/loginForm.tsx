@@ -53,10 +53,11 @@ const LoginForm = () => {
       const data = await res.json();
       
       if(data.response === "accepted") {
-        document.cookie = `token=${data.token}`;
+        document.cookie = [`token=${data.token}`, 'path=/'].join('; ');
         setStatusMessage("Success! Redirecting to dashboard...");
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        router.push("/dashboard");
+        console.log("Going to dashboard");
+        window.location.replace('/dashboard');
+        console.log("should be on dashboard");
       } else {
         setStatusMessage("");
         setErrorMessage(data.response || "Login failed. Please try again.");

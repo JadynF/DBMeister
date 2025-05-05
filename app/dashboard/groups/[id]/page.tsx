@@ -304,9 +304,9 @@ export default function Group() {
                                     ))
                                 ) : (
                                     <div className="col-span-3 flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                                        <FileImage className="h-12 w-12 text-slate-400 mb-4" />
-                                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No diagrams yet</h3>
-                                        <p className="text-slate-500 dark:text-slate-400 mb-4">When you create group diagrams, they will appear here!</p>
+                                        <UserPlus className="h-12 w-12 text-slate-400 mb-4" />
+                                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No invitations yet</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 mb-4">When you send out invitations, they will appear here!</p>
                                     </div>
                                 )}
                             </div>
@@ -335,9 +335,9 @@ export default function Group() {
                                     ))
                                 ) : (
                                     <div className="col-span-3 flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                                        <FileImage className="h-12 w-12 text-slate-400 mb-4" />
-                                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No diagrams yet</h3>
-                                        <p className="text-slate-500 dark:text-slate-400 mb-4">When you create group diagrams, they will appear here!</p>
+                                        <Users className="h-12 w-12 text-slate-400 mb-4" />
+                                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No People?</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 mb-4">You shouldn't be seeing this because YOU'RE here, and you're a person!</p>
                                     </div>
                                 )}
                             </div>

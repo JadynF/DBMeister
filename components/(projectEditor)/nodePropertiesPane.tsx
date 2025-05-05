@@ -635,7 +635,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                                         </Accordion>
                                     </li>
                                 ))}
-                                <div className="flex">
+                                <div className="flex flex-wrap items-center justify-center">
                                     <Button className="bg-green-600 m-2" onClick={() => addField(nodeData)}> Add New Field</Button>
                                     <Button className="m-2" onClick={() => updateData(nodeData)}>Update Table</Button>
                                 </div>
@@ -713,7 +713,7 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                                         </li>
                                     ))}
                                 </ul>
-                                <div className="flex items-center justify-center">
+                                <div className="flex flex-wrap items-center justify-center">
                                     <Button className="m-2 bg-green-600" onClick={() => addNSheet(nodeData)}>Add Sheet</Button>
                                     <Button className="m-2 " onClick={() => updateData(nodeData)}>Update Data</Button>
                                 </div>

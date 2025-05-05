@@ -14,7 +14,7 @@ export default function Login() {
         <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
             <img
-              src="/MEISTERLOGO.png"
+              src="/DBMEISTER-LOGO.png"
               alt="DBMeister Logo"
               width="96"
               height="96"

@@ -19,7 +19,7 @@ export default function Home() {
             </nav>
           </div>
           <img
-              src="/MEISTERLOGO.png"
+              src="/DBMEISTER-LOGO.png"
               alt="DBMeister Logo"
               width="72"
               height="72"
@@ -116,9 +116,6 @@ export default function Home() {
       <section className="bg-indigo-600 py-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Ready to streamline your database design?</h2>
-          <p className="text-indigo-100 max-w-2xl mx-auto mb-8">
-            Join thousands of developers who use DBMeister to create clear, collaborative schema diagrams.
-          </p>
           <Link href="/register">
             <button className="bg-white hover:bg-gray-100 text-indigo-600 font-medium py-3 px-8 rounded-lg shadow-md transition-colors">
               Get Started

@@ -781,9 +781,17 @@ export default function Project() {
                     </div>
                   ))}
                 </RadioGroup>
+                {!isSaved ? (
+                        <div className = "text-red-600 font-bold mb-4 dark:text-red-400">
+                            You must save the project before exporting!
+                        </div>
+                    ) : (
+                        <></>
+                    )
+                }
                 <div className="flex items-center justify-center">
                     <Button variant="destructive" onClick={handleExPopChange} className="mr-4">Close</Button>
-                    <Button onClick={exportProject}>Export</Button>
+                    <Button onClick={exportProject} disabled={!isSaved}>Export</Button>
                 </div>
               </div>
             </div>

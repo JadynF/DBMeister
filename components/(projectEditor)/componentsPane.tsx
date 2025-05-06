@@ -218,8 +218,8 @@ const ComponentsPane: React.FC<ComponentsPaneProps> = ({ createNode }) => {
                             <Image
                                 src={shape.imageSrc}
                                 alt={shape.shapeLabel}
-                                width={200}
-                                height={200}
+                                width={100}
+                                height={100}
                                 className="mb-2" 
                             />
                             <span className="text-center text-sm font-medium">{shape.shapeLabel}</span>

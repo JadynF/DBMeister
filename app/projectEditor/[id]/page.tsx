@@ -784,7 +784,7 @@ export default function Project() {
               {compPaneMini ? (
                 <div className="flex relative w-[20%] min-w-fit">
                   <Button variant="ghost"
-                    className="w-[15%] absolute top-1/2 transform -translate-y-1/2 flex flex-col justify-center items-center h-full bg-indigo-400 hover:bg-indigo-600"
+                    className="w-[15%] absolute top-1/2 transform -translate-y-1/2 flex flex-col justify-center items-center h-full text-white bg-blue-600 hover:bg-blue-400"
                     onClick={handleCompPaneMini}
                   >
                     <div className="-rotate-90 w-max mb-5"><Label>Elements</Label></div>
@@ -797,7 +797,7 @@ export default function Project() {
               ) : (
                 <div className="flex items-center justify-center w-[3%] min-w-10">
                   <Button variant="ghost"
-                    className="flex flex-col items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full w-full"
+                    className="flex flex-col items-center justify-center text-white bg-blue-600 hover:bg-blue-400 h-full w-full"
                     onClick={handleCompPaneMini}
                   >
                     <div className="-rotate-90 w-max mb-5"><Label>Elements</Label></div>
@@ -851,7 +851,7 @@ export default function Project() {
                     )}
                   </div>
                   <Button variant="ghost"
-                    className="w-[15%] absolute top-1/2 right-0 transform -translate-y-1/2 flex flex-col items-center justify-center h-full bg-indigo-400 hover:bg-indigo-600"
+                    className="w-[15%] absolute top-1/2 right-0 transform -translate-y-1/2 flex flex-col text-white items-center justify-center h-full bg-indigo-500 hover:bg-indigo-300"
                     onClick={handlePropPaneMini}
                   >
                     <div className="mb-5 rotate-90 w-max"><Label>Properties</Label></div>
@@ -861,7 +861,7 @@ export default function Project() {
               ) : (
                 <div className="bg-gray-100 flex items-center justify-center w-[3%] min-w-10">
                   <Button variant="ghost"
-                    className="flex flex-col items-center justify-center bg-indigo-400 hover:bg-indigo-600 h-full w-full"
+                    className="flex flex-col items-center justify-center text-white bg-indigo-500 hover:bg-indigo-300 h-full w-full"
                     onClick={handlePropPaneMini}
                   >
                     <div className="mb-5 rotate-90 w-max"><Label>Properties</Label></div>

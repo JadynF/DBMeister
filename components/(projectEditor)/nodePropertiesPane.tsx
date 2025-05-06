@@ -743,12 +743,6 @@ const NodePropertiesPane: React.FC<NodePropertiesPaneProps> = ({projectID, selec
                     </div>
                     </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="nodeStyling">
-                    <AccordionTrigger>Styling</AccordionTrigger>
-                    <AccordionContent>
-                    Yes, you will be able to style a table how you desire. No, we haven't got to it yet.
-                    </AccordionContent>
-                </AccordionItem>
             </Accordion>
             <Button variant="destructive" className="w-full" onClick={deleteNode}>Delete Node</Button>
             </div>

@@ -386,6 +386,7 @@ export default function Project() {
             const saved = await saveProject(state, projectId);
 
             if (saved.saved) {
+                updateSocketState(nodes, edges, nodeIDCounter);
                 socket.emit("send-saved-update", params.id);
                 console.log("saved");
                 toast("Diagram has been saved!", {
@@ -485,13 +486,22 @@ export default function Project() {
                             pdf.save('dataflowproject.pdf');
                         }
                     } catch (err) {
-                    console.error('Error generating image:', err);
+                        console.error('Error generating image:', err);
+                        toast("Failed to generate export!", {
+                            action: {
+                              label: "Close"
+                            }
+                        });
                     } finally {
                         // Always restore original styles after capture
                         restoreOriginalStyles(styleBackupMap);
                     }
                 } else {
-                    console.log("no flowNode");
+                    toast("Failed to generate export!", {
+                        action: {
+                          label: "Close"
+                        }
+                    });
                     return;
                 }
             }

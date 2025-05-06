@@ -414,6 +414,33 @@ export default function Project() {
             }
         });
     }
+    
+    function inlineAndBackupStyles(node, backupMap) {
+        const allElements = node.querySelectorAll('*');
+        allElements.forEach((el) => {
+            const computed = getComputedStyle(el);
+            const original = {};
+            for (const key of computed) {
+                original[key] = el.style.getPropertyValue(key); // backup original inline
+                el.style.setProperty(key, computed.getPropertyValue(key)); // apply computed as inline
+            }
+            backupMap.set(el, original);
+        });
+    }
+    
+    function restoreOriginalStyles(backupMap) {
+        backupMap.forEach((original, el) => {
+            for (const key in original) {
+                if (original[key]) {
+                    el.style.setProperty(key, original[key]);
+                } else {
+                    el.style.removeProperty(key);
+                }
+            }
+        });
+        backupMap.clear();
+    }
+
     const exportProject = async () => {
         if (userId && projectId) {
             if(exportType==="dbmp"){
@@ -432,8 +459,11 @@ export default function Project() {
             } else {
                 const flowNode = document.querySelector('.react-flow') as HTMLElement;
                 if(flowNode) {
+                    const styleBackupMap = new Map();
                     try {
-                        //inlineAllStyles(flowNode);
+                        // Clone the node to avoid affecting the original DOM
+                        inlineAndBackupStyles(flowNode, styleBackupMap);
+
                         if(exportType==="png"){
                             let dataUrl = await toPng(flowNode, {backgroundColor: "#ffffff", cacheBust: true});
                             //toJpeg same process, but different function here. Make function (imageDownload) and make it the else condition
@@ -456,6 +486,9 @@ export default function Project() {
                         }
                     } catch (err) {
                     console.error('Error generating image:', err);
+                    } finally {
+                        // Always restore original styles after capture
+                        restoreOriginalStyles(styleBackupMap);
                     }
                 } else {
                     console.log("no flowNode");

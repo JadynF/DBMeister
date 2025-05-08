@@ -23,7 +23,7 @@ export default function Home() {
               alt="DBMeister Logo"
               width="72"
               height="72"
-              className="object-contain"
+              className="object-contain -ml-24"
             />
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
@@ -81,9 +81,9 @@ export default function Home() {
               </p>
             </div>
             <div className="md:w-1/2">
-              <div className="bg-gray-200 rounded-lg h-48 md:h-64 flex items-center justify-center">
+              <div className="bg-gray-200 rounded-lg h-48 md:h-64 flex items-center justify-center overflow-hidden">
                 <img 
-                  src="ETL-Tools.png" 
+                  src="diagram3.jpg" 
                   alt="External Mapping" 
                   className="object-cover h-full w-full"
                 />
@@ -102,7 +102,7 @@ export default function Home() {
             <div className="md:w-1/2">
             <div className="bg-gray-200 rounded-lg h-48 md:h-64 flex items-center justify-center overflow-hidden">
               <img 
-                src="Collaboration.jpg" 
+                src="forums1.jpg" 
                 alt="Collaboration" 
                 className="object-cover h-full w-full"
               />

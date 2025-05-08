@@ -13,11 +13,12 @@ export default async function Dashboard() {
   const newsItems = [
     { 
       id: 1, 
-      imgSrc: "/collab1.jpg", 
+      imgSrc: "/Collab5.jpg", 
       alt: "Team Collaboration", 
       text: "Collaborate with DBMeister",
       description: "Work together with your team in real-time. Share diagrams, collaborate on designs, and keep everyone on the same page with our intuitive collaboration tools."
     },
+    
     { 
       id: 2, 
       imgSrc: "/diagrams.jpg", 
@@ -27,10 +28,17 @@ export default async function Dashboard() {
     },
     { 
       id: 3, 
-      imgSrc: "/tech.jpg", 
-      alt: "DBMeister Technology", 
-      text: "Advanced Technology", 
-      description: "Built with cutting-edge technology, DBMeister offers unparalleled performance and reliability for all your database design and management needs."
+      imgSrc: "/Bulldog1.jpg", 
+      alt: "Tech Based", 
+      text: "Based in Louisiana Tech University", 
+      description: "Four students at Louisiana Tech University got together to develop the web app that makes lives easier."
+    },
+    { 
+      id: 4, 
+      imgSrc: "/Forumss.jpg", 
+      alt: "Forums page", 
+      text: "Connect with the Community Through Forums",
+      description: "Ask, Answer, Post, Comment, Reply, and Have Fun on our Forums Page."
     }
   ];
 

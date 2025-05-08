@@ -16,14 +16,6 @@ export default function NewsFeed({ newsItems }: { newsItems: NewsItem[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Auto-rotate carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      goToNext();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [currentIndex]);
-
   const goToPrevious = () => {
     if (isAnimating) return;
     setIsAnimating(true);
